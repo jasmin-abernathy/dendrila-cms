@@ -32,6 +32,8 @@ La V1 est considérée exploitable lorsque :
 
 Voir `docs/ROADMAP.md`.
 
+Le contrat P0 de départ, ses interfaces logiques et les limites de compatibilité MMW v1 sont décrits dans `docs/P0-CORE-CONTRACT.md`.
+
 ## Principes
 
 - Pas de code spécifique client dans MMW.
