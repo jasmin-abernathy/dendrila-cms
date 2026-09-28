@@ -1,0 +1,15 @@
+{
+  "id": "editor",
+  "label": "Éditeur",
+  "permissions": [
+    "content.read",
+    "content.create",
+    "content.update",
+    "content.publish",
+    "media.read",
+    "media.upload",
+    "media.update",
+    "navigation.manage",
+    "seo.manage"
+  ]
+}

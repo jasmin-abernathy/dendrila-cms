@@ -1,0 +1,32 @@
+{
+  "id": "page",
+  "label": "Page",
+  "collection": true,
+  "workflow": "editorial",
+  "fields": [
+    {
+      "id": "title",
+      "type": "text",
+      "label": "Titre",
+      "required": true
+    },
+    {
+      "id": "slug",
+      "type": "text",
+      "label": "Adresse",
+      "required": true
+    },
+    {
+      "id": "blocks",
+      "type": "blocks",
+      "label": "Contenu",
+      "required": true
+    },
+    {
+      "id": "seo",
+      "type": "relation",
+      "label": "SEO",
+      "required": false
+    }
+  ]
+}

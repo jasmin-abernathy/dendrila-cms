@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MMW CMS Revision",
+  "type": "object",
+  "required": [
+    "revision_id",
+    "entity_id",
+    "entity_type",
+    "version",
+    "created_at",
+    "snapshot"
+  ],
+  "properties": {
+    "revision_id": {
+      "type": "string"
+    },
+    "entity_id": {
+      "type": "string"
+    },
+    "entity_type": {
+      "type": "string"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "author_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "change_summary": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "source": {
+      "enum": [
+        "web",
+        "mmw",
+        "import",
+        "system"
+      ]
+    },
+    "snapshot": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,30 @@
+{
+  "id": "association",
+  "label": "Association",
+  "content_types": [
+    "page",
+    "article",
+    "event",
+    "document",
+    "team_member"
+  ],
+  "modules": [
+    "content",
+    "media",
+    "forms",
+    "calendar",
+    "documents",
+    "seo"
+  ],
+  "navigation": [
+    "Accueil",
+    "Actualités",
+    "Agenda",
+    "Association",
+    "Documents",
+    "Adhérer"
+  ],
+  "defaults": {
+    "review_before_publish": true
+  }
+}
