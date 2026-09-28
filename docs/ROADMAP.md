@@ -16,7 +16,7 @@ Référence : [`P0-CORE-CONTRACT.md`](P0-CORE-CONTRACT.md). Ces cases valident l
 
 - [ ] Choisir le runtime serveur de référence et le moteur de persistance initial.
 - [ ] Implémenter registres de modèles, services de contenu, autorisation, révisions et transactions.
-- [ ] Implémenter le workflow, publication atomique et restauration sans réécriture d'historique.
+- [ ] Implémenter le workflow (aperçu, revue, planification, publication atomique) et la restauration sans réécriture d'historique.
 - [ ] Implémenter l'adaptateur MMW sans modifier les contrats v1 non pris en charge.
 - [ ] Ajouter les tests de contrat locaux listés dans `P0-CORE-CONTRACT.md`.
 - [ ] Vérifier tous les accès inter-sites et mutations par des tests de refus.
@@ -25,24 +25,26 @@ Référence : [`P0-CORE-CONTRACT.md`](P0-CORE-CONTRACT.md). Ces cases valident l
 ## P1 — Fonctions éditoriales indispensables
 
 - [ ] Navigation / menus.
-- [ ] Bibliothèque média complète.
-- [ ] SEO essentiel.
-- [ ] Journal d'audit.
-- [ ] Import / export structurés.
+- [ ] Blocs de contenu réutilisables (texte, image, CTA, cartes, FAQ, galerie, statistiques), déclaratifs et sans code.
+- [ ] Bibliothèque média complète : recherche, filtres, texte alternatif selon le contexte, variantes, réutilisation et suppression sûre.
+- [ ] SEO essentiel : métadonnées, URLs canoniques, sitemap et partage social.
 - [ ] Premier adaptateur de référence.
+- [ ] Site pilote générique réutilisant le CMS Core.
 - [ ] Tests de contrat locaux.
 
 ## P1 — Kits métier
 
 - [ ] Kit Artisan / TPE.
 - [ ] Kit Association.
+- [ ] Kit PME / services.
 - [ ] Jeu de données d'exemple.
 - [ ] Validation qu'un kit n'ajoute aucun code client à MMW.
 
 ## P2
 
-- [ ] Kit PME / services.
 - [ ] Kit Collectivité / école.
 - [ ] Kit Profession libérale / santé.
+- [ ] Journal d'audit (acteur, action, date, appareil).
+- [ ] Import / export structurés et sauvegardes restaurables.
 - [ ] Gestion portefeuille multi-sites.
 - [ ] Catalogue de connecteurs.

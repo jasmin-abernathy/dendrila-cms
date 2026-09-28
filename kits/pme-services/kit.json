@@ -1,0 +1,30 @@
+{
+  "id": "pme-services",
+  "label": "PME et services",
+  "content_types": [
+    "page",
+    "article",
+    "service",
+    "team_member",
+    "case_study",
+    "document"
+  ],
+  "modules": [
+    "content",
+    "media",
+    "forms",
+    "requests",
+    "seo"
+  ],
+  "navigation": [
+    "Accueil",
+    "Services",
+    "Réalisations",
+    "Équipe",
+    "Actualités",
+    "Contact"
+  ],
+  "defaults": {
+    "review_before_publish": true
+  }
+}
