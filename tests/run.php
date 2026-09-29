@@ -115,9 +115,22 @@ check($service->get($contributor, $ownDraft['content']['id'])['values']['title']
     'Contributor can read their own draft.');
 check(count($service->list($contributor, ['status' => 'draft'])) === 1,
     'Contributor draft listing is limited to their own drafts.');
-expect(LePotager\Cms\Content\ContentNotFound::class, fn () => $service->get($contributor, $id));
+$publicForContributor = $service->get($contributor, $id);
+check($publicForContributor['status'] === 'published'
+    && $publicForContributor['values']['title'] === 'Nouvelle version'
+    && $publicForContributor['version'] === $publishedVersion,
+    'Contributor sees the public snapshot, not another editor working draft.');
 expect(LePotager\Cms\Content\ContentNotFound::class, fn () => $service->updateDraft(
     $contributor, $id, $store->contents['site-a'][$id]['version'], $values, 'request-0012'));
+$unpublishedDraft = $service->createDraft($actor, 'page', [
+    'title' => 'Brouillon privé', 'slug' => 'brouillon-prive', 'blocks' => [],
+], 'request-0014');
+expect(LePotager\Cms\Content\ContentNotFound::class, fn () =>
+    $service->get($contributor, $unpublishedDraft['content']['id']));
+$privateVersion = $store->contents['site-a'][$unpublishedDraft['content']['id']]['version'];
+expect(LePotager\Cms\Content\ContentNotFound::class, fn () => $service->updateDraft(
+    $contributor, $unpublishedDraft['content']['id'], $privateVersion,
+    ['title' => 'Pirate', 'slug' => 'brouillon-prive', 'blocks' => []], 'request-0015'));
 $ownUpdated = $service->updateDraft($contributor, $ownDraft['content']['id'], 1, [
     'title' => 'Mon brouillon modifié', 'slug' => 'mon-brouillon', 'blocks' => [],
 ], 'request-0013');
