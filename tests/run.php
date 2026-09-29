@@ -40,6 +40,7 @@ $store->policies['site-a'] = ['review_before_publish' => true];
 $store->permissions['site-a']['editor-1'] = [
     'content.create', 'content.read', 'content.read_draft', 'content.update', 'content.preview',
     'content.submit_for_review', 'content.publish', 'content.schedule', 'content.restore_revision',
+    'content.archive',
 ];
 $service = new ContentService($store, new AuthorizationService($store));
 $values = ['title' => 'Accueil', 'slug' => 'accueil', 'blocks' => [['type' => 'text', 'text' => 'Bonjour']]];
@@ -138,6 +139,25 @@ $ownUpdated = $service->updateDraft($contributor, $ownDraft['content']['id'], 1,
     'title' => 'Mon brouillon modifié', 'slug' => 'mon-brouillon', 'blocks' => [],
 ], 'request-0013');
 check($ownUpdated['content']['version'] === 2, 'Contributor can update their own draft.');
+$partialUpdate = $service->updateFields($contributor, $ownDraft['content']['id'], ['title' => 'Titre partiel'], 'request-0016', 'page');
+check($partialUpdate['content']['values']['title'] === 'Titre partiel'
+    && $partialUpdate['content']['values']['blocks'] === [],
+    'Mapped-field updates preserve CMS fields not exposed to the mobile client.');
+check($service->updateFields($contributor, $ownDraft['content']['id'], ['title' => 'Titre partiel'],
+    'request-0016', 'page') === $partialUpdate, 'Mapped-field updates replay their stored response idempotently.');
+$reviewUpdate = $service->updateFields($contributor, $ownDraft['content']['id'], ['title' => 'À valider'],
+    'request-0018', 'page', true);
+check($reviewUpdate['status'] === 'pending_review' && $reviewUpdate['content']['status'] === 'review',
+    'MMW field updates enter review when the site policy requires it.');
+$reviewCreate = $service->createDraft($actor, 'page', [
+    'title' => 'Nouvelle page depuis MMW', 'slug' => 'nouvelle-page-mmw', 'blocks' => [],
+], 'request-0019', true);
+check($reviewCreate['status'] === 'pending_review' && $reviewCreate['content']['status'] === 'review',
+    'MMW-created content enters review when the site policy requires it.');
+$archived = $service->archive($actor, $unpublishedDraft['content']['id'], 'request-0017', 'page');
+check($archived['content']['status'] === 'archived', 'A gallery deletion archives the CMS content.');
+check($service->archive($actor, $unpublishedDraft['content']['id'], 'request-0017', 'page') === $archived,
+    'Repeated gallery deletion returns the original idempotent response.');
 
 $foreignActor = new ActorContext('site-b', 'editor-1');
 $store->permissions['site-b']['editor-1'] = ['content.read'];

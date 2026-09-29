@@ -19,10 +19,21 @@ final readonly class ContentService
     }
 
     /** @param array<string, mixed> $values @return array<string, mixed> */
-    public function createDraft(ActorContext $actor, string $typeId, array $values, string $requestId): array
+    public function createDraft(
+        ActorContext $actor,
+        string $typeId,
+        array $values,
+        string $requestId,
+        bool $submitForReview = false,
+    ): array
     {
-        return $this->mutate($actor, $requestId, ['op' => 'create', 'type' => $typeId, 'values' => $values], function () use ($actor, $typeId, $values): array {
+        return $this->mutate($actor, $requestId, [
+            'op' => 'create', 'type' => $typeId, 'values' => $values, 'submit_for_review' => $submitForReview,
+        ], function () use ($actor, $typeId, $values, $submitForReview): array {
             $this->authorization->require($actor, 'content.create');
+            if ($submitForReview) {
+                $this->authorization->require($actor, 'content.submit_for_review');
+            }
             $rawDefinition = $this->store->findContentType($actor->siteId, $typeId);
             if ($rawDefinition === null) {
                 throw new ContentNotFound('Content type is not enabled for this site.');
@@ -39,7 +50,7 @@ final readonly class ContentService
                 'created_by_id' => $actor->actorId,
                 'type_id' => $typeId,
                 'slug' => $this->slugFrom($values, $contentId),
-                'status' => ContentStatus::Draft->value,
+                'status' => $submitForReview ? ContentStatus::Review->value : ContentStatus::Draft->value,
                 'values' => $values,
                 'published_values' => null,
                 'published_slug' => null,
@@ -54,11 +65,12 @@ final readonly class ContentService
                 'updated_at' => $now,
             ];
             $this->store->insertContent($content);
-            $this->store->appendRevision($this->revision($content, $actor, $revisionId, 'Création du brouillon', $actor->source));
+            $this->store->appendRevision($this->revision($content, $actor, $revisionId,
+                $submitForReview ? 'Création envoyée en revue' : 'Création du brouillon', $actor->source));
             $this->store->appendAudit($actor->siteId, $actor->actorId, $actor->deviceId,
                 'content.create', 'content', $contentId, 'allowed', ['type_id' => $typeId]);
             $siteRevision = $this->store->incrementDataRevision($actor->siteId);
-            return $this->response($content, 'applied', $siteRevision);
+            return $this->response($content, $submitForReview ? 'pending_review' : 'applied', $siteRevision);
         });
     }
 
@@ -145,6 +157,104 @@ final readonly class ContentService
             $this->store->appendRevision($this->revision($content, $actor, $revisionId, 'Mise à jour du brouillon', $actor->source));
             $this->store->appendAudit($actor->siteId, $actor->actorId, $actor->deviceId,
                 'content.update', 'content', $contentId, 'allowed', ['version' => $content['version']]);
+            $siteRevision = $this->store->incrementDataRevision($actor->siteId);
+            return $this->response($content, 'applied', $siteRevision);
+        });
+    }
+
+    /** @param array<string, mixed> $fields @return array<string, mixed> */
+    public function updateFields(
+        ActorContext $actor,
+        string $contentId,
+        array $fields,
+        string $requestId,
+        ?string $expectedTypeId = null,
+        bool $submitForReview = false,
+    ): array
+    {
+        if ($fields === []) {
+            throw new \InvalidArgumentException('At least one field must be provided.');
+        }
+        return $this->mutate($actor, $requestId, [
+            'op' => 'patch', 'content_id' => $contentId, 'type_id' => $expectedTypeId,
+            'fields' => $fields, 'submit_for_review' => $submitForReview,
+        ], function () use ($actor, $contentId, $fields, $expectedTypeId, $submitForReview): array {
+            $canUpdateAny = $this->store->actorHasPermission($actor->siteId, $actor->actorId, 'content.update');
+            if (!$canUpdateAny) {
+                $this->authorization->require($actor, 'content.update_own');
+            }
+            $content = $this->load($actor, $contentId);
+            if ($expectedTypeId !== null && $content['type_id'] !== $expectedTypeId) {
+                throw new ContentNotFound('Content does not belong to this module.');
+            }
+            if (!$canUpdateAny && $content['created_by_id'] !== $actor->actorId) {
+                throw new ContentNotFound('Content does not exist in this site.');
+            }
+            if (!in_array($content['status'], ['draft', 'review', 'published'], true)) {
+                throw new InvalidTransition('Only working or published content can be edited.');
+            }
+            $rawDefinition = $this->store->findContentType($actor->siteId, $content['type_id']);
+            if ($rawDefinition === null) {
+                throw new ContentNotFound('Content type is no longer enabled.');
+            }
+            $values = array_replace($content['values'], $fields);
+            (new ContentTypeDefinition($rawDefinition))->validateValues($values);
+            if ($submitForReview) {
+                $this->authorization->require($actor, 'content.submit_for_review');
+            }
+
+            $oldVersion = $content['version'];
+            $content['values'] = $values;
+            $content['slug'] = $this->slugFrom($values, $content['content_id']);
+            if ($content['status'] === 'published') {
+                $content['status'] = 'draft';
+            }
+            if ($submitForReview) {
+                $content['status'] = ContentStatus::Review->value;
+            }
+            $content['version'] = $oldVersion + 1;
+            $content['publish_at'] = null;
+            $content['review_approved_at'] = null;
+            $content['updated_at'] = self::now();
+            $revisionId = bin2hex(random_bytes(16));
+            $content['current_revision_id'] = $revisionId;
+            $this->store->saveContent($content, $oldVersion);
+            $this->store->appendRevision($this->revision($content, $actor, $revisionId,
+                'Mise à jour des champs depuis MMW', $actor->source));
+            $this->store->appendAudit($actor->siteId, $actor->actorId, $actor->deviceId,
+                'content.update', 'content', $contentId, 'allowed', ['version' => $content['version']]);
+            $siteRevision = $this->store->incrementDataRevision($actor->siteId);
+            return $this->response($content, $submitForReview ? 'pending_review' : 'applied', $siteRevision);
+        });
+    }
+
+    /** @return array<string, mixed> */
+    public function archive(ActorContext $actor, string $contentId, string $requestId, ?string $expectedTypeId = null): array
+    {
+        return $this->mutate($actor, $requestId, [
+            'op' => 'archive', 'content_id' => $contentId, 'type_id' => $expectedTypeId,
+        ], function () use ($actor, $contentId, $expectedTypeId): array {
+            $content = $this->load($actor, $contentId);
+            if ($expectedTypeId !== null && $content['type_id'] !== $expectedTypeId) {
+                throw new ContentNotFound('Content does not belong to this module.');
+            }
+            $current = ContentStatus::from($content['status']);
+            $this->authorization->require($actor, 'content.archive');
+            if (!$this->transitionAllowed($current, ContentStatus::Archived)) {
+                throw new InvalidTransition("Content in {$current->value} state cannot be archived.");
+            }
+            $oldVersion = $content['version'];
+            $content['status'] = ContentStatus::Archived->value;
+            $content['publish_at'] = null;
+            $content['version'] = $oldVersion + 1;
+            $content['updated_at'] = self::now();
+            $revisionId = bin2hex(random_bytes(16));
+            $content['current_revision_id'] = $revisionId;
+            $this->store->saveContent($content, $oldVersion);
+            $this->store->appendRevision($this->revision($content, $actor, $revisionId,
+                'Archivage demandé depuis MMW', $actor->source));
+            $this->store->appendAudit($actor->siteId, $actor->actorId, $actor->deviceId,
+                'content.archived', 'content', $contentId, 'allowed', ['version' => $content['version']]);
             $siteRevision = $this->store->incrementDataRevision($actor->siteId);
             return $this->response($content, 'applied', $siteRevision);
         });
@@ -402,9 +512,9 @@ final readonly class ContentService
     private function transitionAllowed(ContentStatus $from, ContentStatus $to): bool
     {
         return match ($from) {
-            ContentStatus::Draft => in_array($to, [ContentStatus::Review, ContentStatus::Scheduled, ContentStatus::Published], true),
-            ContentStatus::Review => in_array($to, [ContentStatus::Draft, ContentStatus::Scheduled, ContentStatus::Published], true),
-            ContentStatus::Scheduled => in_array($to, [ContentStatus::Draft, ContentStatus::Review], true),
+            ContentStatus::Draft => in_array($to, [ContentStatus::Review, ContentStatus::Scheduled, ContentStatus::Published, ContentStatus::Archived], true),
+            ContentStatus::Review => in_array($to, [ContentStatus::Draft, ContentStatus::Scheduled, ContentStatus::Published, ContentStatus::Archived], true),
+            ContentStatus::Scheduled => in_array($to, [ContentStatus::Draft, ContentStatus::Review, ContentStatus::Archived], true),
             ContentStatus::Published => in_array($to, [ContentStatus::Draft, ContentStatus::Archived], true),
             ContentStatus::Archived => $to === ContentStatus::Draft,
         };

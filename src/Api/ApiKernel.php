@@ -22,6 +22,7 @@ final class ApiKernel
         private readonly DeviceAuthenticator $authenticator,
         private readonly SiteReadModel $readModel,
         private readonly ?AuthenticationService $authentication = null,
+        private readonly ?SiteChangeHandler $changes = null,
     ) {
         $this->router = new Router();
         $this->router->add('GET', '/v1/config', fn (Request $request): Response =>
@@ -34,6 +35,11 @@ final class ApiKernel
             Response::json($this->authentication()->verify($request->jsonObject())));
         $this->router->add('POST', '/v1/auth/pair', fn (Request $request): Response =>
             Response::json($this->authentication()->pair($request->jsonObject())));
+        $this->router->add('POST', '/v1/changes', fn (Request $request): Response =>
+            Response::json($this->changes()->apply(
+                $this->authenticator->authenticate($request),
+                $request->jsonObject(),
+            )));
     }
 
     public function handle(Request $request): Response
@@ -75,6 +81,14 @@ final class ApiKernel
                 'The site identity provider is not configured.');
         }
         return $this->authentication;
+    }
+
+    private function changes(): SiteChangeHandler
+    {
+        if ($this->changes === null) {
+            throw new HttpException(503, 'changes_unavailable', 'The change service is not configured.');
+        }
+        return $this->changes;
     }
 
     private static function error(int $status, string $code, string $message, array $headers = []): Response

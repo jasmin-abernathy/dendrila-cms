@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 use LePotager\Cms\Api\ApiKernel;
 use LePotager\Cms\Api\PdoDeviceAuthenticator;
+use LePotager\Cms\Api\PdoSiteChangeService;
 use LePotager\Cms\Api\PdoSiteReadModel;
 use LePotager\Cms\Http\HttpException;
 use LePotager\Cms\Http\Request;
@@ -21,7 +22,8 @@ try {
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         PDO::ATTR_EMULATE_PREPARES => false,
     ]);
-    $kernel = new ApiKernel(new PdoDeviceAuthenticator($pdo), new PdoSiteReadModel($pdo));
+    $kernel = new ApiKernel(new PdoDeviceAuthenticator($pdo), new PdoSiteReadModel($pdo),
+        changes: new PdoSiteChangeService($pdo));
     $kernel->handle(Request::fromGlobals())->emit();
 } catch (Throwable $error) {
     error_log('MMW API bootstrap error: ' . $error::class . ': ' . $error->getMessage());

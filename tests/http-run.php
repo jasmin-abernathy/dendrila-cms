@@ -12,6 +12,7 @@ use LePotager\Cms\Api\DeviceAuthenticator;
 use LePotager\Cms\Api\DeviceTokenIssuer;
 use LePotager\Cms\Api\IdentityProvider;
 use LePotager\Cms\Api\SiteReadModel;
+use LePotager\Cms\Api\SiteChangeHandler;
 use LePotager\Cms\Api\SnapshotProjector;
 use LePotager\Cms\Api\Unauthorized;
 use LePotager\Cms\Api\VerifiedLogin;
@@ -95,6 +96,14 @@ final class TestDeviceTokenIssuer implements DeviceTokenIssuer
     {
         $this->issued[] = [$member->siteId, $member->actorId, $deviceName];
         return ['device_token' => str_repeat('d', 64), 'expires_at' => null];
+    }
+}
+
+final class TestSiteChangeHandler implements SiteChangeHandler
+{
+    public function apply(ActorContext $actor, array $request): array
+    {
+        return ['status' => 'applied', 'request_id' => $request['client_request_id'], 'actor' => $actor->actorId];
     }
 }
 
@@ -182,6 +191,19 @@ httpCheck($badTotp->status === 401 && $badTotp->payload['error']['message'] === 
 $authWrongMethod = $authKernel->handle(new Request('GET', '/v1/auth/start', ['x-lepotager-protocol' => '1'], ''));
 httpCheck($authWrongMethod->status === 405 && ($authWrongMethod->headers['Allow'] ?? null) === 'POST',
     'Auth paths report POST as their allowed method.');
+$changeUnavailable = $kernel->handle(new Request('POST', '/v1/changes', [
+    'x-lepotager-protocol' => '1', 'x-lepotager-device-token' => 'a'.str_repeat('b', 63),
+    'content-type' => 'application/json',
+], '{"module_id":"home","action":"update_fields","client_request_id":"request-1234","payload":{}}'));
+httpCheck($changeUnavailable->status === 503, 'Unconfigured change handlers fail closed.');
+$changeKernel = new ApiKernel(new TestDeviceAuthenticator(), $readModel, changes: new TestSiteChangeHandler());
+$change = $changeKernel->handle(new Request('POST', '/v1/changes', [
+    'x-lepotager-protocol' => '1', 'x-lepotager-device-token' => 'a'.str_repeat('b', 63),
+    'content-type' => 'application/json',
+], '{"module_id":"home","action":"update_fields","client_request_id":"request-1234","payload":{}}'));
+httpCheck($change->status === 200 && $change->payload['status'] === 'applied'
+    && $change->payload['request_id'] === 'request-1234' && $change->payload['actor'] === 'actor-test',
+    'The changes route requires device authentication and passes the actor to its handler.');
 
 $emptyObject = (new Request('POST', '/unused', ['content-type' => 'application/json'], '{}'))->jsonObject();
 httpCheck($emptyObject === [], 'An empty JSON object is accepted.');

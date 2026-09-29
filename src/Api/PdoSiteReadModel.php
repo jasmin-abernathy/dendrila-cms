@@ -138,7 +138,7 @@ final readonly class PdoSiteReadModel implements SiteReadModel
     }
 
     /** @param list<array<string, mixed>> $modules @return list<array<string, mixed>> */
-    private static function safeModules(array $modules): array
+    public static function safeModules(array $modules): array
     {
         $safe = [];
         $seen = [];

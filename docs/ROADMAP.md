@@ -23,7 +23,7 @@ Référence : [`P0-CORE-CONTRACT.md`](P0-CORE-CONTRACT.md). Ces cases valident l
 - [ ] Vérifier tous les accès inter-sites et mutations par des tests de refus.
 - [ ] Documenter séparément la mise à jour de `media_library` dans le contrat MMW avant de la déclarer officiellement v1.
 
-Un prototype PHP interne est présent dans `src/`, avec migrations, commandes de bootstrap, tests du domaine, une couche HTTP privée (`GET /v1/config`, `GET /v1/snapshot`) et la projection bornée de contenus configurés via `ContentService`. Les routes d'authentification MMW v1 et leurs tests de contrat sont ajoutés, mais exigent encore un adaptateur `IdentityProvider` spécifique au site avant tout parcours utilisateur réel. Les tests de cette étape doivent être exécutés dans un environnement PHP réel. Le manifeste de découverte, l'administration de configuration et les mutations restent à construire avant tout déploiement.
+Un prototype PHP interne est présent dans `src/`, avec migrations, commandes de bootstrap, tests du domaine, une couche HTTP privée (`GET /v1/config`, `GET /v1/snapshot`, `POST /v1/changes`) et la projection bornée de contenus configurés via `ContentService`. Les routes d'authentification MMW v1 exigent encore un adaptateur `IdentityProvider` spécifique au site. Les mutations des formulaires et galeries sont raccordées aux contenus du CMS ; `item_action` attend les connecteurs métier propres à chaque site. Le manifeste de découverte, l'administration de configuration et la couche média restent à construire avant tout déploiement.
 
 ## P1 — Fonctions éditoriales indispensables
 
