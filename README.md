@@ -36,7 +36,7 @@ Le contrat P0 de départ, ses interfaces logiques et les limites de compatibilit
 
 Le socle de référence est PHP 8.5+ / PDO / MariaDB, documenté dans `docs/ARCHITECTURE.md`. L'implémentation cœur commence dans `src/`; elle ne remplace pas les échanges d'authentification du protocole MMW.
 
-## Prototype local du CMS Core
+## Prototype local du CMS Core et première API
 
 Prérequis : PHP 8.5+ avec `pdo_mysql` et `mbstring`, Composer et une base MariaDB dédiée.
 
@@ -50,7 +50,9 @@ php bin/bootstrap-site.php <site_id> <nom_du_site> <actor_id_proprietaire> [revi
 
 Les commandes de migration et de création de site attendent `DB_DSN`, `DB_USERNAME` et `DB_PASSWORD` dans l'environnement. Le fichier `.env.example` montre la forme attendue, mais le projet ne charge volontairement pas `.env` automatiquement. Les fichiers média doivent rester hors du webroot.
 
-La couche livrée ici est un noyau PHP interne, pas encore une API MMW publique : aucune route HTTP ne doit créer un `ActorContext` depuis des champs de requête. Il faut brancher l'authentification MMW et vérifier le jeton d'appareil avant d'appeler les services du cœur.
+La première couche HTTP expose GET /v1/config et GET /v1/snapshot. Elle exige X-Lepotager-Protocol: 1 et un jeton d'appareil valide dans X-Lepotager-Device-Token. Les jetons de développement peuvent être émis avec php bin/issue-device-token.php <site_id> <actor_id> <device_name> après la migration 002. Cette commande ne remplace pas encore les routes de connexion TOTP et d'appairage prévues par le protocole : ne pas l'utiliser comme parcours de production.
+
+À ce stade, les réglages d'API d'un site commencent avec une liste de modules vide ; le snapshot renvoie donc des données vides avec une révision. La configuration des modules et leur projection depuis les contenus CMS restent à construire. Le manifeste de découverte n'est pas encore publié, car les parcours d'authentification annoncés dans ce manifeste ne sont pas encore implémentés.
 
 ## Principes
 

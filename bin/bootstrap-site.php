@@ -38,6 +38,14 @@ try {
         'policy_json' => json_encode(['review_before_publish' => $reviewBeforePublish, 'allow_offline_queue' => false], JSON_THROW_ON_ERROR),
         'created_at' => $now, 'updated_at' => $now,
     ]);
+    $apiSettings = $pdo->prepare(
+        'INSERT INTO site_api_settings (site_id, branding_json, modules_json, created_at, updated_at)
+         VALUES (:site_id, :branding_json, :modules_json, :created_at, :updated_at)'
+    );
+    $apiSettings->execute([
+        'site_id' => $siteId, 'branding_json' => '{}', 'modules_json' => '[]',
+        'created_at' => $now, 'updated_at' => $now,
+    ]);
     $insertRole = $pdo->prepare('INSERT INTO roles (site_id, role_id, label) VALUES (:site_id, :role_id, :label)');
     $insertPermission = $pdo->prepare('INSERT INTO role_permissions (site_id, role_id, permission) VALUES (:site_id, :role_id, :permission)');
     foreach ($roles as $role) {

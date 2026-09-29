@@ -18,12 +18,12 @@ Référence : [`P0-CORE-CONTRACT.md`](P0-CORE-CONTRACT.md). Ces cases valident l
 - [ ] Valider les extensions et l'accès MariaDB réels sur l'hébergement de référence.
 - [ ] Implémenter registres de modèles, services de contenu, autorisation, révisions et transactions.
 - [ ] Implémenter le workflow (aperçu, revue, planification, publication atomique) et la restauration sans réécriture d'historique.
-- [ ] Implémenter l'adaptateur MMW sans modifier les contrats v1 non pris en charge.
+- [ ] Compléter l'adaptateur MMW sans modifier les contrats v1 non pris en charge.
 - [ ] Ajouter les tests de contrat locaux listés dans `P0-CORE-CONTRACT.md`.
 - [ ] Vérifier tous les accès inter-sites et mutations par des tests de refus.
 - [ ] Documenter séparément la mise à jour de `media_library` dans le contrat MMW avant de la déclarer officiellement v1.
 
-Un prototype PHP interne est présent dans `src/`, avec migrations, commandes de bootstrap et tests du domaine. Les cases restent ouvertes jusqu'à ce que PHP les exécute réellement et que le driver MariaDB soit validé. L'API HTTP et l'adaptateur d'authentification restent à construire avant tout déploiement.
+Un prototype PHP interne est présent dans `src/`, avec migrations, commandes de bootstrap, tests du domaine et première couche HTTP privée (`GET /v1/config`, `GET /v1/snapshot`). Les tests du dépôt doivent encore être exécutés dans un environnement PHP réel. L'authentification standard du protocole MMW, le manifeste de découverte, les projections de contenus et les mutations restent à construire avant tout déploiement.
 
 ## P1 — Fonctions éditoriales indispensables
 

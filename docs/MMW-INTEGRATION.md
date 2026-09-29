@@ -23,3 +23,10 @@ La configuration privée du site porte `config_version` (branding, politique, mo
 La file hors ligne MMW est limitée aux petites mutations JSON explicitement éligibles par l'action (`allow_offline`) et par `policy.allow_offline_queue`. Les uploads, binaires média, suppressions risquées et actions exigeant une approbation ou une transaction ne sont pas mis en file. Les erreurs de validation et de protocole ne sont pas des erreurs réseau et ne doivent pas être mises en attente. `requests` reste un module de demande métier, pas un CRUD éditorial implicite ; `records` et `calendar` n'exposent que les actions déclarées par le serveur.
 
 Avant d'ajouter un nouveau `kind`, vérifier qu'aucune primitive existante ne suffit et que le besoin est réutilisable par plusieurs intégrations. Le contrat P0 complet et les limites actuelles figurent dans [`P0-CORE-CONTRACT.md`](P0-CORE-CONTRACT.md).
+
+
+## Première couche HTTP livrée
+
+Le routeur PHP expose maintenant GET /v1/config et GET /v1/snapshot. Les deux routes exigent les en-têtes de protocole v1 et un jeton appareil résolu côté serveur vers une appartenance de site. Les contrôles HTTP ne prennent jamais site_id ou actor_id depuis un payload client.
+
+La migration 002_api_devices_and_settings.sql ajoute les appareils et les réglages de configuration API. À cette étape, les modules sont vides : aucune route de connexion TOTP/appairage, aucun manifeste de découverte et aucune projection des contenus ou mutations n'est encore livrée. La commande CLI d'émission de jeton sert uniquement aux essais locaux et ne doit pas devenir le parcours d'authentification d'un déploiement.
