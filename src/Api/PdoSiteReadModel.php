@@ -3,16 +3,25 @@ declare(strict_types=1);
 
 namespace LePotager\Cms\Api;
 
+use LePotager\Cms\Authorization\ActorContext;
+use LePotager\Cms\Authorization\AuthorizationService;
+use LePotager\Cms\Content\ContentNotFound;
+use LePotager\Cms\Content\ContentService;
+use LePotager\Cms\Storage\PdoCmsStore;
 use PDO;
 use RuntimeException;
 
 final readonly class PdoSiteReadModel implements SiteReadModel
 {
+    private ContentService $contentService;
+
     public function __construct(private PDO $pdo)
     {
+        $store = new PdoCmsStore($pdo);
+        $this->contentService = new ContentService($store, new AuthorizationService($store));
     }
 
-    public function configuration(string $siteId): array
+    public function configuration(ActorContext $actor): array
     {
         $statement = $this->pdo->prepare(
             'SELECT s.site_id, s.display_name, s.config_version, s.policy_json,
@@ -21,7 +30,7 @@ final readonly class PdoSiteReadModel implements SiteReadModel
              LEFT JOIN site_api_settings a ON a.site_id = s.site_id
              WHERE s.site_id = :site_id LIMIT 1'
         );
-        $statement->execute(['site_id' => $siteId]);
+        $statement->execute(['site_id' => $actor->siteId]);
         $row = $statement->fetch(PDO::FETCH_ASSOC);
         if (!is_array($row)) {
             throw new RuntimeException('Authenticated site no longer exists.');
@@ -33,7 +42,7 @@ final readonly class PdoSiteReadModel implements SiteReadModel
             'schema_version' => 1,
             'config_version' => (int) $row['config_version'],
             'site' => ['id' => $row['site_id'], 'display_name' => $row['display_name']],
-            'branding' => self::safeBranding($branding),
+            'branding' => (object) self::safeBranding($branding),
             'policy' => [
                 'review_before_publish' => ($policy['review_before_publish'] ?? false) === true,
                 'allow_offline_queue' => ($policy['allow_offline_queue'] ?? false) === true,
@@ -42,7 +51,7 @@ final readonly class PdoSiteReadModel implements SiteReadModel
         ];
     }
 
-    public function snapshot(string $siteId): array
+    public function snapshot(ActorContext $actor): array
     {
         $statement = $this->pdo->prepare(
             'SELECT s.config_version, s.data_revision, a.modules_json
@@ -50,17 +59,28 @@ final readonly class PdoSiteReadModel implements SiteReadModel
              LEFT JOIN site_api_settings a ON a.site_id = s.site_id
              WHERE s.site_id = :site_id LIMIT 1'
         );
-        $statement->execute(['site_id' => $siteId]);
+        $statement->execute(['site_id' => $actor->siteId]);
         $row = $statement->fetch(PDO::FETCH_ASSOC);
         if (!is_array($row)) {
             throw new RuntimeException('Authenticated site no longer exists.');
         }
-        $modules = self::safeModules(self::decodeList($row['modules_json'] ?? '[]', 'site modules'));
-        $data = [];
-        foreach ($modules as $module) {
-            $data[$module['id']] = in_array($module['kind'], ['gallery', 'requests', 'records', 'calendar'], true)
-                ? ['items' => []] : new \stdClass();
-        }
+        $storedModules = self::decodeList($row['modules_json'] ?? '[]', 'site modules');
+        self::safeModules($storedModules);
+        $data = (new SnapshotProjector())->project(
+            $storedModules,
+            function (string $typeId, string $contentId) use ($actor): ?array {
+                try {
+                    return $this->contentService->get($actor, $contentId);
+                } catch (ContentNotFound) {
+                    return null;
+                }
+            },
+            fn (string $typeId, int $limit): array => $this->contentService->list($actor, [
+                'type' => $typeId,
+                'limit' => $limit,
+                'offset' => 0,
+            ]),
+        );
         return [
             'schema_version' => 1,
             'config_version' => (int) $row['config_version'],
@@ -101,14 +121,18 @@ final readonly class PdoSiteReadModel implements SiteReadModel
     private static function safeBranding(array $branding): array
     {
         $safe = [];
-        if (isset($branding['primary']) && is_string($branding['primary'])
-            && preg_match('/^#[0-9a-fA-F]{6}$/', $branding['primary'])) {
-            $safe['primary'] = $branding['primary'];
+        foreach (['primary', 'secondary'] as $key) {
+            if (isset($branding[$key]) && is_string($branding[$key])
+                && preg_match('/^#[0-9a-fA-F]{6}$/', $branding[$key])) {
+                $safe[$key] = $branding[$key];
+            }
         }
-        if (isset($branding['logo_url']) && is_string($branding['logo_url'])
-            && filter_var($branding['logo_url'], FILTER_VALIDATE_URL)
-            && strtolower((string) parse_url($branding['logo_url'], PHP_URL_SCHEME)) === 'https') {
-            $safe['logo_url'] = $branding['logo_url'];
+        foreach (['logo_url', 'wordmark_url'] as $key) {
+            if (isset($branding[$key]) && is_string($branding[$key])
+                && filter_var($branding[$key], FILTER_VALIDATE_URL)
+                && strtolower((string) parse_url($branding[$key], PHP_URL_SCHEME)) === 'https') {
+                $safe[$key] = $branding[$key];
+            }
         }
         return $safe;
     }
@@ -119,7 +143,6 @@ final readonly class PdoSiteReadModel implements SiteReadModel
         $safe = [];
         $seen = [];
         $kinds = ['dashboard', 'form', 'gallery', 'requests', 'records', 'calendar', 'settings'];
-        $fieldTypes = ['text', 'multiline', 'boolean', 'single_choice', 'number', 'url', 'email'];
         if (count($modules) > 50) {
             throw new RuntimeException('Stored MMW configuration has too many modules.');
         }
@@ -132,54 +155,34 @@ final readonly class PdoSiteReadModel implements SiteReadModel
                 throw new RuntimeException('Stored MMW module definition is invalid.');
             }
             $seen[$module['id']] = true;
+            self::validateSource($module['source'] ?? null, $module['kind']);
             $entry = ['id' => $module['id'], 'kind' => $module['kind'], 'title' => trim($module['title'])];
+            if (isset($module['subtitle'])) {
+                if (!is_string($module['subtitle']) || strlen($module['subtitle']) > 255) {
+                    throw new RuntimeException('Stored MMW module subtitle is invalid.');
+                }
+                $entry['subtitle'] = trim($module['subtitle']);
+            }
+            if (isset($module['icon'])) {
+                if (!is_string($module['icon']) || !preg_match('/^[a-z][a-z0-9_-]{0,63}$/', $module['icon'])) {
+                    throw new RuntimeException('Stored MMW module icon is invalid.');
+                }
+                $entry['icon'] = $module['icon'];
+            }
+            if (isset($module['order'])) {
+                if (!is_int($module['order']) || abs($module['order']) > 100_000) {
+                    throw new RuntimeException('Stored MMW module order is invalid.');
+                }
+                $entry['order'] = $module['order'];
+            }
+            if (isset($module['writable'])) {
+                if (!is_bool($module['writable'])) {
+                    throw new RuntimeException('Stored MMW module writable flag is invalid.');
+                }
+                $entry['writable'] = $module['writable'];
+            }
             if (isset($module['fields'])) {
-                if (!is_array($module['fields']) || !array_is_list($module['fields']) || count($module['fields']) > 100) {
-                    throw new RuntimeException('Stored MMW field definitions are invalid.');
-                }
-                $entry['fields'] = [];
-                $fieldIds = [];
-                foreach ($module['fields'] as $field) {
-                    if (!is_array($field) || !isset($field['id'], $field['type'], $field['label'])
-                        || !is_string($field['id']) || !preg_match('/^[a-z][a-z0-9_]{0,63}$/', $field['id'])
-                        || isset($fieldIds[$field['id']]) || !is_string($field['type'])
-                        || !in_array($field['type'], $fieldTypes, true) || !is_string($field['label'])
-                        || trim($field['label']) === '' || strlen($field['label']) > 120) {
-                        throw new RuntimeException('Stored MMW field definition is invalid.');
-                    }
-                    $fieldIds[$field['id']] = true;
-                    $safeField = ['id' => $field['id'], 'type' => $field['type'], 'label' => trim($field['label'])];
-                    foreach (['required' => 'bool', 'max_length' => 'int', 'min' => 'number', 'max' => 'number'] as $key => $type) {
-                        if (!array_key_exists($key, $field)) {
-                            continue;
-                        }
-                        $valid = match ($type) {
-                            'bool' => is_bool($field[$key]),
-                            'int' => is_int($field[$key]) && $field[$key] > 0,
-                            'number' => is_int($field[$key]) || is_float($field[$key]),
-                        };
-                        if (!$valid) {
-                            throw new RuntimeException("Stored MMW field option '{$key}' is invalid.");
-                        }
-                        $safeField[$key] = $field[$key];
-                    }
-                    if (isset($field['choices'])) {
-                        if (!is_array($field['choices']) || !array_is_list($field['choices'])
-                            || $field['choices'] === []
-                            || count(array_filter($field['choices'], static fn (mixed $choice): bool =>
-                                is_string($choice) && trim($choice) !== '' && strlen($choice) <= 120)) !== count($field['choices'])) {
-                            throw new RuntimeException('Stored MMW choices are invalid.');
-                        }
-                        $safeField['choices'] = $field['choices'];
-                    }
-                    if ($field['type'] === 'single_choice' && !isset($safeField['choices'])) {
-                        throw new RuntimeException('A single_choice field must define choices.');
-                    }
-                    if (isset($safeField['min'], $safeField['max']) && $safeField['min'] > $safeField['max']) {
-                        throw new RuntimeException('Stored MMW field range is invalid.');
-                    }
-                    $entry['fields'][] = $safeField;
-                }
+                $entry['fields'] = self::safeFields($module['fields'], 'module');
             }
             if (isset($module['actions'])) {
                 if (!is_array($module['actions']) || !array_is_list($module['actions']) || count($module['actions']) > 50) {
@@ -210,7 +213,10 @@ final readonly class PdoSiteReadModel implements SiteReadModel
                             $safeAction[$key] = $action[$key];
                         }
                     }
-                    if (isset($action['confirmation_text']) && is_string($action['confirmation_text'])) {
+                    if (isset($action['confirmation_text'])) {
+                        if (!is_string($action['confirmation_text'])) {
+                            throw new RuntimeException('Stored MMW confirmation text is invalid.');
+                        }
                         $safeAction['confirmation_text'] = mb_substr($action['confirmation_text'], 0, 500);
                     }
                     $safeAction['allow_offline'] = $safeAction['allow_offline'] ?? false;
@@ -242,8 +248,155 @@ final readonly class PdoSiteReadModel implements SiteReadModel
                     $entry['options'] = $options;
                 }
             }
+            if (isset($module['media'])) {
+                $media = self::safeMedia($module['media']);
+                $entry['media'] = $media === [] ? new \stdClass() : $media;
+            }
             $safe[] = $entry;
         }
         return $safe;
+    }
+
+    /** @return list<array<string, mixed>> */
+    private static function safeFields(mixed $fields, string $context): array
+    {
+        $fieldTypes = ['text', 'multiline', 'boolean', 'single_choice', 'number', 'url', 'email'];
+        if (!is_array($fields) || !array_is_list($fields) || count($fields) > 100) {
+            throw new RuntimeException("Stored MMW {$context} field definitions are invalid.");
+        }
+        $safe = [];
+        $fieldIds = [];
+        foreach ($fields as $field) {
+            if (!is_array($field) || !isset($field['id'], $field['type'], $field['label'])
+                || !is_string($field['id']) || !preg_match('/^[a-z][a-z0-9_]{0,63}$/', $field['id'])
+                || isset($fieldIds[$field['id']]) || !is_string($field['type'])
+                || !in_array($field['type'], $fieldTypes, true) || !is_string($field['label'])
+                || trim($field['label']) === '' || strlen($field['label']) > 120) {
+                throw new RuntimeException("Stored MMW {$context} field definition is invalid.");
+            }
+            $fieldIds[$field['id']] = true;
+            $safeField = ['id' => $field['id'], 'type' => $field['type'], 'label' => trim($field['label'])];
+            if (isset($field['hint'])) {
+                if (!is_string($field['hint']) || strlen($field['hint']) > 300) {
+                    throw new RuntimeException("Stored MMW {$context} field hint is invalid.");
+                }
+                $safeField['hint'] = $field['hint'];
+            }
+            if (isset($field['source_field_id']) && (!is_string($field['source_field_id'])
+                || !preg_match('/^[a-z][a-z0-9_]{0,63}$/', $field['source_field_id']))) {
+                throw new RuntimeException('Stored MMW source field mapping is invalid.');
+            }
+            foreach (['required' => 'bool', 'max_length' => 'int', 'min' => 'number', 'max' => 'number'] as $key => $type) {
+                if (!array_key_exists($key, $field)) {
+                    continue;
+                }
+                $valid = match ($type) {
+                    'bool' => is_bool($field[$key]),
+                    'int' => is_int($field[$key]) && $field[$key] > 0 && $field[$key] <= 1_000_000,
+                    'number' => (is_int($field[$key]) || is_float($field[$key])) && is_finite((float) $field[$key]),
+                };
+                if (!$valid) {
+                    throw new RuntimeException("Stored MMW field option '{$key}' is invalid.");
+                }
+                $safeField[$key] = $field[$key];
+            }
+            if (isset($field['choices'])) {
+                if (!is_array($field['choices']) || !array_is_list($field['choices'])
+                    || $field['choices'] === [] || count($field['choices']) > 100) {
+                    throw new RuntimeException('Stored MMW choices are invalid.');
+                }
+                $choices = [];
+                $choiceValues = [];
+                foreach ($field['choices'] as $choice) {
+                    if (is_string($choice)) {
+                        $value = trim($choice);
+                        $label = $value;
+                    } elseif (is_array($choice) && is_string($choice['value'] ?? null)
+                        && is_string($choice['label'] ?? null)) {
+                        $value = trim($choice['value']);
+                        $label = trim($choice['label']);
+                    } else {
+                        throw new RuntimeException('Stored MMW choice must contain string value and label.');
+                    }
+                    if ($value === '' || $label === '' || strlen($value) > 120 || strlen($label) > 120
+                        || isset($choiceValues[$value])) {
+                        throw new RuntimeException('Stored MMW choice is empty, too long, or duplicated.');
+                    }
+                    $choiceValues[$value] = true;
+                    $choices[] = ['value' => $value, 'label' => $label];
+                }
+                $safeField['choices'] = $choices;
+            }
+            if ($field['type'] === 'single_choice' && !isset($safeField['choices'])) {
+                throw new RuntimeException('A single_choice field must define choices.');
+            }
+            if (isset($safeField['min'], $safeField['max']) && $safeField['min'] > $safeField['max']) {
+                throw new RuntimeException('Stored MMW field range is invalid.');
+            }
+            $safe[] = $safeField;
+        }
+        return $safe;
+    }
+
+    /** @return array<string, mixed> */
+    private static function safeMedia(mixed $media): array
+    {
+        if (!is_array($media) || ($media !== [] && array_is_list($media))) {
+            throw new RuntimeException('Stored MMW media configuration must be an object.');
+        }
+        $safe = [];
+        if (isset($media['upload_enabled'])) {
+            if (!is_bool($media['upload_enabled'])) {
+                throw new RuntimeException('Stored MMW media upload flag is invalid.');
+            }
+            $safe['upload_enabled'] = $media['upload_enabled'];
+        }
+        if (isset($media['max_bytes'])) {
+            if (!is_int($media['max_bytes']) || $media['max_bytes'] < 1 || $media['max_bytes'] > 25_000_000) {
+                throw new RuntimeException('Stored MMW media size limit is invalid.');
+            }
+            $safe['max_bytes'] = $media['max_bytes'];
+        }
+        if (isset($media['accepted_mime_types'])) {
+            $types = $media['accepted_mime_types'];
+            if (!is_array($types) || !array_is_list($types) || $types === [] || count($types) > 50
+                || count(array_filter($types, static fn (mixed $mime): bool => is_string($mime)
+                    && preg_match('~^[a-z0-9.+-]+/[a-z0-9.+-]+$~i', $mime) === 1)) !== count($types)) {
+                throw new RuntimeException('Stored MMW accepted MIME types are invalid.');
+            }
+            $safe['accepted_mime_types'] = array_values(array_unique($types));
+        }
+        if (isset($media['fields'])) {
+            $safe['fields'] = self::safeFields($media['fields'], 'media');
+        }
+        return $safe;
+    }
+
+    private static function validateSource(mixed $source, string $kind): void
+    {
+        if ($source === null) {
+            return;
+        }
+        if (!is_array($source) || ($source !== [] && array_is_list($source))) {
+            throw new RuntimeException('Stored MMW source mapping must be an object.');
+        }
+        $collection = in_array($kind, ['gallery', 'requests', 'records', 'calendar'], true);
+        if (!isset($source['type_id']) || !is_string($source['type_id'])
+            || !preg_match('/^[a-z][a-z0-9_-]{0,63}$/', $source['type_id'])) {
+            throw new RuntimeException('Stored MMW source mapping needs a valid type_id.');
+        }
+        if ($kind === 'form' && (!isset($source['content_id']) || !is_string($source['content_id'])
+            || !preg_match('/^[a-f0-9]{32}$/', $source['content_id']))) {
+            throw new RuntimeException('A form source mapping needs a valid content_id.');
+        }
+        if (!$collection && $kind !== 'form') {
+            throw new RuntimeException('This MMW module kind cannot map to CMS content.');
+        }
+        foreach (['title_field', 'subtitle_field', 'start_field', 'end_field'] as $key) {
+            if (isset($source[$key]) && (!is_string($source[$key])
+                || !preg_match('/^[a-z][a-z0-9_]{0,63}$/', $source[$key]))) {
+                throw new RuntimeException("Stored MMW source mapping '{$key}' is invalid.");
+            }
+        }
     }
 }

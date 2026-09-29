@@ -27,6 +27,28 @@ Avant d'ajouter un nouveau `kind`, vérifier qu'aucune primitive existante ne su
 
 ## Première couche HTTP livrée
 
-Le routeur PHP expose maintenant GET /v1/config et GET /v1/snapshot. Les deux routes exigent les en-têtes de protocole v1 et un jeton appareil résolu côté serveur vers une appartenance de site. Les contrôles HTTP ne prennent jamais site_id ou actor_id depuis un payload client.
+Le routeur PHP expose maintenant GET /v1/config et GET /v1/snapshot. Les deux routes exigent les en-têtes de protocole v1 et un jeton appareil résolu côté serveur vers une appartenance de site. Les contrôles HTTP ne prennent jamais site_id ou actor_id depuis un payload client. Le snapshot transmet l'acteur au `ContentService` : les droits de lecture et la visibilité des brouillons sont donc réévalués côté serveur.
 
-La migration 002_api_devices_and_settings.sql ajoute les appareils et les réglages de configuration API. À cette étape, les modules sont vides : aucune route de connexion TOTP/appairage, aucun manifeste de découverte et aucune projection des contenus ou mutations n'est encore livrée. La commande CLI d'émission de jeton sert uniquement aux essais locaux et ne doit pas devenir le parcours d'authentification d'un déploiement.
+La migration 002_api_devices_and_settings.sql ajoute les appareils et les réglages de configuration API. Une définition de module peut associer ses champs à un contenu ou à un type de contenu CMS avec `source` et `source_field_id`. Ces clés de mapping restent internes et ne sont pas envoyées à MMW ; seules les valeurs configurées, les champs d'affichage réservés et les valeurs scalaires compatibles v1 sont projetés. Les collections sont bornées à 100 éléments par réponse et les contenus archivés sont exclus. Les propriétés de présentation documentées par le modèle Android (`subtitle`, `icon`, `order`, `writable`, `options`, `media`) sont filtrées et validées ; les choix stockés comme chaînes sont normalisés en `{ "value", "label" }`.
+
+`sites.data_revision` progresse à chaque création, modification, transition éditoriale, restauration et publication planifiée, y compris pour les brouillons. Cette révision globale peut provoquer un rafraîchissement inutile pour un acteur qui ne voit pas le brouillon modifié, mais ne laisse pas un appareil conserver une révision identique alors que son brouillon visible a changé.
+
+Exemple de mapping interne pour une collection :
+
+```json
+{
+  "id": "services",
+  "kind": "records",
+  "title": "Services",
+  "source": {
+    "type_id": "service",
+    "title_field": "name",
+    "subtitle_field": "short_description"
+  },
+  "fields": [
+    { "id": "duration", "source_field_id": "duration_minutes", "type": "number", "label": "Durée" }
+  ]
+}
+```
+
+Pour un module `form`, `source` doit aussi contenir le `content_id` stable du contenu. Les données restent vides tant qu'aucun module n'est configuré. Les mutations, les routes de connexion TOTP/appairage et le manifeste de découverte ne sont pas encore livrés. La commande CLI d'émission de jeton sert uniquement aux essais locaux et ne doit pas devenir le parcours d'authentification d'un déploiement.

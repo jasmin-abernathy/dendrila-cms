@@ -49,6 +49,7 @@ expect(InvalidArgumentException::class, fn () => (new ContentTypeDefinition($sto
 
 $created = $service->createDraft($actor, 'page', $values, 'request-0001');
 check($created['content']['version'] === 1, 'New content starts at version 1.');
+check($created['site_revision'] === 2, 'Creating content advances the site snapshot revision.');
 check(count($store->revisions['site-a']) === 1, 'Creation appends one revision.');
 $replayed = $service->createDraft($actor, 'page', $values, 'request-0001');
 check($replayed === $created, 'Repeated request returns the original response.');
@@ -62,11 +63,13 @@ $updated = $service->updateDraft($actor, $id, 1,
     ['title' => 'Accueil modifié', 'slug' => 'accueil', 'blocks' => [['type' => 'text', 'text' => 'Salut']]],
     'request-0002');
 check($updated['content']['version'] === 2, 'Update increments the content version.');
+check($updated['site_revision'] > $created['site_revision'], 'Draft updates advance the site snapshot revision.');
 expect(VersionConflict::class, fn () => $service->updateDraft($actor, $id, 1, $values, 'request-0003'));
 
 $pending = $service->transition($actor, $id, 'published', 2, 'request-0004');
 check($pending['status'] === 'pending_review', 'Site review policy prevents direct publication.');
 check($pending['content']['status'] === 'review', 'Direct publish request enters review.');
+check($pending['site_revision'] > $updated['site_revision'], 'Entering review advances the site snapshot revision.');
 $preview = $service->preview($actor, $id);
 check($preview['preview'] === true && $preview['status'] === 'review', 'Preview is private and does not publish.');
 check($service->get($actor, $id)['content_id'] === $id, 'Site-scoped get returns the item.');
@@ -74,7 +77,7 @@ check(count($service->list($actor, ['type' => 'page', 'status' => 'review'])) ==
 
 $published = $service->transition($actor, $id, 'published', 3, 'request-0005');
 check($published['content']['status'] === 'published', 'Reviewed content can be published.');
-check($published['site_revision'] === 2, 'Publishing advances the site data revision.');
+check($published['site_revision'] > $pending['site_revision'], 'Publishing advances the site data revision.');
 $workingCopy = $service->updateDraft($actor, $id, 4,
     ['title' => 'Nouvelle version', 'slug' => 'nouvel-accueil', 'blocks' => [['type' => 'text', 'text' => 'V2']]],
     'request-0006');

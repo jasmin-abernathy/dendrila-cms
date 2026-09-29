@@ -3,6 +3,11 @@ declare(strict_types=1);
 
 namespace LePotager\Cms\Api;
 
+use LePotager\Cms\Authorization\AccessDenied;
+use LePotager\Cms\Content\ContentNotFound;
+use LePotager\Cms\Content\IdempotencyConflict;
+use LePotager\Cms\Content\InvalidTransition;
+use LePotager\Cms\Content\VersionConflict;
 use LePotager\Cms\Http\HttpException;
 use LePotager\Cms\Http\Request;
 use LePotager\Cms\Http\Response;
@@ -19,9 +24,9 @@ final class ApiKernel
     ) {
         $this->router = new Router();
         $this->router->add('GET', '/v1/config', fn (Request $request): Response =>
-            Response::json($this->readModel->configuration($this->authenticator->authenticate($request)->siteId)));
+            Response::json($this->readModel->configuration($this->authenticator->authenticate($request))));
         $this->router->add('GET', '/v1/snapshot', fn (Request $request): Response =>
-            Response::json($this->readModel->snapshot($this->authenticator->authenticate($request)->siteId)));
+            Response::json($this->readModel->snapshot($this->authenticator->authenticate($request))));
     }
 
     public function handle(Request $request): Response
@@ -37,6 +42,16 @@ final class ApiKernel
         } catch (HttpException $error) {
             $headers = $error->status === 405 ? ['Allow' => 'GET'] : [];
             return self::error($error->status, $error->errorCode, $error->getMessage(), $headers);
+        } catch (AccessDenied $error) {
+            return self::error(403, 'forbidden', $error->getMessage());
+        } catch (ContentNotFound $error) {
+            return self::error(404, 'not_found', $error->getMessage());
+        } catch (VersionConflict|IdempotencyConflict $error) {
+            return self::error(409, 'conflict', $error->getMessage());
+        } catch (InvalidTransition $error) {
+            return self::error(409, 'invalid_transition', $error->getMessage());
+        } catch (\InvalidArgumentException $error) {
+            return self::error(422, 'validation_failed', $error->getMessage());
         } catch (Throwable $error) {
             error_log('MMW API error: ' . $error::class . ': ' . $error->getMessage());
             return self::error(500, 'internal_error', 'The server could not complete the request.');

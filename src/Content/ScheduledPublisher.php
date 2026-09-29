@@ -41,9 +41,9 @@ final readonly class ScheduledPublisher
                     $content['published_slug'] = $content['slug'];
                     $content['published_at'] = $nowSql;
                     $content['publish_at'] = null;
-                    $this->store->incrementDataRevision($siteId);
                     $event = 'content.published_by_schedule';
                 }
+                $this->store->incrementDataRevision($siteId);
                 $oldVersion = $content['version'];
                 $content['version'] = $oldVersion + 1;
                 $content['updated_at'] = $nowSql;

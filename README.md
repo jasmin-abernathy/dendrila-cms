@@ -52,7 +52,7 @@ Les commandes de migration et de création de site attendent `DB_DSN`, `DB_USERN
 
 La première couche HTTP expose GET /v1/config et GET /v1/snapshot. Elle exige X-Lepotager-Protocol: 1 et un jeton d'appareil valide dans X-Lepotager-Device-Token. Les jetons de développement peuvent être émis avec php bin/issue-device-token.php <site_id> <actor_id> <device_name> après la migration 002. Cette commande ne remplace pas encore les routes de connexion TOTP et d'appairage prévues par le protocole : ne pas l'utiliser comme parcours de production.
 
-À ce stade, les réglages d'API d'un site commencent avec une liste de modules vide ; le snapshot renvoie donc des données vides avec une révision. La configuration des modules et leur projection depuis les contenus CMS restent à construire. Le manifeste de découverte n'est pas encore publié, car les parcours d'authentification annoncés dans ce manifeste ne sont pas encore implémentés.
+Par défaut, les réglages d'API d'un site commencent avec une liste de modules vide. Une fois un mapping de module renseigné en base, le snapshot projette les contenus par l'intermédiaire des services et permissions du CMS ; il ne renvoie que les champs explicitement déclarés. La configuration des modules n'a pas encore d'écran d'administration. Le manifeste de découverte n'est pas publié et l'authentification MMW standard reste à intégrer.
 
 ## Principes
 

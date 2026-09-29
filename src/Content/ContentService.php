@@ -57,7 +57,8 @@ final readonly class ContentService
             $this->store->appendRevision($this->revision($content, $actor, $revisionId, 'Création du brouillon', $actor->source));
             $this->store->appendAudit($actor->siteId, $actor->actorId, $actor->deviceId,
                 'content.create', 'content', $contentId, 'allowed', ['type_id' => $typeId]);
-            return $this->response($content, 'applied');
+            $siteRevision = $this->store->incrementDataRevision($actor->siteId);
+            return $this->response($content, 'applied', $siteRevision);
         });
     }
 
@@ -144,7 +145,8 @@ final readonly class ContentService
             $this->store->appendRevision($this->revision($content, $actor, $revisionId, 'Mise à jour du brouillon', $actor->source));
             $this->store->appendAudit($actor->siteId, $actor->actorId, $actor->deviceId,
                 'content.update', 'content', $contentId, 'allowed', ['version' => $content['version']]);
-            return $this->response($content, 'applied');
+            $siteRevision = $this->store->incrementDataRevision($actor->siteId);
+            return $this->response($content, 'applied', $siteRevision);
         });
     }
 
@@ -248,6 +250,7 @@ final readonly class ContentService
                 'Transition ' . $current->value . ' → ' . $actualTarget->value, $actor->source));
             $this->store->appendAudit($actor->siteId, $actor->actorId, $actor->deviceId,
                 'content.' . $actualTarget->value, 'content', $contentId, 'allowed', ['version' => $content['version']]);
+            $siteRevision ??= $this->store->incrementDataRevision($actor->siteId);
             return $this->response($content, $resultStatus, $siteRevision ?? null);
         });
     }
@@ -321,7 +324,8 @@ final readonly class ContentService
                 'Restauration de la révision ' . $revisionId, $actor->source));
             $this->store->appendAudit($actor->siteId, $actor->actorId, $actor->deviceId,
                 'content.restore_revision', 'content', $contentId, 'allowed', ['revision_id' => $revisionId]);
-            return $this->response($content, 'applied');
+            $siteRevision = $this->store->incrementDataRevision($actor->siteId);
+            return $this->response($content, 'applied', $siteRevision);
         });
     }
 

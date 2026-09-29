@@ -6,7 +6,9 @@ require dirname(__DIR__) . '/vendor/autoload.php';
 use LePotager\Cms\Api\ApiKernel;
 use LePotager\Cms\Api\DeviceAuthenticator;
 use LePotager\Cms\Api\SiteReadModel;
+use LePotager\Cms\Api\SnapshotProjector;
 use LePotager\Cms\Api\Unauthorized;
+use LePotager\Cms\Authorization\AccessDenied;
 use LePotager\Cms\Authorization\ActorContext;
 use LePotager\Cms\Http\HttpException;
 use LePotager\Cms\Http\Request;
@@ -33,14 +35,22 @@ final class TestDeviceAuthenticator implements DeviceAuthenticator
 
 final class TestSiteReadModel implements SiteReadModel
 {
-    public function configuration(string $siteId): array
+    public bool $denyReads = false;
+
+    public function configuration(ActorContext $actor): array
     {
-        return ['schema_version' => 1, 'site' => ['id' => $siteId], 'modules' => []];
+        if ($this->denyReads) {
+            throw new AccessDenied('Read access is denied.');
+        }
+        return ['schema_version' => 1, 'site' => ['id' => $actor->siteId], 'modules' => []];
     }
 
-    public function snapshot(string $siteId): array
+    public function snapshot(ActorContext $actor): array
     {
-        return ['revision' => 1, 'data' => (object) []];
+        if ($this->denyReads) {
+            throw new AccessDenied('Read access is denied.');
+        }
+        return ['revision' => 1, 'actor_id' => $actor->actorId, 'data' => (object) []];
     }
 }
 
@@ -55,7 +65,8 @@ try {
     httpCheck($error->status === 405, 'Router returns 405 for a known path and unsupported method.');
 }
 
-$kernel = new ApiKernel(new TestDeviceAuthenticator(), new TestSiteReadModel());
+$readModel = new TestSiteReadModel();
+$kernel = new ApiKernel(new TestDeviceAuthenticator(), $readModel);
 $config = $kernel->handle(new Request('GET', '/v1/config', [
     'x-lepotager-protocol' => '1',
     'x-lepotager-device-token' => 'a'.str_repeat('b', 63),
@@ -68,6 +79,14 @@ $snapshot = $kernel->handle(new Request('GET', '/v1/snapshot', [
 ], ''));
 httpCheck($snapshot->status === 200 && $snapshot->payload['revision'] === 1,
     'Snapshot endpoint returns a revisioned payload.');
+httpCheck($snapshot->payload['actor_id'] === 'actor-test', 'Snapshot read model receives the authenticated actor.');
+$readModel->denyReads = true;
+$forbidden = $kernel->handle(new Request('GET', '/v1/config', [
+    'x-lepotager-protocol' => '1',
+    'x-lepotager-device-token' => 'a'.str_repeat('b', 63),
+], ''));
+httpCheck($forbidden->status === 403, 'CMS read permission failures map to HTTP 403.');
+$readModel->denyReads = false;
 $unauthorized = $kernel->handle(new Request('GET', '/v1/config', [
     'x-lepotager-protocol' => '1',
 ], ''));
@@ -106,5 +125,39 @@ try {
 } catch (HttpException $error) {
     httpCheck($error->status === 413, 'Oversized JSON bodies are rejected before decoding.');
 }
+
+$projector = new SnapshotProjector();
+$projected = $projector->project([
+    [
+        'id' => 'home', 'kind' => 'form', 'fields' => [
+            ['id' => 'intro', 'source_field_id' => 'homepage_intro'],
+        ],
+        'source' => ['type_id' => 'page', 'content_id' => str_repeat('a', 32)],
+    ],
+    [
+        'id' => 'agenda', 'kind' => 'calendar', 'fields' => [
+            ['id' => 'service', 'source_field_id' => 'service_name'],
+        ],
+        'source' => ['type_id' => 'appointment', 'title_field' => 'service_name', 'start_field' => 'starts_at'],
+    ],
+],
+    static fn (string $type, string $id): ?array => [
+        'content_id' => $id, 'type_id' => $type, 'values' => ['homepage_intro' => 'Bonjour', 'site_id' => 'do-not-project'],
+    ],
+    static fn (string $type, int $limit): array => [
+        ['content_id' => str_repeat('b', 32), 'slug' => 'guidance', 'status' => 'published',
+            'values' => ['service_name' => 'Guidance', 'starts_at' => '2026-10-12T11:00:00+02:00']],
+        ['content_id' => str_repeat('c', 32), 'slug' => 'old', 'status' => 'archived',
+            'values' => ['service_name' => 'Ancien', 'starts_at' => '2026-10-12T11:00:00+02:00']],
+    ],
+);
+httpCheck($projected['home'] === ['intro' => 'Bonjour'],
+    'Form snapshots include only explicitly configured fields.');
+httpCheck(count($projected['agenda']['items']) === 1
+    && $projected['agenda']['items'][0]['title'] === 'Guidance'
+    && $projected['agenda']['items'][0]['service'] === 'Guidance'
+    && $projected['agenda']['items'][0]['start'] === '2026-10-12T11:00:00+02:00'
+    && !array_key_exists('site_id', $projected['agenda']['items'][0]),
+    'Collection snapshots project safe fields and omit archived content and CMS internals.');
 
 echo "HTTP API contract tests passed.\n";
