@@ -4,10 +4,17 @@ declare(strict_types=1);
 require dirname(__DIR__) . '/vendor/autoload.php';
 
 use LePotager\Cms\Api\ApiKernel;
+use LePotager\Cms\Api\AuthenticatedMember;
+use LePotager\Cms\Api\AuthenticationFailure;
+use LePotager\Cms\Api\AuthenticationService;
+use LePotager\Cms\Api\AuthenticationStartResult;
 use LePotager\Cms\Api\DeviceAuthenticator;
+use LePotager\Cms\Api\DeviceTokenIssuer;
+use LePotager\Cms\Api\IdentityProvider;
 use LePotager\Cms\Api\SiteReadModel;
 use LePotager\Cms\Api\SnapshotProjector;
 use LePotager\Cms\Api\Unauthorized;
+use LePotager\Cms\Api\VerifiedLogin;
 use LePotager\Cms\Authorization\AccessDenied;
 use LePotager\Cms\Authorization\ActorContext;
 use LePotager\Cms\Http\HttpException;
@@ -51,6 +58,43 @@ final class TestSiteReadModel implements SiteReadModel
             throw new AccessDenied('Read access is denied.');
         }
         return ['revision' => 1, 'actor_id' => $actor->actorId, 'data' => (object) []];
+    }
+}
+
+final class TestIdentityProvider implements IdentityProvider
+{
+    public function start(string $username, string $password, string $deviceName): AuthenticationStartResult
+    {
+        httpCheck($username === 'owner@example.test' && $password === 'test-password',
+            'Auth start passes credentials unchanged to the identity provider.');
+        return AuthenticationStartResult::challenge('challenge_identifier_123', ['totp'], 120);
+    }
+
+    public function verify(string $challengeId, string $method, string $code): VerifiedLogin
+    {
+        if ($challengeId !== 'challenge_identifier_123' || $method !== 'totp' || $code !== '123456') {
+            throw new AuthenticationFailure('Authentication failed.');
+        }
+        return new VerifiedLogin(new AuthenticatedMember('site-test', 'actor-test'), 'Android test device');
+    }
+
+    public function pair(string $code): AuthenticatedMember
+    {
+        if ($code !== '12345678') {
+            throw new AuthenticationFailure('Authentication failed.');
+        }
+        return new AuthenticatedMember('site-test', 'actor-test');
+    }
+}
+
+final class TestDeviceTokenIssuer implements DeviceTokenIssuer
+{
+    public array $issued = [];
+
+    public function issue(AuthenticatedMember $member, string $deviceName): array
+    {
+        $this->issued[] = [$member->siteId, $member->actorId, $deviceName];
+        return ['device_token' => str_repeat('d', 64), 'expires_at' => null];
     }
 }
 
@@ -104,6 +148,40 @@ $wrongMethod = $kernel->handle(new Request('POST', '/v1/config', [
 ], ''));
 httpCheck($wrongMethod->status === 405 && ($wrongMethod->headers['Allow'] ?? null) === 'GET',
     'Config cannot be changed with POST and reports the supported method.');
+
+$authUnavailable = $kernel->handle(new Request('POST', '/v1/auth/start', [
+    'x-lepotager-protocol' => '1', 'content-type' => 'application/json',
+], '{"username":"owner@example.test","password":"test-password","device_name":"Android test device"}'));
+httpCheck($authUnavailable->status === 503
+    && $authUnavailable->payload['error']['code'] === 'authentication_unavailable',
+    'Auth routes report that site-specific identity integration is not configured.');
+
+$issuer = new TestDeviceTokenIssuer();
+$authKernel = new ApiKernel(new TestDeviceAuthenticator(), $readModel,
+    new AuthenticationService(new TestIdentityProvider(), $issuer));
+$authHeaders = ['x-lepotager-protocol' => '1', 'content-type' => 'application/json'];
+$authStart = $authKernel->handle(new Request('POST', '/v1/auth/start', $authHeaders,
+    '{"username":"owner@example.test","password":"test-password","device_name":"Android test device"}'));
+httpCheck($authStart->status === 200 && $authStart->payload === [
+    'status' => 'mfa_required', 'challenge_id' => 'challenge_identifier_123', 'methods' => ['totp'], 'expires_in' => 120,
+], 'Auth start returns the protocol v1 MFA challenge contract.');
+$authVerify = $authKernel->handle(new Request('POST', '/v1/auth/verify', $authHeaders,
+    '{"challenge_id":"challenge_identifier_123","method":"totp","code":"123456"}'));
+httpCheck($authVerify->status === 200 && $authVerify->payload === [
+    'status' => 'authenticated', 'device_token' => str_repeat('d', 64), 'expires_at' => null,
+], 'TOTP verification returns the protocol v1 device-token contract.');
+$authPair = $authKernel->handle(new Request('POST', '/v1/auth/pair', $authHeaders,
+    '{"code":"12345678","device_name":"Android paired device"}'));
+httpCheck($authPair->status === 200 && $authPair->payload['status'] === 'authenticated'
+    && count($issuer->issued) === 2 && $issuer->issued[1][2] === 'Android paired device',
+    'Pairing consumes a code and issues a device token with the requested device name.');
+$badTotp = $authKernel->handle(new Request('POST', '/v1/auth/verify', $authHeaders,
+    '{"challenge_id":"challenge_identifier_123","method":"totp","code":"000000"}'));
+httpCheck($badTotp->status === 401 && $badTotp->payload['error']['message'] === 'Authentication failed.',
+    'Invalid credentials map to a generic authentication error.');
+$authWrongMethod = $authKernel->handle(new Request('GET', '/v1/auth/start', ['x-lepotager-protocol' => '1'], ''));
+httpCheck($authWrongMethod->status === 405 && ($authWrongMethod->headers['Allow'] ?? null) === 'POST',
+    'Auth paths report POST as their allowed method.');
 
 $emptyObject = (new Request('POST', '/unused', ['content-type' => 'application/json'], '{}'))->jsonObject();
 httpCheck($emptyObject === [], 'An empty JSON object is accepted.');

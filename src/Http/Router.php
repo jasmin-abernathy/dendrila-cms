@@ -32,4 +32,18 @@ final class Router
         }
         throw new HttpException(404, 'not_found', 'API route does not exist.');
     }
+
+    /** @return list<string> */
+    public function allowedMethods(string $path): array
+    {
+        $methods = [];
+        foreach (array_keys($this->routes) as $registered) {
+            [$method, $routePath] = explode(' ', $registered, 2);
+            if ($routePath === $path) {
+                $methods[] = $method;
+            }
+        }
+        sort($methods);
+        return $methods;
+    }
 }

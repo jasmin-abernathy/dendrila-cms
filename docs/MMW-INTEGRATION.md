@@ -25,13 +25,17 @@ La file hors ligne MMW est limitée aux petites mutations JSON explicitement él
 Avant d'ajouter un nouveau `kind`, vérifier qu'aucune primitive existante ne suffit et que le besoin est réutilisable par plusieurs intégrations. Le contrat P0 complet et les limites actuelles figurent dans [`P0-CORE-CONTRACT.md`](P0-CORE-CONTRACT.md).
 
 
-## Première couche HTTP livrée
+## Couche HTTP et authentification MMW v1
 
 Le routeur PHP expose maintenant GET /v1/config et GET /v1/snapshot. Les deux routes exigent les en-têtes de protocole v1 et un jeton appareil résolu côté serveur vers une appartenance de site. Les contrôles HTTP ne prennent jamais site_id ou actor_id depuis un payload client. Le snapshot transmet l'acteur au `ContentService` : les droits de lecture et la visibilité des brouillons sont donc réévalués côté serveur.
 
 La migration 002_api_devices_and_settings.sql ajoute les appareils et les réglages de configuration API. Une définition de module peut associer ses champs à un contenu ou à un type de contenu CMS avec `source` et `source_field_id`. Ces clés de mapping restent internes et ne sont pas envoyées à MMW ; seules les valeurs configurées, les champs d'affichage réservés et les valeurs scalaires compatibles v1 sont projetés. Les collections sont bornées à 100 éléments par réponse et les contenus archivés sont exclus. Les propriétés de présentation documentées par le modèle Android (`subtitle`, `icon`, `order`, `writable`, `options`, `media`) sont filtrées et validées ; les choix stockés comme chaînes sont normalisés en `{ "value", "label" }`.
 
 `sites.data_revision` progresse à chaque création, modification, transition éditoriale, restauration et publication planifiée, y compris pour les brouillons. Cette révision globale peut provoquer un rafraîchissement inutile pour un acteur qui ne voit pas le brouillon modifié, mais ne laisse pas un appareil conserver une révision identique alors que son brouillon visible a changé.
+
+Les routes POST `/v1/auth/start`, `/v1/auth/verify` et `/v1/auth/pair` suivent les formes de requête/réponse v1. `start` accepte `username`, `password`, `device_name`, et renvoie soit un défi TOTP limité dans le temps, soit un jeton appareil si le fournisseur authentifie directement. `verify` accepte `challenge_id`, `method: "totp"`, `code`; `pair` accepte `code`, `device_name`. Les réponses authentifiées contiennent `status: "authenticated"`, `device_token` et `expires_at: null`.
+
+Le raccordement au fournisseur d'identité reste volontairement fourni par le site via l'interface `IdentityProvider`. Celui-ci doit vérifier les identifiants, limiter les tentatives, expirer et consommer une seule fois chaque défi TOTP/code d'appairage, puis retourner un acteur et un site vérifiés. Le CMS n'enregistre pas les mots de passe, secrets TOTP ou codes d'appairage. `PdoDeviceTokenIssuer` vérifie l'appartenance au site et ne persiste que le hash SHA-256 du jeton. Au démarrage actuel, aucun adaptateur n'est configuré : les routes d'authentification renvoient 503; elles ne sont donc pas prêtes pour des connexions en production. Le manifeste de découverte, l'administration de configuration et les mutations restent à livrer.
 
 Exemple de mapping interne pour une collection :
 
@@ -51,4 +55,4 @@ Exemple de mapping interne pour une collection :
 }
 ```
 
-Pour un module `form`, `source` doit aussi contenir le `content_id` stable du contenu. Les données restent vides tant qu'aucun module n'est configuré. Les mutations, les routes de connexion TOTP/appairage et le manifeste de découverte ne sont pas encore livrés. La commande CLI d'émission de jeton sert uniquement aux essais locaux et ne doit pas devenir le parcours d'authentification d'un déploiement.
+Pour un module `form`, `source` doit aussi contenir le `content_id` stable du contenu. Les données restent vides tant qu'aucun module n'est configuré. Les mutations et le manifeste de découverte ne sont pas encore livrés. La commande CLI d'émission de jeton sert uniquement aux essais locaux et ne doit pas devenir le parcours d'authentification d'un déploiement.
