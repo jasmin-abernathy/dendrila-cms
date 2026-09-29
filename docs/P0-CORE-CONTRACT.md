@@ -184,8 +184,9 @@ Les tests de contrat locaux doivent prouver que :
 
 ## 9. Décisions encore ouvertes avant code serveur
 
-- langage et runtime du serveur de référence ;
-- moteur de persistance initial et stratégie de migration ;
+- validation réelle de PHP 8.5+, PDO MySQL et MariaDB sur l'hébergement de référence ;
+- stratégie de migration ascendante et restauration après échec partiel ;
+- raccordement du contexte d'acteur à la vérification serveur des jetons MMW (l'app cliente seule ne constitue pas un fournisseur d'identité serveur) ;
 - représentation de blocs riches dans les clients actuels ;
 - déclaration formelle et tests du module `media_library` dans la documentation et le schéma du protocole ;
 - politique exacte de suppression/anonymisation et rétention des révisions ;

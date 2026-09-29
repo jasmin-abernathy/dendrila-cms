@@ -1,0 +1,26 @@
+{
+  "name": "lepotager/mon-manager-web-cms-core",
+  "description": "Noyau serveur CMS générique compatible avec les primitives Mon Manager Web",
+  "type": "project",
+  "require": {
+    "php": ">=8.5",
+    "ext-json": "*",
+    "ext-mbstring": "*",
+    "ext-pdo": "*",
+    "ext-pdo_mysql": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "LePotager\\Cms\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "LePotager\\Cms\\Tests\\": "tests/"
+    }
+  },
+  "scripts": {
+    "test": "php tests/run.php",
+    "lint": "find src tests bin -name '*.php' -print0 | xargs -0 -n1 php -l"
+  }
+}

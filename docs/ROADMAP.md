@@ -14,13 +14,16 @@ Référence : [`P0-CORE-CONTRACT.md`](P0-CORE-CONTRACT.md). Ces cases valident l
 
 ## P0-B — Implémentation et validation locale
 
-- [ ] Choisir le runtime serveur de référence et le moteur de persistance initial.
+- [x] Choisir le runtime serveur de référence (PHP 8.5+) et le moteur initial (MariaDB via PDO).
+- [ ] Valider les extensions et l'accès MariaDB réels sur l'hébergement de référence.
 - [ ] Implémenter registres de modèles, services de contenu, autorisation, révisions et transactions.
 - [ ] Implémenter le workflow (aperçu, revue, planification, publication atomique) et la restauration sans réécriture d'historique.
 - [ ] Implémenter l'adaptateur MMW sans modifier les contrats v1 non pris en charge.
 - [ ] Ajouter les tests de contrat locaux listés dans `P0-CORE-CONTRACT.md`.
 - [ ] Vérifier tous les accès inter-sites et mutations par des tests de refus.
 - [ ] Documenter séparément la mise à jour de `media_library` dans le contrat MMW avant de la déclarer officiellement v1.
+
+Un prototype PHP interne est présent dans `src/`, avec migrations, commandes de bootstrap et tests du domaine. Les cases restent ouvertes jusqu'à ce que PHP les exécute réellement et que le driver MariaDB soit validé. L'API HTTP et l'adaptateur d'authentification restent à construire avant tout déploiement.
 
 ## P1 — Fonctions éditoriales indispensables
 

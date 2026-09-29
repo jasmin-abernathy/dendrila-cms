@@ -34,6 +34,24 @@ Voir `docs/ROADMAP.md`.
 
 Le contrat P0 de départ, ses interfaces logiques et les limites de compatibilité MMW v1 sont décrits dans `docs/P0-CORE-CONTRACT.md`.
 
+Le socle de référence est PHP 8.5+ / PDO / MariaDB, documenté dans `docs/ARCHITECTURE.md`. L'implémentation cœur commence dans `src/`; elle ne remplace pas les échanges d'authentification du protocole MMW.
+
+## Prototype local du CMS Core
+
+Prérequis : PHP 8.5+ avec `pdo_mysql` et `mbstring`, Composer et une base MariaDB dédiée.
+
+```sh
+composer install
+composer lint
+composer test
+php bin/migrate.php
+php bin/bootstrap-site.php <site_id> <nom_du_site> <actor_id_proprietaire> [review_before_publish=true|false]
+```
+
+Les commandes de migration et de création de site attendent `DB_DSN`, `DB_USERNAME` et `DB_PASSWORD` dans l'environnement. Le fichier `.env.example` montre la forme attendue, mais le projet ne charge volontairement pas `.env` automatiquement. Les fichiers média doivent rester hors du webroot.
+
+La couche livrée ici est un noyau PHP interne, pas encore une API MMW publique : aucune route HTTP ne doit créer un `ActorContext` depuis des champs de requête. Il faut brancher l'authentification MMW et vérifier le jeton d'appareil avant d'appeler les services du cœur.
+
 ## Principes
 
 - Pas de code spécifique client dans MMW.

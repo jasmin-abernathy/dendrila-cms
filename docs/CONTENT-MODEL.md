@@ -34,10 +34,14 @@
 - `embed_safe`
 
 Aucun bloc ne peut fournir de JavaScript exécutable arbitraire à MMW.
+Les structures de blocs acceptent uniquement leurs clés déclarées ; les URL sont limitées à HTTP(S). Le texte `rich_text` est une donnée, jamais du HTML de confiance : les rendus publics doivent l'échapper ou appliquer un assainisseur à liste blanche.
 
 ## Statuts
 
 - `draft`
 - `review`
+- `scheduled`
 - `published`
 - `archived`
+
+`scheduled` conserve `publish_at` en UTC et ne devient `published` qu'après validation par le worker planifié. Une programmation créée sans revue obligatoire doit repasser en revue si la politique du site l'exige avant l'échéance.
