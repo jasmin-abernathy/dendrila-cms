@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace LePotager\Cms\Api;
+namespace Dendrila\Cms\Api;
 
 final class AuthenticationFailure extends \RuntimeException
 {

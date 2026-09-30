@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace LePotager\Cms\Content;
+namespace Dendrila\Cms\Content;
 
 enum ContentStatus: string
 {

@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace LePotager\Cms\Storage;
+namespace Dendrila\Cms\Storage;
 
 interface CmsStore
 {

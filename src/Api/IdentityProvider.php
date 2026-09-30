@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace LePotager\Cms\Api;
+namespace Dendrila\Cms\Api;
 
 /**
  * Site-owned identity integration. Implementations must verify credentials, keep challenges

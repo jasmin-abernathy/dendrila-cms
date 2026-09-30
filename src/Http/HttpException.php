@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace LePotager\Cms\Http;
+namespace Dendrila\Cms\Http;
 
 final class HttpException extends \RuntimeException
 {

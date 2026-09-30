@@ -3,8 +3,8 @@ declare(strict_types=1);
 
 require dirname(__DIR__) . '/vendor/autoload.php';
 
-use LePotager\Cms\Design\CssTokenCompiler;
-use LePotager\Cms\Design\DesignStyleDefinition;
+use Dendrila\Cms\Design\CssTokenCompiler;
+use Dendrila\Cms\Design\DesignStyleDefinition;
 
 $id = $argv[1] ?? null;
 if (!is_string($id) || preg_match('/^[a-z][a-z0-9-]*$/', $id) !== 1) {

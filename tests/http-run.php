@@ -3,25 +3,25 @@ declare(strict_types=1);
 
 require dirname(__DIR__) . '/vendor/autoload.php';
 
-use LePotager\Cms\Api\ApiKernel;
-use LePotager\Cms\Api\AuthenticatedMember;
-use LePotager\Cms\Api\AuthenticationFailure;
-use LePotager\Cms\Api\AuthenticationService;
-use LePotager\Cms\Api\AuthenticationStartResult;
-use LePotager\Cms\Api\DeviceAuthenticator;
-use LePotager\Cms\Api\DeviceTokenIssuer;
-use LePotager\Cms\Api\IdentityProvider;
-use LePotager\Cms\Api\SiteReadModel;
-use LePotager\Cms\Api\SiteChangeHandler;
-use LePotager\Cms\Api\SnapshotProjector;
-use LePotager\Cms\Api\Unauthorized;
-use LePotager\Cms\Api\VerifiedLogin;
-use LePotager\Cms\Authorization\AccessDenied;
-use LePotager\Cms\Authorization\ActorContext;
-use LePotager\Cms\Http\HttpException;
-use LePotager\Cms\Http\Request;
-use LePotager\Cms\Http\Response;
-use LePotager\Cms\Http\Router;
+use Dendrila\Cms\Api\ApiKernel;
+use Dendrila\Cms\Api\AuthenticatedMember;
+use Dendrila\Cms\Api\AuthenticationFailure;
+use Dendrila\Cms\Api\AuthenticationService;
+use Dendrila\Cms\Api\AuthenticationStartResult;
+use Dendrila\Cms\Api\DeviceAuthenticator;
+use Dendrila\Cms\Api\DeviceTokenIssuer;
+use Dendrila\Cms\Api\IdentityProvider;
+use Dendrila\Cms\Api\SiteReadModel;
+use Dendrila\Cms\Api\SiteChangeHandler;
+use Dendrila\Cms\Api\SnapshotProjector;
+use Dendrila\Cms\Api\Unauthorized;
+use Dendrila\Cms\Api\VerifiedLogin;
+use Dendrila\Cms\Authorization\AccessDenied;
+use Dendrila\Cms\Authorization\ActorContext;
+use Dendrila\Cms\Http\HttpException;
+use Dendrila\Cms\Http\Request;
+use Dendrila\Cms\Http\Response;
+use Dendrila\Cms\Http\Router;
 
 function httpCheck(bool $condition, string $message): void
 {

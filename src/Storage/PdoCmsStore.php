@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace LePotager\Cms\Storage;
+namespace Dendrila\Cms\Storage;
 
 use PDO;
 use PDOException;
@@ -207,7 +207,7 @@ final readonly class PdoCmsStore implements CmsStore
         );
         $statement->execute($parameters);
         if ($statement->rowCount() !== 1) {
-            throw new \LePotager\Cms\Content\VersionConflict('The content changed during the update.');
+            throw new \Dendrila\Cms\Content\VersionConflict('The content changed during the update.');
         }
     }
 

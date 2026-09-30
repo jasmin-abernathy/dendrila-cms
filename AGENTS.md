@@ -17,7 +17,7 @@ Avant toute modification technique :
 
 ## Architecture
 
-- `mon-manager-web-cms` contient le noyau CMS serveur.
+- `dendrila-cms` contient le noyau CMS serveur.
 - `lepotager-site-manager` reste l'application cliente MMW.
 - Ne pas réintroduire de logique BMH ou client spécifique dans le noyau.
 - Un connecteur tiers traduit vers les primitives génériques.

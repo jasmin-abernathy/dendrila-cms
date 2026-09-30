@@ -11,4 +11,12 @@
 
 La marque Dendrila CMS ne change aucun identifiant technique déployé. En particulier, conserver `/.well-known/lepotager-site-manager.json`, `X-Lepotager-Protocol`, `X-Lepotager-Device-Token` et les tables `mmw_devices` / `mmw_idempotency` tant qu’une version ultérieure du protocole n’a pas défini une migration et une période de compatibilité.
 
-Les noms `MMW` et `Dendrila` ne sont pas interchangeables : `mmw-*` désigne le client ou le protocole ; `dendrila-*` désigne le CMS et son système de rendu.
+Les noms `MMW` et `Dendrila` ne sont pas interchangeables : MMW désigne le client ou le protocole ; Dendrila désigne le CMS et son système de rendu.
+
+## Identifiants du code
+
+- Package Composer : `dendrila/cms-core`.
+- Namespace PHP : `Dendrila\Cms\`.
+- Variables CSS du moteur visuel : préfixe `--dendrila-*`.
+
+La recherche dans les dépôts clients concernés n'a trouvé aucun manifeste Composer ni aucune référence aux anciennes variables CSS. Le protocole réseau MMW v1 conserve ses identifiants historiques.
