@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "id": "ultra-minimal",
+  "label": "Très minimal",
+  "description": "Presque aucun décor : navigation, contenu et rythme typographique passent avant tout le reste.",
+  "keywords": [
+    "minimal",
+    "direct",
+    "léger",
+    "rapide"
+  ],
+  "tokens": {
+    "layout": {
+      "content_width": "medium",
+      "section_spacing": "airy",
+      "hero": "minimal",
+      "text_column": "medium",
+      "alignment": "left"
+    },
+    "typography": {
+      "heading_style": "neutral",
+      "body_style": "neutral",
+      "scale": "restrained"
+    },
+    "media": {
+      "prominence": "low",
+      "crop": "natural",
+      "gallery": "grid",
+      "full_bleed": false
+    },
+    "illustration": {
+      "frequency": "none",
+      "style": "none"
+    },
+    "surfaces": {
+      "radius": "none",
+      "borders": "none",
+      "shadows": "none"
+    },
+    "accent": {
+      "usage": "restrained",
+      "backgrounds": "neutral"
+    },
+    "motion": {
+      "level": "none"
+    }
+  },
+  "constraints": {
+    "contrast_target": "AA",
+    "focus_visible": true,
+    "reduced_motion": true,
+    "autoplay_media": false
+  }
+}

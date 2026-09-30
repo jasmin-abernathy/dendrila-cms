@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "id": "image-forward",
+  "label": "Centré sur les images",
+  "description": "Grandes images, respiration généreuse et texte resserré pour laisser le contenu visuel mener la lecture.",
+  "keywords": [
+    "images",
+    "immersif",
+    "aéré",
+    "galerie"
+  ],
+  "tokens": {
+    "layout": {
+      "content_width": "wide",
+      "section_spacing": "airy",
+      "hero": "media_first",
+      "text_column": "narrow",
+      "alignment": "mixed"
+    },
+    "typography": {
+      "heading_style": "neutral",
+      "body_style": "humanist",
+      "scale": "balanced"
+    },
+    "media": {
+      "prominence": "high",
+      "crop": "mixed",
+      "gallery": "masonry",
+      "full_bleed": true
+    },
+    "illustration": {
+      "frequency": "none",
+      "style": "none"
+    },
+    "surfaces": {
+      "radius": "small",
+      "borders": "subtle",
+      "shadows": "none"
+    },
+    "accent": {
+      "usage": "restrained",
+      "backgrounds": "neutral"
+    },
+    "motion": {
+      "level": "subtle"
+    }
+  },
+  "constraints": {
+    "contrast_target": "AA",
+    "focus_visible": true,
+    "reduced_motion": true,
+    "autoplay_media": false
+  }
+}

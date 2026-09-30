@@ -17,7 +17,8 @@ La V1 est considérée exploitable lorsque :
 - les rôles et permissions sont configurables ;
 - les primitives restent compatibles avec le protocole MMW ;
 - au moins deux sites différents utilisent le même noyau ;
-- un kit métier peut être instancié sans forker le moteur.
+- un kit fonctionnel peut être instancié sans forker le moteur ;
+- un style visuel peut être changé sans modifier le kit fonctionnel.
 
 ## Priorités
 
@@ -28,9 +29,12 @@ La V1 est considérée exploitable lorsque :
 5. Révisions et restauration.
 6. Navigation.
 7. Bibliothèque média et SEO essentiel.
-8. Kits Artisan/TPE puis Association.
+8. Kits fonctionnels Artisan/TPE puis Association.
+9. Galerie de styles visuels indépendante des kits métier.
 
 Voir `docs/ROADMAP.md`.
+
+La composition visuelle est volontairement séparée du métier : `docs/DESIGN-STYLES.md` décrit les presets graphiques et `docs/SITE-COMPOSITION.md` la combinaison kit fonctionnel + style visuel + identité de marque.
 
 Le contrat P0 de départ, ses interfaces logiques et les limites de compatibilité MMW v1 sont décrits dans `docs/P0-CORE-CONTRACT.md`.
 
@@ -62,5 +66,6 @@ Par défaut, les réglages d'API d'un site commencent avec une liste de modules 
 - Le serveur reste l'autorité sur les données et permissions.
 - Toute nouvelle primitive doit être générique et réutilisable.
 - Les outils tiers passent par des connecteurs côté serveur.
+- Les kits fonctionnels et les styles visuels restent indépendants.
 - Export et réversibilité doivent rester possibles.
 - Accessibilité et sobriété sont des contraintes de base, pas des options.

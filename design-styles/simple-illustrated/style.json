@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "id": "simple-illustrated",
+  "label": "Simple avec quelques illustrations",
+  "description": "Structure claire et familière, enrichie ponctuellement par des illustrations ou pictogrammes légers.",
+  "keywords": [
+    "simple",
+    "illustré",
+    "clair",
+    "accessible"
+  ],
+  "tokens": {
+    "layout": {
+      "content_width": "medium",
+      "section_spacing": "balanced",
+      "hero": "split",
+      "text_column": "medium",
+      "alignment": "left"
+    },
+    "typography": {
+      "heading_style": "humanist",
+      "body_style": "humanist",
+      "scale": "balanced"
+    },
+    "media": {
+      "prominence": "medium",
+      "crop": "mixed",
+      "gallery": "grid",
+      "full_bleed": false
+    },
+    "illustration": {
+      "frequency": "occasional",
+      "style": "line"
+    },
+    "surfaces": {
+      "radius": "medium",
+      "borders": "subtle",
+      "shadows": "none"
+    },
+    "accent": {
+      "usage": "balanced",
+      "backgrounds": "soft_sections"
+    },
+    "motion": {
+      "level": "subtle"
+    }
+  },
+  "constraints": {
+    "contrast_target": "AA",
+    "focus_visible": true,
+    "reduced_motion": true,
+    "autoplay_media": false
+  }
+}

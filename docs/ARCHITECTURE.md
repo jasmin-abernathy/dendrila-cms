@@ -35,6 +35,20 @@ PHP léger  WordPress  Translucide / autre
    RDV / boutique / tickets / etc.
 ```
 
+## Couche de présentation
+
+Les kits fonctionnels et les styles visuels sont deux axes indépendants.
+
+```text
+kit fonctionnel ----\
+                     +--> composition du site --> adaptateur front
+style visuel -------/
+identité de marque -/
+modules activés ----/
+```
+
+Les styles utilisent des tokens sémantiques et ne choisissent jamais un secteur d’activité. L’adaptateur front reste responsable du HTML/CSS final et doit respecter les contraintes d’accessibilité du preset.
+
 ## Invariant principal
 
-Le remplacement d'un outil métier ou du front public ne doit pas nécessiter un fork de MMW.
+Le remplacement d'un outil métier, d'un style visuel ou du front public ne doit pas nécessiter un fork de MMW.

@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "id": "editorial",
+  "label": "Éditorial",
+  "description": "Titres affirmés, colonne de lecture maîtrisée, images intercalées et rythme proche d’un magazine ou d’un essai.",
+  "keywords": [
+    "éditorial",
+    "lecture",
+    "magazine",
+    "contenu"
+  ],
+  "tokens": {
+    "layout": {
+      "content_width": "medium",
+      "section_spacing": "balanced",
+      "hero": "text_first",
+      "text_column": "narrow",
+      "alignment": "left"
+    },
+    "typography": {
+      "heading_style": "editorial",
+      "body_style": "editorial",
+      "scale": "expressive"
+    },
+    "media": {
+      "prominence": "medium",
+      "crop": "natural",
+      "gallery": "editorial",
+      "full_bleed": false
+    },
+    "illustration": {
+      "frequency": "occasional",
+      "style": "organic"
+    },
+    "surfaces": {
+      "radius": "none",
+      "borders": "subtle",
+      "shadows": "none"
+    },
+    "accent": {
+      "usage": "restrained",
+      "backgrounds": "soft_sections"
+    },
+    "motion": {
+      "level": "none"
+    }
+  },
+  "constraints": {
+    "contrast_target": "AA",
+    "focus_visible": true,
+    "reduced_motion": true,
+    "autoplay_media": false
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "id": "quiet-elegant",
+  "label": "Sobre et élégant",
+  "description": "Beaucoup d’espace, hiérarchie typographique soignée, détails discrets et très peu d’effets décoratifs.",
+  "keywords": [
+    "sobre",
+    "élégant",
+    "aéré",
+    "typographie"
+  ],
+  "tokens": {
+    "layout": {
+      "content_width": "medium",
+      "section_spacing": "airy",
+      "hero": "text_first",
+      "text_column": "narrow",
+      "alignment": "left"
+    },
+    "typography": {
+      "heading_style": "editorial",
+      "body_style": "neutral",
+      "scale": "balanced"
+    },
+    "media": {
+      "prominence": "medium",
+      "crop": "natural",
+      "gallery": "editorial",
+      "full_bleed": false
+    },
+    "illustration": {
+      "frequency": "none",
+      "style": "none"
+    },
+    "surfaces": {
+      "radius": "none",
+      "borders": "subtle",
+      "shadows": "none"
+    },
+    "accent": {
+      "usage": "restrained",
+      "backgrounds": "neutral"
+    },
+    "motion": {
+      "level": "none"
+    }
+  },
+  "constraints": {
+    "contrast_target": "AA",
+    "focus_visible": true,
+    "reduced_motion": true,
+    "autoplay_media": false
+  }
+}

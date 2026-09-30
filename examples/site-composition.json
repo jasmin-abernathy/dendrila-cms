@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "functional_kit": "association",
+  "design_style": "quiet-elegant",
+  "enabled_modules": [
+    "content",
+    "media",
+    "forms",
+    "calendar",
+    "documents",
+    "seo"
+  ],
+  "brand_overrides": {
+    "primary": "#3E6B4C",
+    "background": "#FAFBF8",
+    "text": "#252B28"
+  }
+}

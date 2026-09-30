@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "id": "graphic-rhythm",
+  "label": "Dynamique et graphique",
+  "description": "Grands titres, contrastes de rythme, aplats et formes géométriques sans sacrifier la lisibilité.",
+  "keywords": [
+    "graphique",
+    "rythmé",
+    "expressif",
+    "contrasté"
+  ],
+  "tokens": {
+    "layout": {
+      "content_width": "wide",
+      "section_spacing": "balanced",
+      "hero": "split",
+      "text_column": "medium",
+      "alignment": "mixed"
+    },
+    "typography": {
+      "heading_style": "display",
+      "body_style": "neutral",
+      "scale": "expressive"
+    },
+    "media": {
+      "prominence": "medium",
+      "crop": "cover",
+      "gallery": "grid",
+      "full_bleed": true
+    },
+    "illustration": {
+      "frequency": "regular",
+      "style": "geometric"
+    },
+    "surfaces": {
+      "radius": "medium",
+      "borders": "present",
+      "shadows": "none"
+    },
+    "accent": {
+      "usage": "strong",
+      "backgrounds": "alternating"
+    },
+    "motion": {
+      "level": "subtle"
+    }
+  },
+  "constraints": {
+    "contrast_target": "AA",
+    "focus_visible": true,
+    "reduced_motion": true,
+    "autoplay_media": false
+  }
+}

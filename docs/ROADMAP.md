@@ -35,13 +35,22 @@ Un prototype PHP interne est présent dans `src/`, avec migrations, commandes de
 - [ ] Site pilote générique réutilisant le CMS Core.
 - [ ] Tests de contrat locaux.
 
-## P1 — Kits métier
+## P1 — Kits fonctionnels
 
 - [ ] Kit Artisan / TPE.
 - [ ] Kit Association.
 - [ ] Kit PME / services.
 - [ ] Jeu de données d'exemple.
 - [ ] Validation qu'un kit n'ajoute aucun code client à MMW.
+
+## P1 — Styles visuels
+
+- [x] Séparer contractuellement les kits fonctionnels et les styles visuels.
+- [x] Ajouter le schéma `design-style` et les premiers presets orientés résultat graphique.
+- [x] Ajouter un schéma de composition site = kit + style + marque + modules.
+- [ ] Produire une miniature représentative de chaque style avec un même contenu de démonstration.
+- [ ] Ajouter un adaptateur de référence qui traduit les tokens de style en CSS/composants.
+- [ ] Tester chaque style sur mobile, grand écran, navigation clavier et préférences de mouvement réduit.
 
 ## P2
 
