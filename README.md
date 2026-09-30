@@ -1,6 +1,6 @@
-# Mon Manager Web CMS
+# Dendrila CMS
 
-Socle CMS modulaire destiné à compléter **Mon Manager Web (MMW)**.
+Noyau CMS modulaire, pilotable par **Mon Manager Web (MMW)** et réutilisable par plusieurs sites.
 
 Ce dépôt ne remplace pas l'application `jasmin-abernathy/lepotager-site-manager`.
 Il fournit le **noyau serveur générique** qui permet à plusieurs sites différents
