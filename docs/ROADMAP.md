@@ -48,8 +48,9 @@ Un prototype PHP interne est présent dans `src/`, avec migrations, commandes de
 - [x] Séparer contractuellement les kits fonctionnels et les styles visuels.
 - [x] Ajouter le schéma `design-style` et les premiers presets orientés résultat graphique.
 - [x] Ajouter un schéma de composition site = kit + style + marque + modules.
-- [ ] Produire une miniature représentative de chaque style avec un même contenu de démonstration.
-- [ ] Ajouter un adaptateur de référence qui traduit les tokens de style en CSS/composants.
+- [x] Ajouter une galerie HTML autonome utilisant le même contenu pour les six styles ; les miniatures finales restent à produire.
+- [x] Ajouter un compilateur de référence qui traduit les tokens autorisés en variables CSS bornées.
+- [ ] Ajouter un adaptateur de front complet qui applique aussi les variantes de structure (hero, galeries, alignement et illustrations).
 - [ ] Tester chaque style sur mobile, grand écran, navigation clavier et préférences de mouvement réduit.
 
 ## P2

@@ -26,3 +26,15 @@ Les presets utilisent des tokens sémantiques. Ils ne fixent ni métier, ni logo
 Les contraintes d’accessibilité sont obligatoires : contraste au moins AA, focus visible, prise en charge de `prefers-reduced-motion` et aucun média en lecture automatique.
 
 La galerie de choix doit présenter le résultat visuel, jamais des catégories comme « business », « administratif », « artisan » ou « association ».
+
+## Prototype local
+
+Une galerie sans dépendance est disponible dans `examples/design-gallery/index.html`.
+
+Pour compiler un preset en variables CSS :
+
+```sh
+php bin/compile-design-style.php quiet-elegant
+```
+
+Le compilateur n'accepte qu'un vocabulaire fermé de tokens. Il ne permet pas à une configuration de site d'injecter du CSS arbitraire.
