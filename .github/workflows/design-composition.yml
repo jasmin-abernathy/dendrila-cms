@@ -1,0 +1,68 @@
+name: Design styles and composition
+
+on:
+  push:
+    branches: [work/design-styles-composition]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: design-composition-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  php-mariadb:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    services:
+      mariadb:
+        image: mariadb:11.4
+        env:
+          MARIADB_ROOT_PASSWORD: composition-test-only
+          MARIADB_DATABASE: cms_composition_test
+          MARIADB_USER: cms_test
+          MARIADB_PASSWORD: composition-test-only
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    env:
+      DB_DSN: mysql:host=127.0.0.1;port=3306;dbname=cms_composition_test;charset=utf8mb4
+      DB_USERNAME: cms_test
+      DB_PASSWORD: composition-test-only
+      CMS_COMPOSITION_TEST_DB: '1'
+      TEST_DB_DSN: mysql:host=127.0.0.1;port=3306;dbname=cms_composition_test;charset=utf8mb4
+      TEST_DB_USERNAME: cms_test
+      TEST_DB_PASSWORD: composition-test-only
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: mbstring, pdo_mysql
+          tools: composer:v2
+          coverage: none
+          ini-values: error_reporting=E_ALL, display_errors=On
+      - name: Verify runtime and install
+        run: |
+          php --version
+          composer install --no-interaction --prefer-dist
+      - name: Lint and contract tests
+        run: |
+          composer lint
+          composer test
+      - name: Verify generated gallery
+        run: |
+          php bin/generate-design-gallery.php
+          git diff --exit-code -- examples/design-gallery/index.html examples/design-gallery/styles.css
+      - name: Migrate dedicated test database
+        run: php bin/migrate.php
+      - name: Composition transaction and isolation tests
+        run: php tests/composition-pdo-run.php

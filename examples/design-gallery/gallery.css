@@ -1,0 +1,4 @@
+@import url("../../public/design/reference.css");
+:root{font-family:system-ui,sans-serif;color:#252b28;background:#f7f9f6}body{margin:0}main{max-width:90rem;margin:auto;padding:2rem 1rem}h1{font-size:clamp(2rem,5vw,3.5rem)}.intro{max-width:55rem;line-height:1.65}.grid{display:grid;gap:2rem}.style-label{padding:1rem;border-bottom:1px solid #c2cec5}.style-label h2{margin:0}.style-label p{line-height:1.6}.preview{min-width:0;border:1px solid #c2cec5}.preview .mmw-site{container-type:inline-size}
+@container(max-width:35rem){.mmw-site .mmw-hero{flex-direction:column!important}.mmw-site .mmw-gallery{grid-template-columns:1fr}.mmw-site[data-gallery="editorial"] .mmw-card:first-child{grid-column:auto}}
+@media(min-width:75rem){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}

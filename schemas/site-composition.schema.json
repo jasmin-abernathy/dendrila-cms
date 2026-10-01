@@ -32,7 +32,8 @@
       "properties": {
         "logo_url": {
           "type": "string",
-          "format": "uri"
+          "format": "uri",
+          "pattern": "^[Hh][Tt][Tt][Pp][Ss]?://"
         },
         "primary": {
           "type": "string",
@@ -55,7 +56,202 @@
     },
     "style_overrides": {
       "type": "object",
-      "description": "Overrides limited to tokens supported by the selected front adapter."
+      "required": [],
+      "properties": {
+        "layout": {
+          "type": "object",
+          "required": [],
+          "properties": {
+            "content_width": {
+              "enum": [
+                "narrow",
+                "medium",
+                "wide",
+                "full"
+              ]
+            },
+            "section_spacing": {
+              "enum": [
+                "compact",
+                "balanced",
+                "airy"
+              ]
+            },
+            "hero": {
+              "enum": [
+                "minimal",
+                "text_first",
+                "media_first",
+                "split"
+              ]
+            },
+            "text_column": {
+              "enum": [
+                "narrow",
+                "medium",
+                "wide"
+              ]
+            },
+            "alignment": {
+              "enum": [
+                "left",
+                "center",
+                "mixed"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "typography": {
+          "type": "object",
+          "required": [],
+          "properties": {
+            "heading_style": {
+              "enum": [
+                "neutral",
+                "humanist",
+                "editorial",
+                "display"
+              ]
+            },
+            "body_style": {
+              "enum": [
+                "neutral",
+                "humanist",
+                "editorial"
+              ]
+            },
+            "scale": {
+              "enum": [
+                "restrained",
+                "balanced",
+                "expressive"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "media": {
+          "type": "object",
+          "required": [],
+          "properties": {
+            "prominence": {
+              "enum": [
+                "low",
+                "medium",
+                "high"
+              ]
+            },
+            "crop": {
+              "enum": [
+                "natural",
+                "cover",
+                "mixed"
+              ]
+            },
+            "gallery": {
+              "enum": [
+                "grid",
+                "masonry",
+                "filmstrip",
+                "editorial"
+              ]
+            },
+            "full_bleed": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        },
+        "illustration": {
+          "type": "object",
+          "required": [],
+          "properties": {
+            "frequency": {
+              "enum": [
+                "none",
+                "occasional",
+                "regular"
+              ]
+            },
+            "style": {
+              "enum": [
+                "none",
+                "line",
+                "flat",
+                "geometric",
+                "organic"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "surfaces": {
+          "type": "object",
+          "required": [],
+          "properties": {
+            "radius": {
+              "enum": [
+                "none",
+                "small",
+                "medium",
+                "large"
+              ]
+            },
+            "borders": {
+              "enum": [
+                "none",
+                "subtle",
+                "present"
+              ]
+            },
+            "shadows": {
+              "enum": [
+                "none",
+                "subtle"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "accent": {
+          "type": "object",
+          "required": [],
+          "properties": {
+            "usage": {
+              "enum": [
+                "restrained",
+                "balanced",
+                "strong"
+              ]
+            },
+            "backgrounds": {
+              "enum": [
+                "neutral",
+                "soft_sections",
+                "alternating"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "motion": {
+          "type": "object",
+          "required": [],
+          "properties": {
+            "level": {
+              "enum": [
+                "none",
+                "subtle",
+                "expressive"
+              ]
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false,
+      "description": "Partial closed tokens; nested groups accept only declared token keys."
     }
   },
   "additionalProperties": false

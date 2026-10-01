@@ -1,0 +1,48 @@
+/* Shared adapter: all variants are selected by validated attributes. */
+.mmw-site{font-family:system-ui,sans-serif;color:#252b28;background:#fff;line-height:1.6;overflow-wrap:anywhere}
+.mmw-site *{box-sizing:border-box}
+.mmw-site .mmw-section{width:min(calc(100% - 2rem),var(--mmw-content-max,68rem));margin-inline:auto;padding-block:calc(var(--mmw-section-gap,4rem) / 2)}
+.mmw-site h2,.mmw-site h3{line-height:1.15;text-wrap:balance}
+.mmw-site h2{font-size:calc(2rem * var(--mmw-heading-scale,1))}
+.mmw-site p{max-width:var(--mmw-text-max,54rem)}
+.mmw-site .mmw-hero{display:flex;flex-direction:column;gap:1.5rem}
+.mmw-site .mmw-copy{min-width:0;flex:1}
+.mmw-site .mmw-media{min-width:0;flex:var(--mmw-media-emphasis,1)}
+.mmw-site .mmw-media{margin:0}
+.mmw-site img{display:block;width:100%;height:auto;border-radius:var(--mmw-radius,0)}
+.mmw-site .mmw-button{display:inline-block;background:#315b3f;color:white;padding:.65rem 1rem;border-radius:var(--mmw-radius,0);text-decoration:none;min-height:44px}
+.mmw-site a:focus-visible{outline:3px solid #1c4a9b;outline-offset:4px}
+.mmw-site .mmw-gallery{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem}
+.mmw-site .mmw-card{padding:1rem;border:var(--mmw-border-width,1px) solid #c2cec5;border-radius:var(--mmw-radius,0);box-shadow:var(--mmw-shadow,none)}
+.mmw-site .mmw-illustration{display:block;width:3rem;height:3rem;color:#315b3f}
+.mmw-site[data-hero="media_first"] .mmw-media{order:-1}
+.mmw-site[data-hero="minimal"] .mmw-media{max-width:20rem}
+.mmw-site[data-alignment="center"]{text-align:center}
+.mmw-site[data-alignment="center"] p,.mmw-site[data-alignment="center"] .mmw-media{margin-inline:auto}
+.mmw-site[data-alignment="mixed"] .mmw-copy{text-align:center}
+.mmw-site[data-alignment="mixed"] .mmw-copy p{margin-inline:auto}
+.mmw-site[data-crop="cover"] .mmw-media img{aspect-ratio:16/9;object-fit:cover}
+.mmw-site[data-crop="mixed"] .mmw-card img{aspect-ratio:4/3;object-fit:cover}
+.mmw-site[data-full-bleed="true"] .mmw-hero{width:100%}
+.mmw-site[data-full-bleed="true"] .mmw-copy{padding-inline:1rem}
+.mmw-site[data-heading="editorial"] h2,.mmw-site[data-heading="editorial"] h3{font-family:Georgia,serif}
+.mmw-site[data-heading="humanist"] h2,.mmw-site[data-heading="humanist"] h3{font-family:"Trebuchet MS",sans-serif}
+.mmw-site[data-heading="display"] h2,.mmw-site[data-heading="display"] h3{font-weight:900;letter-spacing:-.035em}
+.mmw-site[data-body="editorial"]{font-family:Georgia,serif}
+.mmw-site[data-body="humanist"]{font-family:"Trebuchet MS",sans-serif}
+.mmw-site[data-backgrounds="soft_sections"] .mmw-section:nth-child(even){background:rgb(168 200 177 / var(--mmw-accent-strength,.35))}
+.mmw-site[data-backgrounds="alternating"] .mmw-section:nth-child(odd){background:rgb(168 200 177 / var(--mmw-accent-strength,.35))}
+.mmw-site[data-illustration-frequency="none"] .mmw-illustration,.mmw-site[data-illustration="none"] .mmw-illustration{display:none}
+.mmw-site[data-illustration-frequency="occasional"] .mmw-card:not(:first-child) .mmw-illustration{display:none}
+.mmw-site[data-illustration="line"] .mmw-illustration{fill:none;stroke:currentColor;stroke-width:2}
+.mmw-site[data-illustration="flat"] .mmw-illustration{fill:currentColor}
+.mmw-site[data-illustration="geometric"] .mmw-illustration{fill:currentColor;clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)}
+.mmw-site[data-illustration="organic"] .mmw-illustration{fill:currentColor;border-radius:40% 60% 60% 40%;background:#e3ece5}
+.mmw-site[data-gallery="filmstrip"] .mmw-gallery{display:flex;overflow-x:auto;scroll-snap-type:x proximity}
+.mmw-site[data-gallery="filmstrip"] .mmw-card{flex:0 0 min(80%,20rem);scroll-snap-align:start}
+.mmw-site[data-gallery="masonry"] .mmw-gallery{align-items:start}
+.mmw-site[data-gallery="masonry"] .mmw-card:nth-child(2){padding-block:2rem}
+.mmw-site[data-gallery="editorial"] .mmw-card:first-child{grid-column:span 2}
+@media(min-width:48rem){.mmw-site[data-hero="split"] .mmw-hero{flex-direction:row;align-items:center}}
+@media(max-width:36rem){.mmw-site .mmw-gallery{grid-template-columns:1fr}.mmw-site[data-gallery="editorial"] .mmw-card:first-child{grid-column:auto}}
+@media(prefers-reduced-motion:reduce){.mmw-site *{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
