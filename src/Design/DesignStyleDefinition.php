@@ -32,7 +32,7 @@ final readonly class DesignStyleDefinition
     {
         if (($definition['schema_version'] ?? null) !== 1
             || !is_string($definition['id'] ?? null)
-            || preg_match('/^[a-z][a-z0-9-]*$/', $definition['id']) !== 1
+            || preg_match('/^[a-z][a-z0-9-]*$/D', $definition['id']) !== 1
             || !is_string($definition['label'] ?? null)
             || trim($definition['label']) === ''
             || !is_string($definition['description'] ?? null)
@@ -40,6 +40,27 @@ final readonly class DesignStyleDefinition
             || !is_array($definition['tokens'] ?? null)
             || !is_array($definition['constraints'] ?? null)) {
             throw new \InvalidArgumentException('Invalid design style definition.');
+        }
+
+        if (array_diff(array_keys($definition), ['schema_version','id','label','description','keywords','tokens','constraints']) !== []
+            || array_diff(array_keys($definition['constraints']), ['contrast_target','focus_visible','reduced_motion','autoplay_media']) !== []) {
+            throw new \InvalidArgumentException('Unknown style property.');
+        }
+
+        $paths = array_merge(array_keys(self::ENUMS), ['media.full_bleed']);
+        $knownGroups = [];
+        foreach ($paths as $path) {
+            [$group, $key] = explode('.', $path);
+            $knownGroups[$group][] = $key;
+        }
+        if (array_diff(array_keys($definition['tokens']), array_keys($knownGroups)) !== []) {
+            throw new \InvalidArgumentException('Unknown design token group.');
+        }
+        foreach ($knownGroups as $group => $keys) {
+            if (!is_array($definition['tokens'][$group] ?? null)
+                || array_diff(array_keys($definition['tokens'][$group]), $keys) !== []) {
+                throw new \InvalidArgumentException('Unknown design token.');
+            }
         }
 
         foreach (self::ENUMS as $path => $allowed) {
@@ -62,7 +83,21 @@ final readonly class DesignStyleDefinition
         }
     }
 
+    /** Apply only declared, bounded token overrides, then revalidate. */
+    public function withOverrides(array $overrides): self
+    {
+        $definition = $this->definition;
+        foreach ($overrides as $group => $values) {
+            if (!is_string($group) || !isset($definition['tokens'][$group]) || !is_array($values)) {
+                throw new \InvalidArgumentException('Unknown override group.');
+            }
+            $definition['tokens'][$group] = array_replace($definition['tokens'][$group], $values);
+        }
+        return new self($definition);
+    }
+
     public function id(): string { return $this->definition['id']; }
+    public function contrastTarget(): string { return $this->definition['constraints']['contrast_target']; }
     public function label(): string { return $this->definition['label']; }
 
     public function token(string $path): mixed
