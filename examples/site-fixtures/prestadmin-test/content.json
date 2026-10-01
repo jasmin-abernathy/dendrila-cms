@@ -1,0 +1,10 @@
+{
+  "content_id": "0123456789abcdef0123456789abcdef",
+  "type_id": "prestadmin_page",
+  "values": {
+    "title": "Votre administratif reste organisé",
+    "summary": "Données fictives : un exemple de présentation courte pour un site de services.",
+    "cta_label": "Découvrir les prestations"
+  },
+  "status": "draft"
+}

@@ -1,0 +1,53 @@
+{
+  "site_id": "prestadmin_test",
+  "display_name": "Prestadmin — test Dendrila",
+  "owner_actor_id": "prestadmin_fixture_owner",
+  "policy": {
+    "review_before_publish": true,
+    "allow_offline_queue": false
+  },
+  "branding": {
+    "primary": "#9d2941",
+    "secondary": "#faf8f8"
+  },
+  "modules": [
+    {
+      "id": "home-summary",
+      "kind": "form",
+      "title": "Résumé de la page d’accueil",
+      "subtitle": "Données fictives de test",
+      "order": 10,
+      "writable": false,
+      "source": {
+        "type_id": "prestadmin_page",
+        "content_id": "0123456789abcdef0123456789abcdef"
+      },
+      "fields": [
+        {
+          "id": "title",
+          "type": "text",
+          "label": "Titre principal",
+          "source_field_id": "title",
+          "required": true,
+          "max_length": 160
+        },
+        {
+          "id": "summary",
+          "type": "multiline",
+          "label": "Présentation",
+          "source_field_id": "summary",
+          "required": true,
+          "max_length": 1200
+        },
+        {
+          "id": "cta_label",
+          "type": "text",
+          "label": "Libellé du bouton",
+          "source_field_id": "cta_label",
+          "required": true,
+          "max_length": 80
+        }
+      ]
+    }
+  ]
+}

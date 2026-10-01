@@ -1,0 +1,26 @@
+{
+  "id": "prestadmin_page",
+  "label": "Page Prestadmin (test)",
+  "collection": true,
+  "workflow": "editorial",
+  "fields": [
+    {
+      "id": "title",
+      "type": "text",
+      "label": "Titre principal",
+      "required": true
+    },
+    {
+      "id": "summary",
+      "type": "multiline",
+      "label": "Présentation",
+      "required": true
+    },
+    {
+      "id": "cta_label",
+      "type": "text",
+      "label": "Libellé du bouton",
+      "required": true
+    }
+  ]
+}
