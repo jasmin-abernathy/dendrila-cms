@@ -1,0 +1,27 @@
+{
+  "id": "cabinet-medical",
+  "label": "Cabinet médical",
+  "content_types": [
+    "page",
+    "practitioner",
+    "consultation_service",
+    "practical_info"
+  ],
+  "modules": [
+    "content",
+    "media",
+    "forms",
+    "seo"
+  ],
+  "navigation": [
+    "Accueil",
+    "Le cabinet",
+    "L’équipe",
+    "Consultations",
+    "Accès",
+    "Contact"
+  ],
+  "defaults": {
+    "review_before_publish": true
+  }
+}
