@@ -273,6 +273,8 @@ final readonly class PdoSiteReadModel implements SiteReadModel
             if (isset($module['options']) && is_array($module['options']) && !array_is_list($module['options'])) {
                 $options = array_intersect_key($module['options'], array_flip([
                     'upload_enabled', 'max_bytes', 'accepted_mime_types', 'allow_create', 'allow_update', 'allow_delete',
+                    'group_id', 'group_title', 'group_description', 'group_order', 'field_sections',
+                    'item_label', 'empty_message',
                 ]));
                 foreach (['upload_enabled', 'allow_create', 'allow_update', 'allow_delete'] as $key) {
                     if (isset($options[$key]) && !is_bool($options[$key])) {
@@ -290,6 +292,89 @@ final readonly class PdoSiteReadModel implements SiteReadModel
                             !== count($options['accepted_mime_types'])) {
                         throw new RuntimeException('Stored MMW accepted MIME types are invalid.');
                     }
+                }
+                foreach ([
+                    'group_title' => 120,
+                    'group_description' => 500,
+                    'item_label' => 80,
+                    'empty_message' => 255,
+                ] as $key => $maxLength) {
+                    if (isset($options[$key])
+                        && (!is_string($options[$key]) || trim($options[$key]) === ''
+                            || mb_strlen($options[$key]) > $maxLength)) {
+                        throw new RuntimeException("Stored MMW module option '{$key}' is invalid.");
+                    }
+                    if (isset($options[$key])) {
+                        $options[$key] = trim($options[$key]);
+                    }
+                }
+                if (isset($options['group_id'])
+                    && (!is_string($options['group_id'])
+                        || preg_match('/^[a-z][a-z0-9_-]{0,63}$/', $options['group_id']) !== 1)) {
+                    throw new RuntimeException("Stored MMW module option 'group_id' is invalid.");
+                }
+                if (isset($options['group_id']) xor isset($options['group_title'])) {
+                    throw new RuntimeException('Stored MMW module grouping requires both group_id and group_title.');
+                }
+                if (isset($options['group_order'])
+                    && (!is_int($options['group_order']) || abs($options['group_order']) > 100_000)) {
+                    throw new RuntimeException("Stored MMW module option 'group_order' is invalid.");
+                }
+                if ((isset($options['item_label']) || isset($options['empty_message']))
+                    && !in_array($module['kind'], ['records', 'gallery'], true)) {
+                    throw new RuntimeException('Stored MMW collection labels require a records or gallery module.');
+                }
+                if (isset($options['field_sections'])) {
+                    if ($module['kind'] !== 'settings') {
+                        throw new RuntimeException('Stored MMW field sections are only supported for settings modules.');
+                    }
+                    if (!is_array($options['field_sections']) || !array_is_list($options['field_sections'])
+                        || $options['field_sections'] === [] || count($options['field_sections']) > 20) {
+                        throw new RuntimeException('Stored MMW field sections are invalid.');
+                    }
+                    $knownFields = array_fill_keys(array_column($entry['fields'] ?? [], 'id'), true);
+                    if ($knownFields === []) {
+                        throw new RuntimeException('Stored MMW field sections require module fields.');
+                    }
+                    $safeSections = [];
+                    $sectionIds = [];
+                    $seenFields = [];
+                    foreach ($options['field_sections'] as $section) {
+                        if (!is_array($section) || !is_string($section['id'] ?? null)
+                            || preg_match('/^[a-z][a-z0-9_-]{0,63}$/', $section['id']) !== 1
+                            || isset($sectionIds[$section['id']])
+                            || !is_string($section['title'] ?? null) || trim($section['title']) === ''
+                            || mb_strlen($section['title']) > 120
+                            || !is_array($section['field_ids'] ?? null) || !array_is_list($section['field_ids'])
+                            || $section['field_ids'] === [] || count($section['field_ids']) > 100) {
+                            throw new RuntimeException('Stored MMW field section is invalid.');
+                        }
+                        $sectionIds[$section['id']] = true;
+                        $safeSection = [
+                            'id' => $section['id'],
+                            'title' => trim($section['title']),
+                            'field_ids' => [],
+                        ];
+                        if (isset($section['description'])) {
+                            if (!is_string($section['description']) || trim($section['description']) === ''
+                                || mb_strlen($section['description']) > 500) {
+                                throw new RuntimeException('Stored MMW field section description is invalid.');
+                            }
+                            $safeSection['description'] = trim($section['description']);
+                        }
+                        foreach ($section['field_ids'] as $fieldId) {
+                            if (!is_string($fieldId) || !isset($knownFields[$fieldId]) || isset($seenFields[$fieldId])) {
+                                throw new RuntimeException('Stored MMW field section references an invalid or repeated field.');
+                            }
+                            $seenFields[$fieldId] = true;
+                            $safeSection['field_ids'][] = $fieldId;
+                        }
+                        $safeSections[] = $safeSection;
+                    }
+                    if (count($seenFields) !== count($knownFields)) {
+                        throw new RuntimeException('Stored MMW field sections must cover every module field exactly once.');
+                    }
+                    $options['field_sections'] = $safeSections;
                 }
                 if ($options !== []) {
                     $entry['options'] = $options;

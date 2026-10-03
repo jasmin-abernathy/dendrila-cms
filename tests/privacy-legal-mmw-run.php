@@ -6,6 +6,7 @@ require dirname(__DIR__) . '/vendor/autoload.php';
 use Dendrila\Cms\Api\PdoSiteReadModel;
 use Dendrila\Cms\Api\PrivacyLegalModules;
 use Dendrila\Cms\Api\PrivacyDocumentsModule;
+use Dendrila\Cms\Api\PrivacySettingsModule;
 use Dendrila\Cms\Privacy\LegalProfile;
 
 function legalMmwCheck(bool $condition, string $message): void
@@ -37,9 +38,29 @@ legalMmwCheck(
     ($safe[0]['fields'][0]['hint'] ?? '') !== '',
     'Legal settings provide contextual field guidance through the existing MMW hint contract.',
 );
+$legalOptions = $safe[0]['options'] ?? [];
+$sections = $legalOptions['field_sections'] ?? [];
+$sectionFieldIds = [];
+foreach ($sections as $section) {
+    foreach ($section['field_ids'] as $fieldId) {
+        $sectionFieldIds[] = $fieldId;
+    }
+}
+legalMmwCheck(
+    ($legalOptions['group_id'] ?? null) === 'privacy'
+        && count($sections) === 10
+        && count($sectionFieldIds) === count($safe[0]['fields'])
+        && count(array_unique($sectionFieldIds)) === count($sectionFieldIds),
+    'Legal documentation is grouped into ten guided sections that cover every field exactly once.',
+);
+
+$privacySettings = PdoSiteReadModel::safeModules([PrivacySettingsModule::definition(true)])[0];
+legalMmwCheck(($privacySettings['options']['group_id'] ?? null) === 'privacy',
+    'Privacy settings join the shared privacy module group.');
 
 $documentModule = PdoSiteReadModel::safeModules([PrivacyDocumentsModule::definition(true)])[0];
 legalMmwCheck($documentModule['kind'] === 'records'
+    && ($documentModule['options']['group_id'] ?? null) === 'privacy'
     && ($documentModule['actions'][0]['id'] ?? null) === 'approve'
     && ($documentModule['actions'][0]['allow_offline'] ?? true) === false,
     'Public privacy documents use a generic records module with explicit online-only approval.');

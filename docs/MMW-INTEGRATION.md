@@ -100,3 +100,16 @@ Le profil complet reste stocké côté serveur. MMW ne reçoit que les champs ex
 Le module `privacy_documents` ne transmet pas le HTML généré. Il expose seulement, pour chaque document, son état (`À compléter`, `Prêt à valider`, `Publié` ou `À revalider`), une synthèse des points à corriger et la date de dernière validation.
 
 L'action `item_action` / `approve` est déclarée par le serveur, demande confirmation côté client, n'est jamais rejouable hors connexion et passe par `privacy.manage`. Une validation échoue tant que le renderer signale des données indispensables manquantes. Après modification du profil ou du manifeste de consentement, l'empreinte change et MMW affiche automatiquement le document comme `À revalider`.
+
+
+### Présentation guidée sans nouveau `kind`
+
+MMW v1 accepte maintenant quelques options purement déclaratives et bornées pour améliorer les longs parcours sans embarquer de logique Dendrila Privacy dans l'application :
+
+- `group_id`, `group_title`, `group_description`, `group_order` regroupent plusieurs modules apparentés dans l'accueil ;
+- `field_sections` découpe un module `settings` en étapes nommées, chacune listant explicitement ses `field_ids` ;
+- `item_label` et `empty_message` rendent les collections `records` plus compréhensibles.
+
+Ces options ne modifient ni les permissions, ni la validation, ni la sémantique de mutation. Un ancien client les ignore et continue à afficher le formulaire à plat. Le serveur valide qu'une configuration sectionnée couvre chaque champ exactement une fois afin qu'aucun champ ne disparaisse silencieusement.
+
+Dendrila Privacy utilise dix étapes pour `privacy_legal` : responsable et contacts ; structure ; site et hébergement ; collecte ; transferts et décisions automatisées ; situations sensibles et AIPD ; cookies ; e-mails et messageries ; services externes et sauvegardes ; autorité de contrôle. La progression affichée par MMW correspond à la **navigation dans le formulaire**, jamais à un score de conformité.

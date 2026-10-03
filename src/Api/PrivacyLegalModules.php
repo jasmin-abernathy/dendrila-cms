@@ -29,41 +29,48 @@ final class PrivacyLegalModules
             [
                 'id' => self::LEGAL_ID,
                 'kind' => 'settings',
-                'title' => 'Vie privée — documentation',
-                'subtitle' => 'Identité, flux, risques, cookies, e-mails et outils externes',
+                'title' => 'Documentation du site',
+                'subtitle' => 'Un parcours guidé, étape par étape, pour décrire vos pratiques réelles',
                 'icon' => 'file-text',
                 'order' => 910,
                 'writable' => $writable,
+                'options' => array_merge(self::privacyGroupOptions(), [
+                    'field_sections' => self::legalSections(),
+                ]),
                 'fields' => self::legalFields(),
             ],
             [
                 'id' => self::TREATMENTS_ID,
                 'kind' => 'records',
-                'title' => 'Vie privée — traitements',
-                'subtitle' => 'Finalités, données, base légale, destinataires et conservation',
+                'title' => 'Traitements de données',
+                'subtitle' => 'Une fiche courte par usage réel des données',
                 'icon' => 'list',
                 'order' => 920,
                 'writable' => $writable,
-                'options' => [
+                'options' => array_merge(self::privacyGroupOptions(), [
                     'allow_create' => $writable,
                     'allow_update' => $writable,
                     'allow_delete' => $writable,
-                ],
+                    'item_label' => 'un traitement',
+                    'empty_message' => 'Aucun traitement n’est encore décrit. Ajoutez uniquement les usages réels des données, un par un.',
+                ]),
                 'fields' => self::treatmentFields(),
             ],
             [
                 'id' => self::SOURCES_ID,
                 'kind' => 'records',
-                'title' => 'Vie privée — sources indirectes',
-                'subtitle' => 'Services qui transmettent ou traitent des données hors du site',
+                'title' => 'Sources indirectes',
+                'subtitle' => 'Services ou partenaires qui transmettent des données au site ou à votre organisation',
                 'icon' => 'share',
                 'order' => 930,
                 'writable' => $writable,
-                'options' => [
+                'options' => array_merge(self::privacyGroupOptions(), [
                     'allow_create' => $writable,
                     'allow_update' => $writable,
                     'allow_delete' => $writable,
-                ],
+                    'item_label' => 'une source',
+                    'empty_message' => 'Aucune source indirecte déclarée. N’ajoutez ici que les services ou partenaires réellement utilisés.',
+                ]),
                 'fields' => self::sourceFields(),
             ],
         ];
@@ -142,6 +149,113 @@ final class PrivacyLegalModules
                 throw new \RuntimeException("Module id '{$id}' is reserved by Dendrila Privacy.");
             }
         }
+    }
+
+    /** @return array<string,mixed> */
+    private static function privacyGroupOptions(): array
+    {
+        return [
+            'group_id' => 'privacy',
+            'group_title' => 'Vie privée',
+            'group_description' => 'Documentez ce qui existe réellement, sans inventer de réponse. Vous pourrez revenir sur chaque étape plus tard.',
+            'group_order' => 900,
+        ];
+    }
+
+    /** @return list<array<string,mixed>> */
+    private static function legalSections(): array
+    {
+        return [
+            [
+                'id' => 'responsibility',
+                'title' => 'Responsable & contacts',
+                'description' => 'Qui décide de l’usage des données et comment une personne peut exercer ses droits.',
+                'field_ids' => [
+                    'controller_name', 'controller_address', 'privacy_contact', 'dpo_designated', 'dpo_contact',
+                    'representative_applicable', 'controller_representative', 'controller_representative_contact',
+                ],
+            ],
+            [
+                'id' => 'organisation',
+                'title' => 'Votre structure',
+                'description' => 'Identité juridique et informations d’immatriculation utiles lorsque votre structure est concernée.',
+                'field_ids' => [
+                    'entity_type', 'company_country', 'company_registration_number', 'company_registration_label',
+                    'company_siren', 'company_siret', 'company_vat', 'company_legal_form', 'company_capital',
+                    'company_registry', 'company_activity', 'rep_idu',
+                ],
+            ],
+            [
+                'id' => 'site_hosting',
+                'title' => 'Site & hébergement',
+                'description' => 'Éditeur, coordonnées publiques, direction de la publication et informations sur l’hébergement.',
+                'field_ids' => [
+                    'site_editor_name', 'site_editor_address', 'site_name', 'site_url', 'public_contact_email',
+                    'public_contact_phone', 'publication_director', 'host_name', 'host_address', 'host_phone',
+                    'host_source_url', 'regulated_activity_details',
+                ],
+            ],
+            [
+                'id' => 'collection',
+                'title' => 'Collecte & provenance',
+                'description' => 'D’où viennent les données et lesquelles sont réellement nécessaires au service rendu.',
+                'field_ids' => ['collection_mode', 'indirect_categories', 'indirect_sources', 'mandatory_information'],
+            ],
+            [
+                'id' => 'transfers',
+                'title' => 'Transferts & décisions automatisées',
+                'description' => 'Indiquez seulement les transferts hors UE/EEE et décisions automatisées qui existent réellement.',
+                'field_ids' => [
+                    'transfers_status', 'transfer_destinations', 'transfer_mechanism', 'transfer_safeguards',
+                    'automated_decision', 'automated_details',
+                ],
+            ],
+            [
+                'id' => 'sensitive_data',
+                'title' => 'Situations sensibles & AIPD',
+                'description' => 'Données sensibles, pénales, mineurs et traitements à risque élevé. « Je ne sais pas encore » reste une réponse valable.',
+                'field_ids' => [
+                    'special_categories', 'special_categories_basis', 'criminal_data', 'criminal_data_basis',
+                    'minors_data', 'minors_details', 'high_risk_processing', 'dpia_status',
+                ],
+            ],
+            [
+                'id' => 'cookies',
+                'title' => 'Cookies & traceurs',
+                'description' => 'Décrivez le comportement réel du site ; le scan technique et le moteur de consentement restent séparés de cette saisie.',
+                'field_ids' => [
+                    'cookie_nonessential', 'cookie_consent_status', 'cookie_preferences',
+                    'cookie_choice_retention', 'cookie_cross_device', 'cookie_cross_device_explanation',
+                ],
+            ],
+            [
+                'id' => 'communications',
+                'title' => 'E-mails & messageries',
+                'description' => 'Ouvertures, clics suivis, envois en nombre et outils de messagerie utilisés au quotidien.',
+                'field_ids' => [
+                    'email_pixels', 'email_pixel_purposes', 'email_pixel_status', 'email_pixel_preferences',
+                    'tracked_links', 'tracked_links_details', 'external_email_use', 'external_bulk_email',
+                    'external_bulk_unsubscribe', 'external_bulk_bcc', 'external_email_tools',
+                    'external_messaging', 'external_messaging_tools',
+                ],
+            ],
+            [
+                'id' => 'external_services',
+                'title' => 'Services externes & sauvegardes',
+                'description' => 'Réservation, formulaires, paiements et fichiers : renseignez uniquement les services réellement utilisés.',
+                'field_ids' => [
+                    'external_booking', 'external_booking_tools', 'external_forms', 'external_form_tools',
+                    'external_payments', 'external_payment_tools', 'external_files', 'external_file_tools',
+                    'backup_reviewed',
+                ],
+            ],
+            [
+                'id' => 'authority',
+                'title' => 'Autorité de contrôle',
+                'description' => 'Dernière étape : indiquez l’autorité compétente et son lien public lorsque vous les connaissez.',
+                'field_ids' => ['supervisory_authority', 'supervisory_url'],
+            ],
+        ];
     }
 
     /** @return list<array<string,mixed>> */

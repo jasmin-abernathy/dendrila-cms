@@ -13,11 +13,17 @@ final class PrivacySettingsModule
         return [
             'id' => self::ID,
             'kind' => 'settings',
-            'title' => 'Vie privée',
-            'subtitle' => 'Consentement et analyses techniques',
+            'title' => 'Consentement & scans',
+            'subtitle' => 'Choix des visiteurs et fréquence des contrôles techniques',
             'icon' => 'shield',
             'order' => 900,
             'writable' => $writable,
+            'options' => [
+                'group_id' => 'privacy',
+                'group_title' => 'Vie privée',
+                'group_description' => 'Documentez ce qui existe réellement, sans inventer de réponse. Vous pourrez revenir sur chaque étape plus tard.',
+                'group_order' => 900,
+            ],
             'fields' => [
                 [
                     'id' => 'consent_enabled',
