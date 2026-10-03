@@ -37,7 +37,7 @@ Voir `docs/ROADMAP.md`.
 
 La composition visuelle est volontairement séparée du métier : `docs/DESIGN-STYLES.md` décrit les presets graphiques et `docs/SITE-COMPOSITION.md` la combinaison kit fonctionnel + style visuel + identité de marque.
 
-**Dendrila Privacy fait partie du socle du CMS.** Chaque site dispose nativement d'un état local de vie privée, d'un moteur générique d'inspection de services/traceurs, d'un profil documentaire et d'un manifeste de consentement destiné aux adaptateurs front. Aucun plugin WordPress n'est nécessaire pour un site Dendrila ; le plugin `dendrila-privacy` reste la déclinaison WordPress autonome. Voir `docs/PRIVACY.md`.
+**Dendrila Privacy fait partie du socle du CMS.** Chaque site dispose nativement d'un état local de vie privée, d'un moteur générique d'inspection de services/traceurs, d'un profil documentaire et d'un manifeste de consentement. Le noyau fournit aussi un rendu accessible de consentement et des ressources différées avant choix pour les fronts Dendrila. Aucun plugin WordPress n'est nécessaire pour un site Dendrila ; le plugin `dendrila-privacy` reste la déclinaison WordPress autonome. Voir `docs/PRIVACY.md` et `docs/PRIVACY-FRONTEND.md`.
 
 Le contrat P0 de départ, ses interfaces logiques et les limites de compatibilité MMW v1 sont décrits dans `docs/P0-CORE-CONTRACT.md`.
 

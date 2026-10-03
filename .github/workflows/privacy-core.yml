@@ -2,7 +2,7 @@ name: Native privacy core
 
 on:
   push:
-    branches: [work/native-privacy-core]
+    branches: ['work/native-privacy-*']
   workflow_dispatch:
 
 permissions:
@@ -54,6 +54,8 @@ jobs:
         run: |
           composer lint
           composer test
+      - name: Validate consent JavaScript
+        run: node --check public/assets/privacy-consent.js
       - name: Prepare a site that predates Privacy
         run: php tests/privacy-pdo-fixture.php
       - name: Apply Privacy migration through the real migrator
