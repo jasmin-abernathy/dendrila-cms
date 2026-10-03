@@ -44,7 +44,8 @@ Un prototype PHP interne est présent dans `src/`, avec migrations, commandes de
 - [x] Fournir la barre / l'encart de consentement et le blocage déclaratif avant choix, indépendants du moteur de templates.
 - [x] Exposer les réglages Privacy de base dans MMW via le module natif `settings` sans étendre le protocole v1.
 - [x] Porter le modèle natif du profil documentaire : identité, traitements, flux, risques, cookies, e-mail et outils externes, avec validation et progression contextuelle.
-- [ ] Ajouter l'interface d'administration complète du profil documentaire et des pratiques externes.
+- [x] Exposer dans MMW les champs du profil documentaire, les traitements et les sources indirectes via les primitives `settings` et `records` existantes.
+- [ ] Ajouter les aides contextuelles et l'ergonomie guidée du parcours documentaire dans le client d'administration.
 - [ ] Prévoir l'import d'une configuration provenant du plugin WordPress Dendrila Privacy.
 
 Voir [`PRIVACY.md`](PRIVACY.md) et [`PRIVACY-FRONTEND.md`](PRIVACY-FRONTEND.md).

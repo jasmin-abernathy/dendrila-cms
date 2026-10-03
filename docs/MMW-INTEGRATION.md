@@ -77,3 +77,18 @@ Les champs exposés sont volontairement plats et bornés :
 `GET /v1/snapshot` projette ces valeurs sous `data.privacy`. Une mutation `POST /v1/changes` avec le module `privacy` et l'action `update_fields` passe par les permissions serveur de Dendrila Privacy, l'idempotence commune du CMS et avance `sites.data_revision` exactement une fois.
 
 L'identifiant de module `privacy` est réservé au noyau. Une configuration de site qui tente de déclarer manuellement un module du même identifiant est refusée afin d'éviter qu'un module stocké masque ou remplace la capacité native.
+
+
+### Documentation légale Dendrila Privacy dans MMW
+
+Le même principe s'étend au profil documentaire sans créer de nouveau `kind` MMW :
+
+- `privacy_legal` utilise `settings` pour l'identité, les flux, les risques, les cookies, le suivi e-mail, les outils externes et l'autorité de contrôle ;
+- `privacy_treatments` utilise `records` pour les traitements structurés ;
+- `privacy_sources` utilise `records` pour les services et sources de collecte indirecte.
+
+Ces trois identifiants sont réservés au noyau. Leur visibilité dépend de `privacy.read` et leur caractère modifiable de `privacy.manage`.
+
+Les créations, modifications et suppressions utilisent `POST /v1/changes` avec les actions v1 existantes (`update_fields`, `create_item`, `update_item`, `delete_item`). Les lignes de traitement et de source reçoivent un identifiant natif stable de 32 caractères hexadécimaux. Les mutations partagent l'idempotence et la révision globale du CMS.
+
+Le profil complet reste stocké côté serveur. MMW ne reçoit que les champs explicitement projetés par ces modules et ne reçoit jamais le journal d'audit ni les preuves techniques des scans.

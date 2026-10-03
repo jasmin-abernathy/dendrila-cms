@@ -5,6 +5,7 @@ require dirname(__DIR__) . '/vendor/autoload.php';
 
 use Dendrila\Cms\Api\PdoSiteChangeService;
 use Dendrila\Cms\Api\PdoSiteReadModel;
+use Dendrila\Cms\Api\PrivacyLegalModules;
 use Dendrila\Cms\Authorization\AccessDenied;
 use Dendrila\Cms\Authorization\ActorContext;
 use Dendrila\Cms\Authorization\AuthorizationService;
@@ -108,6 +109,12 @@ privacyPdoCheck(count($ownerPrivacyModules) === 1
     && $ownerPrivacyModules[0]['writable'] === true,
     'Owner receives one writable native privacy settings module through MMW v1.');
 
+$ownerModuleIds = array_column($ownerConfig['modules'], 'id');
+foreach (PrivacyLegalModules::ids() as $nativeLegalId) {
+    privacyPdoCheck(in_array($nativeLegalId, $ownerModuleIds, true),
+        "Owner receives native legal module {$nativeLegalId}.");
+}
+
 $editor = new ActorContext('site-native', 'editor-native', 'device-editor');
 $editorConfig = $readModel->configuration($editor);
 $editorPrivacyModules = array_values(array_filter(
@@ -116,6 +123,13 @@ $editorPrivacyModules = array_values(array_filter(
 ));
 privacyPdoCheck(count($editorPrivacyModules) === 1 && $editorPrivacyModules[0]['writable'] === false,
     'Editor can read the privacy settings module but cannot manage it.');
+
+foreach ($editorConfig['modules'] as $module) {
+    if (PrivacyLegalModules::handles((string) ($module['id'] ?? ''))) {
+        privacyPdoCheck(($module['writable'] ?? null) === false,
+            'Editor receives legal documentation modules as read-only.');
+    }
+}
 
 $membership->execute([
     'site_id' => 'site-native',
@@ -192,6 +206,114 @@ privacyPdoCheck($updatedSnapshot['revision'] === $afterRevision
     && $updatedData['privacy']['scan_schedule'] === 'daily',
     'MMW snapshot exposes the updated privacy values at the new site revision.');
 
+
+$legalChange = $changeService->apply($owner, [
+    'module_id' => PrivacyLegalModules::LEGAL_ID,
+    'action' => 'update_fields',
+    'client_request_id' => 'privacy-legal-1',
+    'payload' => (object) [
+        'privacy_contact' => 'privacy@native.test',
+        'collection_mode' => 'both',
+        'external_booking' => 'yes',
+        'external_booking_tools' => 'Native booking',
+        'transfers_status' => 'no',
+    ],
+]);
+privacyPdoCheck($legalChange['result']['values']['collection_mode'] === 'both',
+    'MMW legal settings update the native legal profile.');
+
+$treatmentCreate = $changeService->apply($owner, [
+    'module_id' => PrivacyLegalModules::TREATMENTS_ID,
+    'action' => 'create_item',
+    'client_request_id' => 'privacy-treat-1',
+    'payload' => (object) [
+        'purpose' => 'Manage appointments',
+        'data_categories' => 'Identity and appointment details',
+        'legal_basis' => 'contract',
+        'recipients' => 'Care team',
+        'retention' => 'Applicable retention period',
+        'mandatory' => 'contract',
+    ],
+]);
+$treatmentId = $treatmentCreate['result']['item']['id'] ?? '';
+privacyPdoCheck(is_string($treatmentId) && strlen($treatmentId) === 32,
+    'MMW creates a treatment with a stable native id.');
+
+$treatmentReplay = $changeService->apply($owner, [
+    'module_id' => PrivacyLegalModules::TREATMENTS_ID,
+    'action' => 'create_item',
+    'client_request_id' => 'privacy-treat-1',
+    'payload' => (object) [
+        'purpose' => 'Manage appointments',
+        'data_categories' => 'Identity and appointment details',
+        'legal_basis' => 'contract',
+        'recipients' => 'Care team',
+        'retention' => 'Applicable retention period',
+        'mandatory' => 'contract',
+    ],
+]);
+privacyPdoCheck($treatmentReplay === $treatmentCreate,
+    'MMW treatment creation replays idempotently.');
+
+$treatmentUpdate = $changeService->apply($owner, [
+    'module_id' => PrivacyLegalModules::TREATMENTS_ID,
+    'action' => 'update_item',
+    'client_request_id' => 'privacy-treat-2',
+    'payload' => (object) [
+        'item_id' => $treatmentId,
+        'retention' => 'Updated retention period',
+    ],
+]);
+privacyPdoCheck(($treatmentUpdate['result']['item']['id'] ?? null) === $treatmentId
+    && ($treatmentUpdate['result']['item']['retention'] ?? null) === 'Updated retention period',
+    'MMW updates a treatment without changing its native id.');
+
+$sourceCreate = $changeService->apply($owner, [
+    'module_id' => PrivacyLegalModules::SOURCES_ID,
+    'action' => 'create_item',
+    'client_request_id' => 'privacy-source-1',
+    'payload' => (object) [
+        'service_id' => 'booking_provider',
+        'label' => 'Booking provider',
+        'state' => 'active',
+        'categories' => 'Name and email',
+        'source' => 'Booking form',
+        'transfer_status' => 'unknown',
+        'automated_decision' => 'no',
+    ],
+]);
+privacyPdoCheck(($sourceCreate['result']['item']['service_id'] ?? null) === 'booking_provider',
+    'MMW creates an indirect source in the native legal profile.');
+
+$legalSnapshot = $readModel->snapshot($owner);
+$legalData = (array) $legalSnapshot['data'];
+privacyPdoCheck(($legalData[PrivacyLegalModules::LEGAL_ID]['privacy_contact'] ?? null) === 'privacy@native.test'
+    && count($legalData[PrivacyLegalModules::TREATMENTS_ID]['items'] ?? []) === 1
+    && count($legalData[PrivacyLegalModules::SOURCES_ID]['items'] ?? []) === 1,
+    'MMW snapshot projects legal settings, treatments and indirect sources.');
+
+privacyPdoExpect(AccessDenied::class, fn () => $changeService->apply($editor, [
+    'module_id' => PrivacyLegalModules::LEGAL_ID,
+    'action' => 'update_fields',
+    'client_request_id' => 'privacy-legal-editor',
+    'payload' => (object) ['privacy_contact' => 'forbidden@example.test'],
+]));
+
+$deleteTreatment = $changeService->apply($owner, [
+    'module_id' => PrivacyLegalModules::TREATMENTS_ID,
+    'action' => 'delete_item',
+    'client_request_id' => 'privacy-treat-3',
+    'payload' => (object) ['item_id' => $treatmentId],
+]);
+privacyPdoCheck(($deleteTreatment['result']['deleted_item']['id'] ?? null) === $treatmentId,
+    'MMW deletes the addressed treatment only.');
+
+$afterLegalSnapshot = $readModel->snapshot($owner);
+$afterLegalData = (array) $afterLegalSnapshot['data'];
+privacyPdoCheck(($afterLegalData[PrivacyLegalModules::TREATMENTS_ID]['items'] ?? []) === []
+    && count($afterLegalData[PrivacyLegalModules::SOURCES_ID]['items'] ?? []) === 1,
+    'Deleting a treatment leaves indirect sources intact.');
+
 $setModules = $pdo->prepare(
     'UPDATE site_api_settings SET modules_json = :modules_json WHERE site_id = :site_id'
 );
@@ -242,8 +364,8 @@ $auditRows = (int) $pdo->query(
     "SELECT COUNT(*) FROM audit_events WHERE site_id = 'site-native' AND entity_type = 'privacy'"
 )->fetchColumn();
 privacyPdoCheck($scanRows === 1 && $findingRows === 3, 'Privacy scans and findings persist with site isolation.');
-privacyPdoCheck($auditRows === 4,
-    'Direct settings, scan, MMW settings and denied MMW mutations append shared CMS audit events.');
+privacyPdoCheck($auditRows === 10,
+    'Privacy settings, legal documentation, scan and denied mutations append shared CMS audit events.');
 
 $migrations = $pdo->query('SELECT migration_id FROM schema_migrations ORDER BY migration_id')->fetchAll(PDO::FETCH_COLUMN);
 privacyPdoCheck(
