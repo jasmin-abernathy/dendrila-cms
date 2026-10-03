@@ -6,11 +6,14 @@ on:
   pull_request:
     paths:
       - 'src/Design/**'
+      - 'src/Front/**'
+      - 'src/Privacy/FrontPageDocumentCollector.php'
       - 'src/Content/ContentTypeDefinition.php'
       - 'design-styles/**'
       - 'schemas/site-composition.schema.json'
       - 'examples/site-composition.json'
       - 'tests/design-run.php'
+      - 'tests/front-run.php'
       - 'tests/run.php'
       - 'bin/resolve-site-presentation.php'
       - '.github/workflows/design-kit-bridge.yml'
@@ -45,6 +48,7 @@ jobs:
         run: |
           php tests/run.php
           php tests/design-run.php
+          php tests/front-run.php
       - name: JSON syntax
         run: |
           python3 -m json.tool schemas/site-composition.schema.json >/dev/null

@@ -1,0 +1,145 @@
+{
+  "site": {
+    "name": "Horizon",
+    "tagline": "Un exemple neutre pour comparer les styles",
+    "home_url": "/",
+    "language": "fr"
+  },
+  "navigation": [
+    {
+      "label": "Accueil",
+      "url": "/"
+    },
+    {
+      "label": "Découvrir",
+      "url": "#decouvrir"
+    },
+    {
+      "label": "Contact",
+      "url": "mailto:bonjour@example.test"
+    }
+  ],
+  "page": {
+    "title": "Une page claire qui laisse respirer le contenu",
+    "slug": "accueil",
+    "blocks": [
+      {
+        "type": "text",
+        "text": "Ce contenu de référence reste identique quel que soit le thème choisi. Le style modifie la composition, pas le fond."
+      },
+      {
+        "type": "image",
+        "media_id": "hero",
+        "alt": "Illustration abstraite de formes végétales",
+        "caption": "",
+        "shape": "organic-tall",
+        "focal_x": 46,
+        "focal_y": 38
+      },
+      {
+        "type": "cta",
+        "label": "Découvrir la suite",
+        "url": "https://example.test/decouvrir"
+      },
+      {
+        "type": "cards",
+        "items": [
+          {
+            "title": "Premier repère",
+            "text": "Une information courte et facile à parcourir.",
+            "url": "https://example.test/a",
+            "media_id": "card-a"
+          },
+          {
+            "title": "Deuxième repère",
+            "text": "Le même contenu pourra être affiché avec les six directions visuelles.",
+            "url": "https://example.test/b"
+          },
+          {
+            "title": "Troisième repère",
+            "text": "Aucune catégorie métier n'est nécessaire pour choisir un style.",
+            "url": "https://example.test/c"
+          }
+        ]
+      },
+      {
+        "type": "statistics",
+        "items": [
+          {
+            "label": "Styles de base",
+            "value": "6",
+            "note": "Même jeu de contenu"
+          },
+          {
+            "label": "Image source",
+            "value": "1×",
+            "note": "Jamais recadrée à la main"
+          },
+          {
+            "label": "JavaScript décoratif",
+            "value": "0",
+            "note": "Le thème reste léger"
+          }
+        ]
+      },
+      {
+        "type": "key_values",
+        "items": [
+          {
+            "label": "Structure",
+            "value": "Claire"
+          },
+          {
+            "label": "Illustrations",
+            "value": "Ponctuelles"
+          }
+        ]
+      },
+      {
+        "type": "gallery",
+        "media_ids": [
+          "gallery-a",
+          "gallery-b",
+          "gallery-c"
+        ],
+        "alt": "Trois variantes d'une illustration abstraite"
+      },
+      {
+        "type": "faq",
+        "items": [
+          {
+            "question": "Le contenu change-t-il avec le thème ?",
+            "answer": "Non. Le même contenu structuré est rendu par chaque design kit."
+          },
+          {
+            "question": "Faut-il retoucher les images ?",
+            "answer": "Non. Les formes et points focaux sont appliqués par le front."
+          }
+        ]
+      },
+      {
+        "type": "embed_safe",
+        "provider": "youtube-nocookie",
+        "url": "https://www.youtube-nocookie.com/embed/abc123",
+        "label": "Vidéo externe de démonstration"
+      },
+      {
+        "type": "rich_text",
+        "text": "Même le texte riche reste une donnée : <strong>aucun HTML arbitraire</strong> n'est exécuté."
+      },
+      {
+        "type": "cta",
+        "label": "Action finale",
+        "url": "https://example.test/action"
+      }
+    ]
+  },
+  "media_urls": {
+    "hero": "/media/reference-hero.svg",
+    "card-a": "/media/reference-card.svg",
+    "gallery-a": "/media/reference-gallery-a.svg",
+    "gallery-b": "/media/reference-gallery-b.svg",
+    "gallery-c": "/media/reference-gallery-c.svg"
+  },
+  "theme_css_url": "/design-kits/simple-illustrated/theme.css"
+}
