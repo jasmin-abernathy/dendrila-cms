@@ -48,6 +48,30 @@ expect(InvalidArgumentException::class, fn () => (new ContentTypeDefinition($sto
     'title' => 'X', 'slug' => 'x', 'blocks' => [['type' => 'text', 'text' => 'X', 'script' => 'alert(1)']],
 ]));
 
+$contentDefinition = new ContentTypeDefinition($store->types['site-a']['page']);
+$contentDefinition->validateValues([
+    'title' => 'Image masquée',
+    'slug' => 'image-masquee',
+    'blocks' => [[
+        'type' => 'image',
+        'media_id' => 'media-1',
+        'alt' => 'Portrait',
+        'shape' => 'organic-soft',
+        'focal_x' => 42,
+        'focal_y' => 35.5,
+    ]],
+]);
+expect(InvalidArgumentException::class, fn () => $contentDefinition->validateValues([
+    'title' => 'Forme invalide',
+    'slug' => 'forme-invalide',
+    'blocks' => [['type' => 'image', 'media_id' => 'media-1', 'shape' => 'url-javascript']],
+]));
+expect(InvalidArgumentException::class, fn () => $contentDefinition->validateValues([
+    'title' => 'Focale invalide',
+    'slug' => 'focale-invalide',
+    'blocks' => [['type' => 'image', 'media_id' => 'media-1', 'focal_x' => 101]],
+]));
+
 $created = $service->createDraft($actor, 'page', $values, 'request-0001');
 check($created['content']['version'] === 1, 'New content starts at version 1.');
 check($created['site_revision'] === 2, 'Creating content advances the site snapshot revision.');

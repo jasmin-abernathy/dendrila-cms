@@ -38,3 +38,10 @@ php bin/compile-design-style.php quiet-elegant
 ```
 
 Le compilateur n'accepte qu'un vocabulaire fermé de tokens. Il ne permet pas à une configuration de site d'injecter du CSS arbitraire.
+
+
+## Design kits exécutables
+
+Les presets de ce dépôt décrivent l'intention graphique. Les composants HTML/CSS réellement réutilisables vivent dans `jasmin-abernathy/dendrila-design-kits`.
+
+Le raccord est local et versionné : le catalogue du dépôt de thèmes associe un `design_style_id` à un manifeste et un entrypoint installés. Le CMS vérifie que tous les tokens déclarés comme requis par le thème sont effectivement produits par `CssTokenCompiler`.

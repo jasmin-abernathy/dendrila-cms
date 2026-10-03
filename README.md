@@ -54,13 +54,14 @@ composer test
 php bin/migrate.php
 php bin/bootstrap-site.php <site_id> <nom_du_site> <actor_id_proprietaire> [review_before_publish=true|false]
 php bin/compile-design-style.php quiet-elegant
+php bin/resolve-site-presentation.php examples/site-composition.json /chemin/vers/dendrila-design-kits/catalog.json
 ```
 
 Les commandes de migration et de création de site attendent `DB_DSN`, `DB_USERNAME` et `DB_PASSWORD` dans l'environnement. Le fichier `.env.example` montre la forme attendue, mais le projet ne charge volontairement pas `.env` automatiquement. Les fichiers média doivent rester hors du webroot.
 
 La couche HTTP expose GET /v1/config et GET /v1/snapshot, POST /v1/changes, ainsi que les routes POST /v1/auth/start, /v1/auth/verify et /v1/auth/pair du contrat MMW v1. Toutes exigent X-Lepotager-Protocol: 1. Les routes privées exigent aussi un jeton appareil dans X-Lepotager-Device-Token. Les mutations `update_fields` et les opérations `create_item`, `update_item`, `delete_item` de galerie sont raccordées aux contenus et aux permissions du CMS ; `item_action` nécessite un connecteur métier propre au site. Les routes d'authentification sont présentes, mais renvoient 503 tant qu'un adaptateur `IdentityProvider` propre au site n'est pas injecté. Le CMS ne crée pas un second système de mots de passe : l'adaptateur doit valider les identifiants, TOTP et codes d'appairage auprès du fournisseur d'identité du site. `PdoDeviceTokenIssuer` enregistre ensuite le jeton sous forme de hash après vérification de l'appartenance au site. Les jetons de développement peuvent être émis avec php bin/issue-device-token.php <site_id> <actor_id> <device_name> après la migration 002 ; cette commande ne constitue pas un parcours de production.
 
-La galerie statique de démonstration des six directions visuelles se trouve dans `examples/design-gallery/`. Elle utilise le même contenu pour éviter de confondre style graphique et secteur métier. Le compilateur CLI transforme un preset `design-styles/*/style.json` en variables CSS bornées : aucun CSS arbitraire n'est accepté depuis la configuration.
+La galerie statique de démonstration des six directions visuelles se trouve dans `examples/design-gallery/`. Elle utilise le même contenu pour éviter de confondre style graphique et secteur métier. Le compilateur CLI transforme un preset `design-styles/*/style.json` en variables CSS bornées : aucun CSS arbitraire n'est accepté depuis la configuration. Le resolver de présentation peut ensuite associer ce preset à un design kit installé depuis `dendrila-design-kits`, vérifier son contrat et appliquer uniquement des overrides de marque bornés.
 
 Par défaut, les réglages d'API d'un site commencent avec une liste de modules vide. Une fois un mapping de module renseigné en base, le snapshot projette les contenus par l'intermédiaire des services et permissions du CMS ; il ne renvoie que les champs explicitement déclarés. La configuration des modules n'a pas encore d'écran d'administration, et le manifeste de découverte n'est pas publié.
 

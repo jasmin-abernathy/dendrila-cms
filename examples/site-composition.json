@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "functional_kit": "association",
-  "design_style": "quiet-elegant",
+  "design_style": "simple-illustrated",
   "enabled_modules": [
     "content",
     "media",
@@ -11,8 +11,15 @@
     "seo"
   ],
   "brand_overrides": {
-    "primary": "#3E6B4C",
-    "background": "#FAFBF8",
-    "text": "#252B28"
+    "primary": "#4B6857",
+    "primary_strong": "#324A3B",
+    "background": "#F8FAF8",
+    "surface": "#FFFFFF",
+    "text": "#25302A",
+    "muted": "#66716A",
+    "accent_soft": "#E7EEE9",
+    "border": "#DCE5DF",
+    "heading_font": "editorial-serif",
+    "body_font": "humanist-sans"
   }
 }
