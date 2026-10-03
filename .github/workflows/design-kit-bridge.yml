@@ -1,0 +1,51 @@
+name: Design kit bridge
+
+on:
+  push:
+    branches: ['work/design-kit-runtime-*']
+  pull_request:
+    paths:
+      - 'src/Design/**'
+      - 'src/Content/ContentTypeDefinition.php'
+      - 'design-styles/**'
+      - 'schemas/site-composition.schema.json'
+      - 'examples/site-composition.json'
+      - 'tests/design-run.php'
+      - 'tests/run.php'
+      - 'bin/resolve-site-presentation.php'
+      - '.github/workflows/design-kit-bridge.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: design-kit-bridge-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: mbstring
+          tools: composer:v2
+          coverage: none
+          ini-values: error_reporting=E_ALL, display_errors=On
+      - name: Install
+        run: composer install --no-interaction --prefer-dist
+      - name: Lint
+        run: composer lint
+      - name: Core and design contracts
+        run: |
+          php tests/run.php
+          php tests/design-run.php
+      - name: JSON syntax
+        run: |
+          python3 -m json.tool schemas/site-composition.schema.json >/dev/null
+          python3 -m json.tool examples/site-composition.json >/dev/null

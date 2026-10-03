@@ -5,6 +5,10 @@ namespace Dendrila\Cms\Content;
 
 final readonly class ContentTypeDefinition
 {
+    private const MEDIA_SHAPES = [
+        'auto', 'organic-soft', 'organic-tall', 'arch', 'circle', 'rounded', 'none',
+    ];
+
     private const FIELD_TYPES = [
         'text', 'multiline', 'rich_text', 'boolean', 'number', 'url', 'email',
         'choice', 'media', 'relation', 'blocks',
@@ -122,7 +126,7 @@ final readonly class ContentTypeDefinition
         $allowed = [
             'text' => ['type', 'text'],
             'rich_text' => ['type', 'text'],
-            'image' => ['type', 'media_id', 'alt', 'caption'],
+            'image' => ['type', 'media_id', 'alt', 'caption', 'shape', 'focal_x', 'focal_y'],
             'gallery' => ['type', 'media_ids', 'alt'],
             'cta' => ['type', 'label', 'url'],
             'cards' => ['type', 'items'],
@@ -144,6 +148,13 @@ final readonly class ContentTypeDefinition
                 return false;
             }
             if ($type === 'image' && ((!$this->optionalText($block, 'alt')) || (!$this->optionalText($block, 'caption')))) {
+                return false;
+            }
+            if ($type === 'image' && array_key_exists('shape', $block)
+                && (!is_string($block['shape']) || !in_array($block['shape'], self::MEDIA_SHAPES, true))) {
+                return false;
+            }
+            if ($type === 'image' && (!$this->validFocalPoint($block, 'focal_x') || !$this->validFocalPoint($block, 'focal_y'))) {
                 return false;
             }
             if ($type === 'gallery' && !$this->validReference(['multiple' => true], $block['media_ids'] ?? null)) {
@@ -198,6 +209,16 @@ final readonly class ContentTypeDefinition
             }
         }
         return true;
+    }
+
+    /** @param array<string, mixed> $block */
+    private function validFocalPoint(array $block, string $key): bool
+    {
+        if (!array_key_exists($key, $block)) {
+            return true;
+        }
+        $value = $block[$key];
+        return (is_int($value) || is_float($value)) && $value >= 0 && $value <= 100;
     }
 
     /** @param array<string, mixed> $block */

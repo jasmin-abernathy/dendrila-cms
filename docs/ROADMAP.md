@@ -62,6 +62,8 @@ Voir [`PRIVACY.md`](PRIVACY.md) et [`PRIVACY-FRONTEND.md`](PRIVACY-FRONTEND.md).
 - [x] Ajouter un schéma de composition site = kit + style + marque + modules.
 - [x] Ajouter une galerie HTML autonome utilisant le même contenu pour les six styles ; les miniatures finales restent à produire.
 - [x] Ajouter un compilateur de référence qui traduit les tokens autorisés en variables CSS bornées.
+- [x] Raccorder les presets à un catalogue local versionné de `dendrila-design-kits`, sans téléchargement de code à l'exécution.
+- [x] Ajouter le contrat média non destructif (forme + point focal) utilisé par les design kits.
 - [ ] Ajouter un adaptateur de front complet qui applique aussi les variantes de structure (hero, galeries, alignement et illustrations).
 - [ ] Tester chaque style sur mobile, grand écran, navigation clavier et préférences de mouvement réduit.
 

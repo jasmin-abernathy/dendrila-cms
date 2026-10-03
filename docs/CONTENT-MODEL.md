@@ -36,6 +36,8 @@
 Aucun bloc ne peut fournir de JavaScript exécutable arbitraire à MMW.
 Les structures de blocs acceptent uniquement leurs clés déclarées ; les URL sont limitées à HTTP(S). Le texte `rich_text` est une donnée, jamais du HTML de confiance : les rendus publics doivent l'échapper ou appliquer un assainisseur à liste blanche.
 
+Un bloc `image` peut conserver des métadonnées de présentation **non destructives** : `shape` (`auto`, `organic-soft`, `organic-tall`, `arch`, `circle`, `rounded`, `none`) et `focal_x` / `focal_y` entre 0 et 100. Le fichier média original n'est pas recadré pour un thème : l'adaptateur front traduit ces valeurs en masque et point focal.
+
 ## Statuts
 
 - `draft`
