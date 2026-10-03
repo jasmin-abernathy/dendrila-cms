@@ -47,3 +47,10 @@ Un bloc `image` peut conserver des métadonnées de présentation **non destruct
 - `archived`
 
 `scheduled` conserve `publish_at` en UTC et ne devient `published` qu'après validation par le worker planifié. Une programmation créée sans revue obligatoire doit repasser en revue si la politique du site l'exige avant l'échéance.
+
+
+## Hiérarchie visuelle des blocs
+
+Les blocs de collection `cards`, `gallery`, `faq`, `key_values`, `statistics` et `embed_safe` peuvent porter un champ facultatif `heading`.
+
+Ce champ reste du texte simple : le renderer public l'échappe et le transforme en intertitre de section. Il permet au contenu de conserver sa hiérarchie indépendamment du design kit, sans autoriser de HTML arbitraire.

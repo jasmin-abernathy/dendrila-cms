@@ -12,7 +12,7 @@
     },
     {
       "label": "Découvrir",
-      "url": "#decouvrir"
+      "url": "#contenu"
     },
     {
       "label": "Contact",
@@ -60,7 +60,8 @@
             "text": "Aucune catégorie métier n'est nécessaire pour choisir un style.",
             "url": "https://example.test/c"
           }
-        ]
+        ],
+        "heading": "Des repères simples"
       },
       {
         "type": "statistics",
@@ -80,7 +81,8 @@
             "value": "0",
             "note": "Le thème reste léger"
           }
-        ]
+        ],
+        "heading": "Quelques chiffres"
       },
       {
         "type": "key_values",
@@ -93,7 +95,8 @@
             "label": "Illustrations",
             "value": "Ponctuelles"
           }
-        ]
+        ],
+        "heading": "En bref"
       },
       {
         "type": "gallery",
@@ -102,7 +105,8 @@
           "gallery-b",
           "gallery-c"
         ],
-        "alt": "Trois variantes d'une illustration abstraite"
+        "alt": "Trois variantes d'une illustration abstraite",
+        "heading": "Quelques images"
       },
       {
         "type": "faq",
@@ -115,17 +119,19 @@
             "question": "Faut-il retoucher les images ?",
             "answer": "Non. Les formes et points focaux sont appliqués par le front."
           }
-        ]
+        ],
+        "heading": "Questions fréquentes"
       },
       {
         "type": "embed_safe",
         "provider": "youtube-nocookie",
         "url": "https://www.youtube-nocookie.com/embed/abc123",
-        "label": "Vidéo externe de démonstration"
+        "label": "Vidéo externe de démonstration",
+        "heading": "Contenu externe"
       },
       {
         "type": "rich_text",
-        "text": "Même le texte riche reste une donnée : <strong>aucun HTML arbitraire</strong> n'est exécuté."
+        "text": "Le texte riche reste une donnée structurée et sûre : son contenu est affiché sans exécuter de code arbitraire."
       },
       {
         "type": "cta",

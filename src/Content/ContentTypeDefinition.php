@@ -127,13 +127,13 @@ final readonly class ContentTypeDefinition
             'text' => ['type', 'text'],
             'rich_text' => ['type', 'text'],
             'image' => ['type', 'media_id', 'alt', 'caption', 'shape', 'focal_x', 'focal_y'],
-            'gallery' => ['type', 'media_ids', 'alt'],
+            'gallery' => ['type', 'media_ids', 'alt', 'heading'],
             'cta' => ['type', 'label', 'url'],
-            'cards' => ['type', 'items'],
-            'faq' => ['type', 'items'],
-            'key_values' => ['type', 'items'],
-            'statistics' => ['type', 'items'],
-            'embed_safe' => ['type', 'provider', 'url', 'label'],
+            'cards' => ['type', 'items', 'heading'],
+            'faq' => ['type', 'items', 'heading'],
+            'key_values' => ['type', 'items', 'heading'],
+            'statistics' => ['type', 'items', 'heading'],
+            'embed_safe' => ['type', 'provider', 'url', 'label', 'heading'],
         ];
         foreach ($value as $block) {
             if (!is_array($block) || !isset($block['type']) || !is_string($block['type'])
@@ -162,6 +162,10 @@ final readonly class ContentTypeDefinition
                 return false;
             }
             if ($type === 'gallery' && !$this->optionalText($block, 'alt')) {
+                return false;
+            }
+            if (in_array($type, ['gallery', 'cards', 'faq', 'key_values', 'statistics', 'embed_safe'], true)
+                && !$this->optionalText($block, 'heading')) {
                 return false;
             }
             if ($type === 'cta' && (!is_string($block['label'] ?? null) || !$this->safeUrl($block['url'] ?? null))) {

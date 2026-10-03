@@ -36,3 +36,12 @@ Routes natives stables :
 - `/cookies` → politique cookies et traceurs.
 
 `PrivacyServicePublicDocumentSource` fournit uniquement une version approuvée dont l’empreinte correspond encore aux données sources. Une route inconnue ou un document devenu obsolète renvoie donc `null` au routeur du site, qui peut répondre en 404 plutôt que publier une version périmée. Le fragment HTML généré est borné et contrôlé avant insertion dans la coque du design kit ; scripts, styles, iframes, objets et documents HTML complets y sont refusés.
+
+
+## Hiérarchie des sections
+
+Les blocs de collection peuvent fournir des intertitres optionnels via `heading`. `PublicPageRenderer` produit alors `.d-section__heading > .d-heading` et une classe stable `.d-section--block-<type>` sur la section.
+
+Ces hooks permettent aux design kits d'espacer et différencier cartes, statistiques, galeries, FAQ et embeds sans embarquer de logique métier dans le thème.
+
+Un CTA autonome n'affiche son libellé qu'une seule fois : le bouton constitue l'action et le texte visible.
