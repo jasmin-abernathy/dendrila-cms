@@ -130,10 +130,6 @@
         "heading": "Contenu externe"
       },
       {
-        "type": "rich_text",
-        "text": "Le texte riche reste une donnée structurée et sûre : son contenu est affiché sans exécuter de code arbitraire."
-      },
-      {
         "type": "cta",
         "label": "Action finale",
         "url": "https://example.test/action"

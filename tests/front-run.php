@@ -91,7 +91,6 @@ frontCheck(str_contains($html, 'data-dendrila-src="https://www.youtube-nocookie.
 frontCheck(!str_contains($html, '<iframe src="https://www.youtube-nocookie.com/embed/abc123"'), 'External embeds never load before consent.');
 frontCheck(str_contains($html, '<h2 class="d-heading">Des repères simples</h2>'), 'Container blocks render optional section headings.');
 frontCheck(str_contains($html, 'd-section--block-gallery'), 'Public blocks expose stable styling hooks.');
-frontCheck(str_contains($html, 'Le texte riche reste une donnée structurée et sûre'), 'Reference rich text stays readable.');
 frontCheck(substr_count($html, 'Action finale') === 1, 'Standalone CTA labels are not duplicated.');
 frontCheck(str_contains($html, 'data-test-privacy="1"'), 'Native privacy markup can be mounted by the front.');
 

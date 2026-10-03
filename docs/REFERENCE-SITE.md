@@ -47,7 +47,7 @@ Le serveur local est uniquement destiné à la prévisualisation. Le site de ré
 
 Le jeu `examples/design-reference-page.json` est volontairement générique. Il contient le même ensemble de blocs qui pourra ensuite être rendu avec les autres design kits :
 
-- texte et texte riche échappé ;
+- texte simple ;
 - image avec masque et point focal ;
 - cartes ;
 - chiffres-clés ;
