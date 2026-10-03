@@ -47,6 +47,8 @@ Un prototype PHP interne est présent dans `src/`, avec migrations, commandes de
 - [x] Exposer dans MMW les champs du profil documentaire, les traitements et les sources indirectes via les primitives `settings` et `records` existantes.
 - [ ] Ajouter les aides contextuelles et l'ergonomie guidée du parcours documentaire dans le client d'administration.
 - [x] Importer les réglages, le profil documentaire et le dernier scan depuis le plugin WordPress Dendrila Privacy, avec rejeu idempotent.
+- [x] Générer les mentions légales, l'information vie privée et la politique cookies depuis le profil natif, avec aperçu, validation humaine et invalidation automatique après modification.
+- [ ] Raccorder ces documents aux routes publiques du premier adaptateur front Dendrila.
 
 Voir [`PRIVACY.md`](PRIVACY.md) et [`PRIVACY-FRONTEND.md`](PRIVACY-FRONTEND.md).
 
