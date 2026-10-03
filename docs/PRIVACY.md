@@ -45,7 +45,7 @@ Le traitement de reCAPTCHA et d'outils comme Matomo reste volontairement context
 
 Le profil légal, les preuves de scan et le journal d'audit ne sont jamais inclus dans ce manifeste public.
 
-L'affichage de la barre/du panneau et le blocage effectif des scripts restent la responsabilité de l'adaptateur front. Cette séparation permet à Dendrila CMS de rester indépendant de WordPress, d'un framework ou d'un constructeur visuel.
+Le noyau fournit maintenant `ConsentFrontend`, `ConsentRenderer`, `ConsentResourceRenderer` et les assets `public/assets/privacy-consent.*`. Ils permettent à un front Dendrila d'afficher une barre ou un encart accessible et de différer scripts, iframes et feuilles de style avant choix, sans dépendre de WordPress ni d'un constructeur visuel. Voir `PRIVACY-FRONTEND.md`.
 
 ## Permissions initiales
 
@@ -65,9 +65,8 @@ Le code du plugin WordPress n'est pas copié dans le noyau : ses hooks, options,
 
 Restent à raccorder côté Dendrila :
 
-- collecte automatique du rendu public par le premier adaptateur front ;
+- collecteur concret raccordé au premier moteur de rendu public (le contrat `PrivacyDocumentCollector` et `PrivacyScanRunner` est prêt) ;
 - interface d'administration du profil documentaire ;
-- rendu de consentement et blocage avant choix ;
 - connecteurs externes facultatifs (par exemple registre d'entreprise) ;
 - import/migration des données depuis une installation WordPress utilisant Dendrila Privacy.
 

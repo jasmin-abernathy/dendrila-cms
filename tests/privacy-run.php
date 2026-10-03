@@ -6,8 +6,10 @@ require dirname(__DIR__) . '/vendor/autoload.php';
 use Dendrila\Cms\Authorization\AccessDenied;
 use Dendrila\Cms\Authorization\ActorContext;
 use Dendrila\Cms\Authorization\AuthorizationService;
+use Dendrila\Cms\Privacy\PrivacyDocumentCollector;
 use Dendrila\Cms\Privacy\PrivacyInspector;
 use Dendrila\Cms\Privacy\PrivacyRepository;
+use Dendrila\Cms\Privacy\PrivacyScanRunner;
 use Dendrila\Cms\Privacy\PrivacyService;
 use Dendrila\Cms\Tests\Support\InMemoryCmsStore;
 
@@ -169,10 +171,31 @@ privacyCheck(!array_key_exists('legal_profile', $manifest) && !array_key_exists(
 privacyCheck($manifest['fingerprint'] === $service->consentManifest('site-a')['fingerprint'],
     'Consent fingerprint is stable while configuration and services do not change.');
 
+$runner = new PrivacyScanRunner(
+    $service,
+    new PrivacyInspector(),
+    new class implements PrivacyDocumentCollector {
+        public function collect(ActorContext $actor, string $mode): array
+        {
+            privacyCheck($actor->siteId === 'site-a' && $mode === 'standard',
+                'Scan runner passes the authenticated site and requested mode to the collector.');
+            return [[
+                'id' => 'runner-home',
+                'url' => 'https://example.test/runner',
+                'content' => '<script src="https://www.clarity.ms/tag/demo"></script>',
+            ]];
+        }
+    },
+);
+$runnerResult = $runner->run($editor, 'standard');
+privacyCheck($runnerResult['scan']['summary']['total'] === 1
+    && $runnerResult['scan']['summary']['optional_tracking'] === 1,
+    'Scan runner executes collection, inspection and persistence as one workflow.');
+
 $otherSite = new ActorContext('site-b', 'owner-2');
 $otherState = $service->state($otherSite);
 privacyCheck($otherState['settings'] === PrivacyService::defaultSettings() && $otherState['latest_scan'] === null,
     'Privacy state remains isolated between sites.');
-privacyCheck(count($repository->audit) === 2, 'Settings and completed scans append privacy audit events.');
+privacyCheck(count($repository->audit) === 3, 'Settings and both completed scan paths append privacy audit events.');
 
 echo "Native privacy core tests passed.\n";

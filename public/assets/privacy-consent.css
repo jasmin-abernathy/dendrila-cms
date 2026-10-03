@@ -1,0 +1,209 @@
+:root {
+    --dendrila-privacy-surface: #ffffff;
+    --dendrila-privacy-surface-soft: #f4f7f4;
+    --dendrila-privacy-text: #202522;
+    --dendrila-privacy-muted: #59635c;
+    --dendrila-privacy-border: #cfd9d1;
+    --dendrila-privacy-accent: #315f43;
+    --dendrila-privacy-focus: #2456a6;
+    --dendrila-privacy-radius: 0.8rem;
+    --dendrila-privacy-shadow: 0 1rem 3rem rgb(0 0 0 / 0.18);
+}
+
+html.dendrila-privacy-consent-open {
+    overflow: hidden;
+}
+
+.dendrila-privacy-consent[hidden],
+.dendrila-privacy-consent [hidden] {
+    display: none !important;
+}
+
+.dendrila-privacy-consent {
+    position: fixed;
+    inset: 0;
+    z-index: 2147483000;
+    display: grid;
+    align-items: end;
+    font: inherit;
+    color: var(--dendrila-privacy-text);
+}
+
+.dendrila-privacy-consent--card {
+    place-items: center;
+    padding: 1rem;
+}
+
+.dendrila-privacy-consent__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgb(0 0 0 / 0.42);
+}
+
+.dendrila-privacy-consent__dialog {
+    position: relative;
+    width: min(100%, 64rem);
+    max-height: min(90vh, 48rem);
+    overflow: auto;
+    padding: 1.25rem;
+    background: var(--dendrila-privacy-surface);
+    border: 1px solid var(--dendrila-privacy-border);
+    box-shadow: var(--dendrila-privacy-shadow);
+}
+
+.dendrila-privacy-consent--bar .dendrila-privacy-consent__dialog {
+    width: 100%;
+}
+
+.dendrila-privacy-consent--card .dendrila-privacy-consent__dialog {
+    width: min(100%, 38rem);
+    border-radius: var(--dendrila-privacy-radius);
+}
+
+.dendrila-privacy-consent__dialog h2,
+.dendrila-privacy-consent__dialog p {
+    margin-top: 0;
+}
+
+.dendrila-privacy-consent__dialog p {
+    color: var(--dendrila-privacy-muted);
+    line-height: 1.55;
+}
+
+.dendrila-privacy-consent__close {
+    float: right;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    border: 1px solid var(--dendrila-privacy-border);
+    border-radius: 50%;
+    background: var(--dendrila-privacy-surface-soft);
+    color: inherit;
+    font-size: 1.4rem;
+    cursor: pointer;
+}
+
+.dendrila-privacy-consent__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.dendrila-privacy-consent__choice,
+.dendrila-privacy-consent__secondary,
+.dendrila-privacy-manage,
+.dendrila-privacy-placeholder button {
+    min-height: 2.75rem;
+    padding: 0.65rem 1rem;
+    border-radius: 0.55rem;
+    font: inherit;
+    font-weight: 650;
+    cursor: pointer;
+}
+
+.dendrila-privacy-consent__choice {
+    border: 2px solid var(--dendrila-privacy-accent);
+    background: var(--dendrila-privacy-surface);
+    color: var(--dendrila-privacy-accent);
+}
+
+.dendrila-privacy-consent__secondary,
+.dendrila-privacy-manage,
+.dendrila-privacy-placeholder button {
+    border: 1px solid var(--dendrila-privacy-border);
+    background: var(--dendrila-privacy-surface-soft);
+    color: var(--dendrila-privacy-text);
+}
+
+.dendrila-privacy-consent__choice:focus-visible,
+.dendrila-privacy-consent__secondary:focus-visible,
+.dendrila-privacy-consent__close:focus-visible,
+.dendrila-privacy-manage:focus-visible,
+.dendrila-privacy-placeholder button:focus-visible,
+.dendrila-privacy-consent__category input:focus-visible {
+    outline: 3px solid var(--dendrila-privacy-focus);
+    outline-offset: 3px;
+}
+
+.dendrila-privacy-consent fieldset {
+    margin: 1rem 0 0;
+    padding: 0;
+    border: 0;
+}
+
+.dendrila-privacy-consent legend {
+    margin-bottom: 0.75rem;
+    font-weight: 700;
+}
+
+.dendrila-privacy-consent__category {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.85rem 0;
+    border-top: 1px solid var(--dendrila-privacy-border);
+}
+
+.dendrila-privacy-consent__category span {
+    display: grid;
+    gap: 0.2rem;
+}
+
+.dendrila-privacy-consent__category small {
+    color: var(--dendrila-privacy-muted);
+}
+
+.dendrila-privacy-consent__category input {
+    width: 1.35rem;
+    height: 1.35rem;
+    flex: 0 0 auto;
+}
+
+.dendrila-privacy-manage {
+    margin-block: 0.75rem;
+}
+
+.dendrila-privacy-placeholder {
+    display: grid;
+    place-items: center;
+    min-height: 12rem;
+    padding: 1rem;
+    border: 1px solid var(--dendrila-privacy-border);
+    border-radius: var(--dendrila-privacy-radius);
+    background: var(--dendrila-privacy-surface-soft);
+    text-align: center;
+}
+
+.dendrila-privacy-placeholder iframe {
+    width: 100%;
+    min-height: 20rem;
+    border: 0;
+}
+
+@media (max-width: 40rem) {
+    .dendrila-privacy-consent__actions {
+        display: grid;
+    }
+
+    .dendrila-privacy-consent__actions > * {
+        width: 100%;
+    }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .dendrila-privacy-consent__dialog {
+        animation: dendrila-privacy-enter 140ms ease-out;
+    }
+
+    @keyframes dendrila-privacy-enter {
+        from {
+            opacity: 0;
+            transform: translateY(0.5rem);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+}

@@ -39,12 +39,13 @@ Un prototype PHP interne est présent dans `src/`, avec migrations, commandes de
 
 - [x] Intégrer le socle Dendrila Privacy au CMS : stockage local, permissions, inspection générique, constats et manifeste de consentement.
 - [x] Initialiser automatiquement les réglages Privacy pour chaque nouveau site et migrer les sites existants.
-- [ ] Raccorder le premier adaptateur front à la collecte du rendu public.
-- [ ] Rendre la barre / l'encart de consentement et le blocage avant choix indépendants du moteur de templates.
+- [x] Définir le contrat de collecte et le runner `collecte → inspection → enregistrement` pour les adaptateurs front.
+- [ ] Raccorder un collecteur concret au premier moteur de rendu public Dendrila.
+- [x] Fournir la barre / l'encart de consentement et le blocage déclaratif avant choix, indépendants du moteur de templates.
 - [ ] Ajouter l'interface d'administration du profil documentaire et des pratiques externes.
 - [ ] Prévoir l'import d'une configuration provenant du plugin WordPress Dendrila Privacy.
 
-Voir [`PRIVACY.md`](PRIVACY.md).
+Voir [`PRIVACY.md`](PRIVACY.md) et [`PRIVACY-FRONTEND.md`](PRIVACY-FRONTEND.md).
 
 ## P1 — Kits fonctionnels
 
