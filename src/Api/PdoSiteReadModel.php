@@ -46,14 +46,17 @@ final readonly class PdoSiteReadModel implements SiteReadModel
         $branding = self::decodeObject($row['branding_json'] ?? '{}', 'site branding');
         $modules = self::decodeList($row['modules_json'] ?? '[]', 'site modules');
         PrivacySettingsModule::assertReservedIdAvailable($modules);
+        PrivacyLegalModules::assertReservedIdsAvailable($modules);
         $safeModules = self::safeModules($modules);
         $privacyState = $this->privacyState($actor);
         if ($privacyState !== null) {
+            $writablePrivacy = $this->store->actorHasPermission($actor->siteId, $actor->actorId, 'privacy.manage');
             $safeModules[] = self::safeModules([
-                PrivacySettingsModule::definition(
-                    $this->store->actorHasPermission($actor->siteId, $actor->actorId, 'privacy.manage'),
-                ),
+                PrivacySettingsModule::definition($writablePrivacy),
             ])[0];
+            foreach (self::safeModules(PrivacyLegalModules::definitions($writablePrivacy)) as $privacyModule) {
+                $safeModules[] = $privacyModule;
+            }
         }
         return [
             'schema_version' => 1,
@@ -83,6 +86,7 @@ final readonly class PdoSiteReadModel implements SiteReadModel
         }
         $storedModules = self::decodeList($row['modules_json'] ?? '[]', 'site modules');
         PrivacySettingsModule::assertReservedIdAvailable($storedModules);
+        PrivacyLegalModules::assertReservedIdsAvailable($storedModules);
         self::safeModules($storedModules);
         $data = (new SnapshotProjector())->project(
             $storedModules,
@@ -102,6 +106,9 @@ final readonly class PdoSiteReadModel implements SiteReadModel
         $privacyState = $this->privacyState($actor);
         if ($privacyState !== null) {
             $data[PrivacySettingsModule::ID] = PrivacySettingsModule::values($privacyState['settings']);
+            foreach (PrivacyLegalModules::snapshot($privacyState['settings']['legal_profile']) as $moduleId => $moduleData) {
+                $data[$moduleId] = $moduleData;
+            }
         }
         return [
             'schema_version' => 1,

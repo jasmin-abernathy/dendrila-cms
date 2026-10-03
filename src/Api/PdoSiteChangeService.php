@@ -47,6 +47,9 @@ final readonly class PdoSiteChangeService implements SiteChangeHandler
         if ($moduleId === PrivacySettingsModule::ID) {
             return $this->updatePrivacySettings($actor, $action, $payload, $requestId);
         }
+        if (PrivacyLegalModules::handles($moduleId)) {
+            return $this->updatePrivacyLegal($actor, $moduleId, $action, $payload, $requestId);
+        }
 
         [$module, $safeModule] = $this->module($actor->siteId, $moduleId);
         if (($module['writable'] ?? false) !== true) {
@@ -150,6 +153,92 @@ final readonly class PdoSiteChangeService implements SiteChangeHandler
                 null,
                 'denied',
                 ['operation' => 'privacy.settings_update'],
+            );
+            throw $error;
+        } catch (\Throwable $error) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            throw $error;
+        }
+    }
+
+    /** @param array<string, mixed> $payload @return array<string, mixed> */
+    private function updatePrivacyLegal(
+        ActorContext $actor,
+        string $moduleId,
+        string $action,
+        array $payload,
+        string $requestId,
+    ): array {
+        $requestHash = hash('sha256', self::canonicalJson([
+            'module_id' => $moduleId,
+            'action' => $action,
+            'payload' => $payload,
+        ]));
+
+        $this->pdo->beginTransaction();
+        try {
+            $existing = $this->store->findIdempotency($actor->siteId, $actor->actorId, $requestId);
+            if ($existing !== null) {
+                if (!hash_equals($existing['request_hash'], $requestHash)) {
+                    throw new IdempotencyConflict('client_request_id was already used with a different request.');
+                }
+                if (!is_array($existing['response'] ?? null)) {
+                    throw new IdempotencyConflict('This client_request_id is already being processed.');
+                }
+                $this->pdo->commit();
+                return $existing['response'];
+            }
+
+            if (!$this->store->claimIdempotency($actor->siteId, $actor->actorId, $requestId, $requestHash)) {
+                $raced = $this->store->findIdempotency($actor->siteId, $actor->actorId, $requestId);
+                if ($raced === null || !hash_equals($raced['request_hash'], $requestHash)
+                    || !is_array($raced['response'] ?? null)) {
+                    throw new IdempotencyConflict('client_request_id conflicts with another request.');
+                }
+                $this->pdo->commit();
+                return $raced['response'];
+            }
+
+            $profile = $this->privacy->legalProfile($actor);
+            $planned = PrivacyLegalModules::apply($profile, $moduleId, $action, $payload);
+            $this->privacy->updateLegalProfile($actor, $planned['changes']);
+            $siteRevision = $this->store->incrementDataRevision($actor->siteId);
+            $result = $planned['result'];
+            $result['site_revision'] = $siteRevision;
+            $response = [
+                'status' => 'applied',
+                'request_id' => $requestId,
+                'message' => match ($action) {
+                    'create_item' => 'Élément de documentation ajouté.',
+                    'update_item', 'update_fields' => 'Documentation de confidentialité enregistrée.',
+                    'delete_item' => 'Élément de documentation supprimé.',
+                    default => 'Documentation de confidentialité enregistrée.',
+                },
+                'result' => $result,
+            ];
+            $this->store->completeIdempotency(
+                $actor->siteId,
+                $actor->actorId,
+                $requestId,
+                json_encode($response, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+            );
+            $this->pdo->commit();
+            return $response;
+        } catch (AccessDenied $error) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            $this->store->appendAudit(
+                $actor->siteId,
+                $actor->actorId,
+                $actor->deviceId,
+                'authorization.denied',
+                'privacy',
+                $moduleId,
+                'denied',
+                ['operation' => 'privacy.legal_profile_update', 'action' => $action],
             );
             throw $error;
         } catch (\Throwable $error) {
