@@ -25,7 +25,7 @@ final readonly class PrivacyService
                 'footer_link' => true,
             ],
             'scan' => ['schedule' => 'off'],
-            'legal_profile' => [],
+            'legal_profile' => LegalProfile::defaults(),
             'external_practices' => [],
         ];
     }
@@ -59,6 +59,40 @@ final readonly class PrivacyService
             );
             return $settings;
         });
+    }
+
+    /** @return array<string, mixed> */
+    public function legalProfile(ActorContext $actor): array
+    {
+        $this->authorization->require($actor, 'privacy.read');
+        return $this->normalizedStoredSettings($actor->siteId)['legal_profile'];
+    }
+
+    /** @param array<string, mixed> $changes @return array<string, mixed> */
+    public function updateLegalProfile(ActorContext $actor, array $changes): array
+    {
+        $this->authorization->require($actor, 'privacy.manage');
+        return $this->repository->transaction(function () use ($actor, $changes): array {
+            $settings = $this->normalizedStoredSettings($actor->siteId);
+            $settings['legal_profile'] = LegalProfile::merge($settings['legal_profile'], $changes);
+            $settings = self::normalizeSettings($settings);
+            $this->repository->saveSettings($actor->siteId, $settings);
+            $this->repository->appendAudit(
+                $actor->siteId,
+                $actor->actorId,
+                $actor->deviceId,
+                'privacy.legal_profile_update',
+                null,
+                ['fields' => array_values(array_keys($changes)), 'source' => $actor->source],
+            );
+            return $settings['legal_profile'];
+        });
+    }
+
+    /** @return array<string, array{complete:bool,missing:list<string>}> */
+    public function legalProgress(ActorContext $actor): array
+    {
+        return LegalProfile::progress($this->legalProfile($actor));
     }
 
     /**
@@ -166,6 +200,7 @@ final readonly class PrivacyService
         if (!is_array($profile) || ($profile !== [] && array_is_list($profile))) {
             throw new \InvalidArgumentException('The legal profile must be an object.');
         }
+        $profile = LegalProfile::normalize($profile);
         if (!is_array($external) || !array_is_list($external) || count($external) > 100) {
             throw new \InvalidArgumentException('External practices must be a bounded list.');
         }
