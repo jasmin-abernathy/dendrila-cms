@@ -64,5 +64,13 @@ jobs:
         run: php bin/bootstrap-site.php site-native "Native Privacy" owner-native false
       - name: PDO migration and isolation tests
         run: php tests/privacy-pdo-run.php
+      - name: Bootstrap WordPress import test site
+        run: php bin/bootstrap-site.php site-import "Imported Privacy" owner-import false
+      - name: Import WordPress Dendrila Privacy twice
+        run: |
+          php bin/import-wordpress-privacy.php site-import owner-import tests/fixtures/wordpress-privacy-export.json
+          php bin/import-wordpress-privacy.php site-import owner-import tests/fixtures/wordpress-privacy-export.json
+      - name: WordPress privacy import persistence tests
+        run: php tests/privacy-wordpress-import-pdo-run.php
       - name: Verify migrations are idempotent
         run: php bin/migrate.php

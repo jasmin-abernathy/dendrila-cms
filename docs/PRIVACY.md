@@ -78,6 +78,6 @@ Restent à raccorder côté Dendrila :
 - collecteur concret raccordé au premier moteur de rendu public (le contrat `PrivacyDocumentCollector` et `PrivacyScanRunner` est prêt) ;
 - interface cliente complète du profil documentaire (le modèle, la validation, la progression et les mutations serveur sont présents) ;
 - connecteurs externes facultatifs (par exemple registre d'entreprise) ;
-- import/migration des données depuis une installation WordPress utilisant Dendrila Privacy.
+- migration des pages WordPress elles-mêmes : l’import natif couvre désormais les réglages, le profil documentaire et le dernier scan, mais pas les IDs/pages WordPress ni le contenu géré par un constructeur.
 
 Dendrila Privacy aide à documenter et à contrôler le comportement technique d'un site ; ce n'est pas une certification juridique.

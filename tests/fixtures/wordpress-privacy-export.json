@@ -1,0 +1,95 @@
+{
+  "pixel_trackers_manager_settings": {
+    "schedule": "weekly",
+    "consent_enabled": 1,
+    "consent_layout": "card",
+    "consent_retention_days": 120,
+    "consent_footer_link": 1,
+    "privacy_page_id": 42,
+    "legal_notice_page_id": 43,
+    "cookie_page_id": 44,
+    "consent_style": "inherit"
+  },
+  "pixel_trackers_manager_legal_profile": {
+    "controller_name": "Imported Organisation",
+    "controller_address": "1 rue Exemple",
+    "privacy_contact": "privacy@example.test",
+    "entity_type": "association",
+    "company_country": "fr",
+    "collection_mode": "both",
+    "wizard_reviewed_once": 1,
+    "cookie_nonessential": "yes",
+    "cookie_consent_status": "yes",
+    "treatments": [
+      {
+        "purpose": "Manage members",
+        "data_categories": "Identity and contact information",
+        "legal_basis": "contract",
+        "recipients": "Association team",
+        "retention": "Membership duration",
+        "mandatory": "contract",
+        "consequences": ""
+      }
+    ],
+    "indirect_services": [
+      {
+        "service_id": "booking_provider",
+        "label": "Booking provider",
+        "state": "manual",
+        "categories": "Name and email",
+        "source": "Booking form",
+        "recipients": "Booking provider",
+        "transfer_status": "unknown",
+        "transfer_destinations": "",
+        "transfer_mechanism": "",
+        "transfer_safeguards": "",
+        "automated_decision": "no",
+        "automated_details": ""
+      }
+    ]
+  },
+  "pixel_trackers_manager_scan_current": {
+    "version": 6,
+    "plugin_version": "0.0.5",
+    "generated_at": "2026-10-03T08:00:00+00:00",
+    "coverage": {
+      "mode": "full"
+    },
+    "findings": [
+      {
+        "id": "google_analytics",
+        "label": "Google Analytics",
+        "category": "Mesure d’audience",
+        "is_tracking": true,
+        "active_tracking": true,
+        "blocked_by_consent": false,
+        "observed_html": true,
+        "tracking_state": "active",
+        "tracking_basis": "technical_html",
+        "urls": ["https://example.test/"]
+      },
+      {
+        "id": "youtube",
+        "label": "YouTube",
+        "category": "Contenu embarqué",
+        "is_tracking": false,
+        "active_tracking": false,
+        "blocked_by_consent": true,
+        "observed_html": true,
+        "tracking_state": "blocked",
+        "urls": ["https://example.test/video"]
+      },
+      {
+        "id": "recaptcha",
+        "label": "Google reCAPTCHA",
+        "category": "Sécurité / anti-spam",
+        "is_tracking": true,
+        "active_tracking": true,
+        "blocked_by_consent": false,
+        "observed_html": true,
+        "tracking_state": "active",
+        "urls": ["https://example.test/contact"]
+      }
+    ]
+  }
+}
