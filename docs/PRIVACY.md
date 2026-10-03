@@ -47,6 +47,16 @@ Le profil légal, les preuves de scan et le journal d'audit ne sont jamais inclu
 
 Le noyau fournit maintenant `ConsentFrontend`, `ConsentRenderer`, `ConsentResourceRenderer` et les assets `public/assets/privacy-consent.*`. Ils permettent à un front Dendrila d'afficher une barre ou un encart accessible et de différer scripts, iframes et feuilles de style avant choix, sans dépendre de WordPress ni d'un constructeur visuel. Voir `PRIVACY-FRONTEND.md`.
 
+## Profil documentaire légal natif
+
+`LegalProfile` porte maintenant dans le noyau la structure générique auparavant concentrée dans le plugin WordPress : identité du responsable, contact vie privée/DPO, hébergeur, collecte directe ou indirecte, transferts, décisions automatisées, catégories particulières, mineurs, cookies, suivi e-mail et outils externes.
+
+Les traitements sont structurés et bornés (8 maximum par profil) avec finalité, catégories de données, base légale, destinataires, durée de conservation, caractère obligatoire et conséquences. Les sources indirectes sont également structurées (20 maximum) et reçoivent des identifiants stables afin de pouvoir être modifiées sans ambiguïté par les futurs clients d'administration.
+
+Le noyau applique une validation stricte et refuse les champs inconnus. Les réponses `unknown` restent possibles lorsque l'information n'est pas encore déterminée : Dendrila Privacy ne transforme pas une absence d'information en conclusion juridique.
+
+`PrivacyService::legalProgress()` reprend la logique contextuelle du parcours WordPress : par exemple une destination de transfert n'est exigée que si un transfert est déclaré, et les détails d'un DPO ne deviennent nécessaires que lorsqu'un DPO est déclaré comme désigné. Ces états servent à guider l'interface ; ils ne constituent pas un score de conformité.
+
 ## Permissions initiales
 
 - `owner` et `admin` : lecture, configuration et lancement/enregistrement des analyses ;
@@ -66,7 +76,7 @@ Le code du plugin WordPress n'est pas copié dans le noyau : ses hooks, options,
 Restent à raccorder côté Dendrila :
 
 - collecteur concret raccordé au premier moteur de rendu public (le contrat `PrivacyDocumentCollector` et `PrivacyScanRunner` est prêt) ;
-- interface d'administration du profil documentaire ;
+- interface cliente complète du profil documentaire (le modèle, la validation, la progression et les mutations serveur sont présents) ;
 - connecteurs externes facultatifs (par exemple registre d'entreprise) ;
 - import/migration des données depuis une installation WordPress utilisant Dendrila Privacy.
 

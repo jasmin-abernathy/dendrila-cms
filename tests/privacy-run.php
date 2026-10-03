@@ -7,6 +7,7 @@ use Dendrila\Cms\Authorization\AccessDenied;
 use Dendrila\Cms\Authorization\ActorContext;
 use Dendrila\Cms\Authorization\AuthorizationService;
 use Dendrila\Cms\Privacy\PrivacyDocumentCollector;
+use Dendrila\Cms\Privacy\LegalProfile;
 use Dendrila\Cms\Privacy\PrivacyInspector;
 use Dendrila\Cms\Privacy\PrivacyRepository;
 use Dendrila\Cms\Privacy\PrivacyScanRunner;
@@ -113,6 +114,51 @@ $editor = new ActorContext('site-a', 'editor-1', 'device-2');
 $initial = $service->state($owner);
 privacyCheck($initial['settings'] === PrivacyService::defaultSettings(), 'Privacy defaults exist for every site.');
 privacyCheck($initial['latest_scan'] === null && $initial['findings'] === [], 'A new site has no fabricated privacy scan.');
+privacyCheck($initial['settings']['legal_profile']['supervisory_authority']
+    === 'CNIL – Commission nationale de l’informatique et des libertés',
+    'French legal-profile defaults provide the supervisory authority without fabricating organisation data.');
+
+$legal = $service->updateLegalProfile($owner, [
+    'controller_name' => 'Example Organisation',
+    'privacy_contact' => 'privacy@example.test',
+    'entity_type' => 'association',
+    'collection_mode' => 'both',
+    'indirect_services' => [[
+        'label' => 'Booking provider',
+        'categories' => 'Name, email address',
+        'source' => 'Online booking form',
+        'state' => 'manual',
+    ]],
+    'treatments' => [[
+        'purpose' => 'Manage memberships',
+        'data_categories' => 'Identity and contact details',
+        'legal_basis' => 'contract',
+        'retention' => 'During membership plus the applicable archive period',
+        'mandatory' => 'contract',
+    ]],
+    'cookie_nonessential' => 'yes',
+    'cookie_consent_status' => 'yes',
+    'email_pixels' => 'no',
+    'tracked_links' => 'no',
+]);
+privacyCheck(strlen($legal['treatments'][0]['id']) === 32
+    && strlen($legal['indirect_services'][0]['id']) === 32,
+    'Legal-profile repeatable rows receive stable native ids.');
+$legalProgress = $service->legalProgress($owner);
+privacyCheck($legalProgress['identity']['complete'] === true
+    && $legalProgress['treatments']['complete'] === true
+    && $legalProgress['flows']['complete'] === true
+    && $legalProgress['cookies']['complete'] === true,
+    'Legal-profile progress follows the same contextual completion principles as Dendrila Privacy.');
+privacyExpect(InvalidArgumentException::class, fn () => $service->updateLegalProfile($owner, [
+    'transfers_status' => 'sometimes',
+]));
+privacyExpect(InvalidArgumentException::class, fn () => LegalProfile::normalize([
+    'unknown_field' => 'must fail closed',
+]));
+privacyExpect(AccessDenied::class, fn () => $service->updateLegalProfile($editor, [
+    'controller_name' => 'Not allowed',
+]));
 
 $updated = $service->updateSettings($owner, [
     'consent' => ['enabled' => true, 'layout' => 'card', 'retention_days' => 90],
@@ -196,6 +242,6 @@ $otherSite = new ActorContext('site-b', 'owner-2');
 $otherState = $service->state($otherSite);
 privacyCheck($otherState['settings'] === PrivacyService::defaultSettings() && $otherState['latest_scan'] === null,
     'Privacy state remains isolated between sites.');
-privacyCheck(count($repository->audit) === 3, 'Settings and both completed scan paths append privacy audit events.');
+privacyCheck(count($repository->audit) === 4, 'Settings, legal-profile changes and both scan paths append privacy audit events.');
 
 echo "Native privacy core tests passed.\n";
