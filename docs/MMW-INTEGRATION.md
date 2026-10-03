@@ -58,3 +58,22 @@ Exemple de mapping interne pour une collection :
 ```
 
 Pour un module `form`, `source` doit aussi contenir le `content_id` stable du contenu. Les données restent vides tant qu'aucun module n'est configuré. Les routes d'authentification nécessitent encore l'adaptateur d'identité du site; les actions métier nécessitent leurs connecteurs. Le manifeste de découverte reste à livrer. La commande CLI d'émission de jeton sert uniquement aux essais locaux et ne doit pas devenir le parcours d'authentification d'un déploiement.
+
+
+## Module natif Dendrila Privacy
+
+Dendrila Privacy utilise les primitives `settings` déjà prévues par MMW v1 : aucun nouveau `kind`, aucune route et aucun en-tête de protocole ne sont ajoutés.
+
+Pour un acteur disposant de `privacy.read`, `GET /v1/config` ajoute le module réservé `privacy`. Le module est modifiable uniquement lorsque l'acteur possède aussi `privacy.manage`.
+
+Les champs exposés sont volontairement plats et bornés :
+
+- `consent_enabled` — booléen ;
+- `consent_layout` — `bar` ou `card` ;
+- `consent_retention_days` — entier de 30 à 365 ;
+- `consent_footer_link` — booléen ;
+- `scan_schedule` — `off`, `daily` ou `weekly`.
+
+`GET /v1/snapshot` projette ces valeurs sous `data.privacy`. Une mutation `POST /v1/changes` avec le module `privacy` et l'action `update_fields` passe par les permissions serveur de Dendrila Privacy, l'idempotence commune du CMS et avance `sites.data_revision` exactement une fois.
+
+L'identifiant de module `privacy` est réservé au noyau. Une configuration de site qui tente de déclarer manuellement un module du même identifiant est refusée afin d'éviter qu'un module stocké masque ou remplace la capacité native.

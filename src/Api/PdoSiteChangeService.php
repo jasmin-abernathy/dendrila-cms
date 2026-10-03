@@ -8,18 +8,25 @@ use Dendrila\Cms\Authorization\ActorContext;
 use Dendrila\Cms\Authorization\AuthorizationService;
 use Dendrila\Cms\Content\ContentNotFound;
 use Dendrila\Cms\Content\ContentService;
+use Dendrila\Cms\Content\IdempotencyConflict;
+use Dendrila\Cms\Privacy\PdoPrivacyRepository;
+use Dendrila\Cms\Privacy\PrivacyService;
 use Dendrila\Cms\Storage\PdoCmsStore;
 use PDO;
 use RuntimeException;
 
 final readonly class PdoSiteChangeService implements SiteChangeHandler
 {
+    private PdoCmsStore $store;
     private ContentService $content;
+    private PrivacyService $privacy;
 
     public function __construct(private PDO $pdo, private ?BusinessActionExecutor $businessActions = null)
     {
-        $store = new PdoCmsStore($pdo);
-        $this->content = new ContentService($store, new AuthorizationService($store));
+        $this->store = new PdoCmsStore($pdo);
+        $authorization = new AuthorizationService($this->store);
+        $this->content = new ContentService($this->store, $authorization);
+        $this->privacy = new PrivacyService(new PdoPrivacyRepository($pdo), $authorization);
     }
 
     /** @param array<string, mixed> $request @return array<string, mixed> */
@@ -35,6 +42,10 @@ final readonly class PdoSiteChangeService implements SiteChangeHandler
         $payload = (array) $payload;
         if (!preg_match('/^[A-Za-z0-9._:-]{8,128}$/', $requestId)) {
             throw new \InvalidArgumentException('client_request_id must be 8–128 safe characters.');
+        }
+
+        if ($moduleId === PrivacySettingsModule::ID) {
+            return $this->updatePrivacySettings($actor, $action, $payload, $requestId);
         }
 
         [$module, $safeModule] = $this->module($actor->siteId, $moduleId);
@@ -63,6 +74,90 @@ final readonly class PdoSiteChangeService implements SiteChangeHandler
             'message' => $message,
             'result' => $content['content'] ?? $content['result'] ?? null,
         ];
+    }
+
+    /** @param array<string, mixed> $payload @return array<string, mixed> */
+    private function updatePrivacySettings(
+        ActorContext $actor,
+        string $action,
+        array $payload,
+        string $requestId,
+    ): array {
+        if ($action !== 'update_fields') {
+            throw new \InvalidArgumentException('The privacy settings module only supports update_fields.');
+        }
+
+        $changes = PrivacySettingsModule::changes($payload);
+        $requestHash = hash('sha256', self::canonicalJson([
+            'module_id' => PrivacySettingsModule::ID,
+            'action' => $action,
+            'payload' => $payload,
+        ]));
+
+        $this->pdo->beginTransaction();
+        try {
+            $existing = $this->store->findIdempotency($actor->siteId, $actor->actorId, $requestId);
+            if ($existing !== null) {
+                if (!hash_equals($existing['request_hash'], $requestHash)) {
+                    throw new IdempotencyConflict('client_request_id was already used with a different request.');
+                }
+                if (!is_array($existing['response'] ?? null)) {
+                    throw new IdempotencyConflict('This client_request_id is already being processed.');
+                }
+                $this->pdo->commit();
+                return $existing['response'];
+            }
+
+            if (!$this->store->claimIdempotency($actor->siteId, $actor->actorId, $requestId, $requestHash)) {
+                $raced = $this->store->findIdempotency($actor->siteId, $actor->actorId, $requestId);
+                if ($raced === null || !hash_equals($raced['request_hash'], $requestHash)
+                    || !is_array($raced['response'] ?? null)) {
+                    throw new IdempotencyConflict('client_request_id conflicts with another request.');
+                }
+                $this->pdo->commit();
+                return $raced['response'];
+            }
+
+            $settings = $this->privacy->updateSettings($actor, $changes);
+            $siteRevision = $this->store->incrementDataRevision($actor->siteId);
+            $response = [
+                'status' => 'applied',
+                'request_id' => $requestId,
+                'message' => 'Réglages de confidentialité enregistrés.',
+                'result' => [
+                    'values' => PrivacySettingsModule::values($settings),
+                    'site_revision' => $siteRevision,
+                ],
+            ];
+            $this->store->completeIdempotency(
+                $actor->siteId,
+                $actor->actorId,
+                $requestId,
+                json_encode($response, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+            );
+            $this->pdo->commit();
+            return $response;
+        } catch (AccessDenied $error) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            $this->store->appendAudit(
+                $actor->siteId,
+                $actor->actorId,
+                $actor->deviceId,
+                'authorization.denied',
+                'privacy',
+                null,
+                'denied',
+                ['operation' => 'privacy.settings_update'],
+            );
+            throw $error;
+        } catch (\Throwable $error) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            throw $error;
+        }
     }
 
     /** @param array<string, mixed> $module @param array<string, mixed> $safeModule @param array<string, mixed> $payload */
@@ -250,6 +345,20 @@ final readonly class PdoSiteChangeService implements SiteChangeHandler
             throw new RuntimeException('Stored site policy must be an object.');
         }
         return ($policy['review_before_publish'] ?? false) === true;
+    }
+
+    private static function canonicalJson(mixed $value): string
+    {
+        if (is_array($value)) {
+            if (!array_is_list($value)) {
+                ksort($value);
+            }
+            foreach ($value as &$child) {
+                $child = json_decode(self::canonicalJson($child), true, 512, JSON_THROW_ON_ERROR);
+            }
+            unset($child);
+        }
+        return json_encode($value, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
     /** @param array<string, mixed> $input */

@@ -6,19 +6,26 @@ namespace Dendrila\Cms\Api;
 use Dendrila\Cms\Authorization\ActorContext;
 use Dendrila\Cms\Authorization\AuthorizationService;
 use Dendrila\Cms\Content\ContentNotFound;
+use Dendrila\Cms\Authorization\AccessDenied;
 use Dendrila\Cms\Content\ContentService;
+use Dendrila\Cms\Privacy\PdoPrivacyRepository;
+use Dendrila\Cms\Privacy\PrivacyService;
 use Dendrila\Cms\Storage\PdoCmsStore;
 use PDO;
 use RuntimeException;
 
 final readonly class PdoSiteReadModel implements SiteReadModel
 {
+    private PdoCmsStore $store;
     private ContentService $contentService;
+    private PrivacyService $privacy;
 
     public function __construct(private PDO $pdo)
     {
-        $store = new PdoCmsStore($pdo);
-        $this->contentService = new ContentService($store, new AuthorizationService($store));
+        $this->store = new PdoCmsStore($pdo);
+        $authorization = new AuthorizationService($this->store);
+        $this->contentService = new ContentService($this->store, $authorization);
+        $this->privacy = new PrivacyService(new PdoPrivacyRepository($pdo), $authorization);
     }
 
     public function configuration(ActorContext $actor): array
@@ -38,6 +45,16 @@ final readonly class PdoSiteReadModel implements SiteReadModel
         $policy = self::decodeObject($row['policy_json'], 'site policy');
         $branding = self::decodeObject($row['branding_json'] ?? '{}', 'site branding');
         $modules = self::decodeList($row['modules_json'] ?? '[]', 'site modules');
+        PrivacySettingsModule::assertReservedIdAvailable($modules);
+        $safeModules = self::safeModules($modules);
+        $privacyState = $this->privacyState($actor);
+        if ($privacyState !== null) {
+            $safeModules[] = self::safeModules([
+                PrivacySettingsModule::definition(
+                    $this->store->actorHasPermission($actor->siteId, $actor->actorId, 'privacy.manage'),
+                ),
+            ])[0];
+        }
         return [
             'schema_version' => 1,
             'config_version' => (int) $row['config_version'],
@@ -47,7 +64,7 @@ final readonly class PdoSiteReadModel implements SiteReadModel
                 'review_before_publish' => ($policy['review_before_publish'] ?? false) === true,
                 'allow_offline_queue' => ($policy['allow_offline_queue'] ?? false) === true,
             ],
-            'modules' => self::safeModules($modules),
+            'modules' => $safeModules,
         ];
     }
 
@@ -65,6 +82,7 @@ final readonly class PdoSiteReadModel implements SiteReadModel
             throw new RuntimeException('Authenticated site no longer exists.');
         }
         $storedModules = self::decodeList($row['modules_json'] ?? '[]', 'site modules');
+        PrivacySettingsModule::assertReservedIdAvailable($storedModules);
         self::safeModules($storedModules);
         $data = (new SnapshotProjector())->project(
             $storedModules,
@@ -81,12 +99,26 @@ final readonly class PdoSiteReadModel implements SiteReadModel
                 'offset' => 0,
             ]),
         );
+        $privacyState = $this->privacyState($actor);
+        if ($privacyState !== null) {
+            $data[PrivacySettingsModule::ID] = PrivacySettingsModule::values($privacyState['settings']);
+        }
         return [
             'schema_version' => 1,
             'config_version' => (int) $row['config_version'],
             'revision' => (int) $row['data_revision'],
             'data' => (object) $data,
         ];
+    }
+
+    /** @return array<string, mixed>|null */
+    private function privacyState(ActorContext $actor): ?array
+    {
+        try {
+            return $this->privacy->state($actor);
+        } catch (AccessDenied) {
+            return null;
+        }
     }
 
     /** @return array<string, mixed> */

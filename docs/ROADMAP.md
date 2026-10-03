@@ -42,6 +42,7 @@ Un prototype PHP interne est présent dans `src/`, avec migrations, commandes de
 - [x] Définir le contrat de collecte et le runner `collecte → inspection → enregistrement` pour les adaptateurs front.
 - [ ] Raccorder un collecteur concret au premier moteur de rendu public Dendrila.
 - [x] Fournir la barre / l'encart de consentement et le blocage déclaratif avant choix, indépendants du moteur de templates.
+- [x] Exposer les réglages Privacy de base dans MMW via le module natif `settings` sans étendre le protocole v1.
 - [ ] Ajouter l'interface d'administration du profil documentaire et des pratiques externes.
 - [ ] Prévoir l'import d'une configuration provenant du plugin WordPress Dendrila Privacy.
 
