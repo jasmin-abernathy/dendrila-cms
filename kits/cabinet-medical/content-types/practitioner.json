@@ -1,0 +1,11 @@
+{
+  "id": "practitioner",
+  "label": "Profil du praticien",
+  "collection": false,
+  "workflow": "editorial",
+  "fields": [
+    {"id": "title", "type": "text", "label": "Nom public", "required": true},
+    {"id": "specialty", "type": "text", "label": "Spécialité", "required": true},
+    {"id": "bio", "type": "multiline", "label": "Présentation publique", "required": false}
+  ]
+}

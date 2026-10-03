@@ -3,14 +3,19 @@ declare(strict_types=1);
 
 require dirname(__DIR__) . '/vendor/autoload.php';
 
-if ($argc < 4) {
-    fwrite(STDERR, "Usage: php bin/bootstrap-site.php <site_id> <display_name> <owner_actor_id> [review_before_publish=true|false]\n");
+use LePotager\Cms\Api\PdoSiteReadModel;
+use LePotager\Cms\Content\ContentTypeDefinition;
+
+if ($argc < 4 || $argc > 6) {
+    fwrite(STDERR, "Usage: php bin/bootstrap-site.php <site_id> <display_name> <owner_actor_id> [review_before_publish=true|false] [kit_id]\n");
     exit(2);
 }
 
 [$siteId, $displayName, $ownerActorId] = array_slice($argv, 1, 3);
 $reviewBeforePublish = ($argv[4] ?? 'true') === 'true';
-if (!preg_match('/^[a-z][a-z0-9_-]{1,63}$/', $siteId) || trim($displayName) === '' || trim($ownerActorId) === '') {
+$kitId = $argv[5] ?? null;
+if (!preg_match('/^[a-z][a-z0-9_-]{1,63}$/', $siteId)
+    || trim($displayName) === '' || trim($ownerActorId) === '') {
     fwrite(STDERR, "Invalid site id, name, or owner actor id.\n");
     exit(2);
 }
@@ -26,7 +31,48 @@ $pdo = new PDO($dsn, $username, getenv('DB_PASSWORD') ?: '', [
 ]);
 $root = dirname(__DIR__);
 $roles = json_decode(file_get_contents($root . '/database/seeders/default-roles.json'), true, 512, JSON_THROW_ON_ERROR);
-$pageType = json_decode(file_get_contents($root . '/examples/content-types/page.json'), true, 512, JSON_THROW_ON_ERROR);
+$types = [json_decode(file_get_contents($root . '/examples/content-types/page.json'), true, 512, JSON_THROW_ON_ERROR)];
+$apiModules = [];
+
+if ($kitId !== null) {
+    if (!preg_match('/^[a-z][a-z0-9_-]{1,63}$/', $kitId)) {
+        fwrite(STDERR, "Invalid kit id.\n");
+        exit(2);
+    }
+    $kitPath = $root . '/kits/' . $kitId . '/kit.json';
+    if (!is_file($kitPath)) {
+        fwrite(STDERR, "The requested kit does not exist.\n");
+        exit(2);
+    }
+    $kit = json_decode(file_get_contents($kitPath), true, 512, JSON_THROW_ON_ERROR);
+    $contentTypeIds = $kit['content_types'] ?? null;
+    if (!is_array($contentTypeIds) || !array_is_list($contentTypeIds)) {
+        throw new RuntimeException('The kit content_types value must be a list.');
+    }
+    foreach ($contentTypeIds as $typeId) {
+        if (!is_string($typeId) || !preg_match('/^[a-z][a-z0-9_-]{0,63}$/', $typeId)) {
+            throw new RuntimeException('The kit contains an invalid content type id.');
+        }
+        if ($typeId === 'page') {
+            continue;
+        }
+        $typePath = $root . '/kits/' . $kitId . '/content-types/' . $typeId . '.json';
+        if (!is_file($typePath)) {
+            throw new RuntimeException("Content type definition is missing: {$typeId}.");
+        }
+        $definition = json_decode(file_get_contents($typePath), true, 512, JSON_THROW_ON_ERROR);
+        if ((new ContentTypeDefinition($definition))->id() !== $typeId) {
+            throw new RuntimeException("Content type definition id does not match: {$typeId}.");
+        }
+        $types[] = $definition;
+    }
+    $apiModules = $kit['api_modules'] ?? [];
+    if (!is_array($apiModules) || !array_is_list($apiModules)) {
+        throw new RuntimeException('The kit api_modules value must be a list.');
+    }
+    PdoSiteReadModel::safeModules($apiModules);
+}
+
 $now = gmdate('Y-m-d H:i:s');
 
 $pdo->beginTransaction();
@@ -43,7 +89,8 @@ try {
          VALUES (:site_id, :branding_json, :modules_json, :created_at, :updated_at)'
     );
     $apiSettings->execute([
-        'site_id' => $siteId, 'branding_json' => '{}', 'modules_json' => '[]',
+        'site_id' => $siteId, 'branding_json' => '{}',
+        'modules_json' => json_encode($apiModules, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
         'created_at' => $now, 'updated_at' => $now,
     ]);
     $insertRole = $pdo->prepare('INSERT INTO roles (site_id, role_id, label) VALUES (:site_id, :role_id, :label)');
@@ -58,11 +105,13 @@ try {
     $membership->execute(['site_id' => $siteId, 'actor_id' => $ownerActorId, 'created_at' => $now]);
     $type = $pdo->prepare('INSERT INTO content_types (site_id, type_id, definition_json, enabled, created_at, updated_at)
         VALUES (:site_id, :type_id, :definition_json, 1, :created_at, :updated_at)');
-    $type->execute([
-        'site_id' => $siteId, 'type_id' => $pageType['id'],
-        'definition_json' => json_encode($pageType, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
-        'created_at' => $now, 'updated_at' => $now,
-    ]);
+    foreach ($types as $definition) {
+        $type->execute([
+            'site_id' => $siteId, 'type_id' => $definition['id'],
+            'definition_json' => json_encode($definition, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+            'created_at' => $now, 'updated_at' => $now,
+        ]);
+    }
     $pdo->commit();
 } catch (Throwable $error) {
     if ($pdo->inTransaction()) {
@@ -71,4 +120,5 @@ try {
     throw $error;
 }
 
-fwrite(STDOUT, "Created site {$siteId} and owner membership for actor {$ownerActorId}.\n");
+$kitMessage = $kitId === null ? '' : " with kit {$kitId}";
+fwrite(STDOUT, "Created site {$siteId}{$kitMessage} and owner membership for actor {$ownerActorId}.\n");

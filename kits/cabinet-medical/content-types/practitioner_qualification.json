@@ -1,0 +1,13 @@
+{
+  "id": "practitioner_qualification",
+  "label": "Diplôme ou formation",
+  "collection": true,
+  "workflow": "editorial",
+  "fields": [
+    {"id": "title", "type": "text", "label": "Intitulé", "required": true},
+    {"id": "category", "type": "choice", "label": "Type", "required": true, "options": ["diploma", "du", "training"]},
+    {"id": "institution", "type": "text", "label": "Établissement", "required": false},
+    {"id": "year", "type": "number", "label": "Année", "required": false},
+    {"id": "details", "type": "multiline", "label": "Précisions publiques", "required": false}
+  ]
+}

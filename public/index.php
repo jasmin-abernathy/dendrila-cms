@@ -5,6 +5,10 @@ use LePotager\Cms\Api\ApiKernel;
 use LePotager\Cms\Api\PdoDeviceAuthenticator;
 use LePotager\Cms\Api\PdoSiteChangeService;
 use LePotager\Cms\Api\PdoSiteReadModel;
+use LePotager\Cms\Api\AuthenticationService;
+use LePotager\Cms\Api\PdoDeviceTokenIssuer;
+use LePotager\Cms\Api\PdoPairingCodeStore;
+use LePotager\Cms\Api\PdoPairingIdentityProvider;
 use LePotager\Cms\Http\HttpException;
 use LePotager\Cms\Http\Request;
 use LePotager\Cms\Http\Response;
@@ -22,8 +26,15 @@ try {
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         PDO::ATTR_EMULATE_PREPARES => false,
     ]);
-    $kernel = new ApiKernel(new PdoDeviceAuthenticator($pdo), new PdoSiteReadModel($pdo),
-        changes: new PdoSiteChangeService($pdo));
+    $kernel = new ApiKernel(
+        new PdoDeviceAuthenticator($pdo),
+        new PdoSiteReadModel($pdo),
+        authentication: new AuthenticationService(
+            new PdoPairingIdentityProvider(new PdoPairingCodeStore($pdo)),
+            new PdoDeviceTokenIssuer($pdo),
+        ),
+        changes: new PdoSiteChangeService($pdo),
+    );
     $kernel->handle(Request::fromGlobals())->emit();
 } catch (Throwable $error) {
     error_log('MMW API bootstrap error: ' . $error::class . ': ' . $error->getMessage());
