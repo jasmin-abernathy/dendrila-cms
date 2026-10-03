@@ -1,27 +1,42 @@
 # Appairage RésoSoin avec Dendrila
 
-Ce premier fournisseur d’identité autorise uniquement l’appairage d’un appareil déjà préautorisé. Il ne crée pas de compte, ne gère pas de mot de passe ni de TOTP, et n’ajoute pas d’écran d’administration web.
+Ce fournisseur d’identité autorise uniquement l’appairage d’un appareil déjà préautorisé. Il ne crée pas de compte et ne gère ni mot de passe ni TOTP.
 
-## Mise en service sur un serveur de test
+## Initialiser le site de démonstration
 
-1. Déployer le code Dendrila et appliquer les migrations :
+Le kit sert à tester la synchronisation éditoriale du profil fictif. Il ne stocke aucune donnée de patient, réservation ou santé.
 
-   \`php bin/migrate.php\`
+1. Après déploiement du code CMS, appliquer les migrations :
 
-   La commande utilise \`DB_DSN\`, \`DB_USERNAME\` et \`DB_PASSWORD\` déjà requis par le CMS. La migration \`003_device_pairing_codes.sql\` crée le stockage des codes.
-2. Vérifier qu’un site et son membre existent déjà dans \`sites\` et \`memberships\`. Utiliser exactement leurs \`site_id\` et \`actor_id\`.
-3. Dans un terminal SSH du serveur, depuis la racine du dépôt déployé, lancer :
+   `php bin/migrate.php`
 
-   \`php bin/issue-device-pairing-code.php <site_id> <actor_id> 600\`
+2. Créer un site isolé avec les collections du kit cabinet :
 
-   La durée est en secondes, entre 60 et 900 ; la valeur par défaut est 600. La commande affiche un code aléatoire de 12 chiffres une seule fois. Saisir ce code immédiatement dans **RésoSoin → Gérer le site public du cabinet**, avec l’origine HTTPS du CMS.
-4. Si le code a expiré, relancer la commande. Un code déjà consommé ne peut pas être réutilisé.
+   `php bin/bootstrap-site.php resosoin-demo "Cabinet des Jardins · démo" demo-owner true cabinet-medical`
 
-Ne jamais rendre cette commande accessible par HTTP, inscrire le code dans les journaux, l’envoyer par courrier électronique ou le placer dans un lien public. Le CMS ne stocke que le SHA-256 du code ; l’appareil reçoit ensuite son propre jeton aléatoire, conservé dans le stockage sécurisé Android.
+   Cette commande configure les types éditoriaux, les modules API Services et Diplômes et formations, et le rôle propriétaire. Elle utilise `DB_DSN`, `DB_USERNAME` et `DB_PASSWORD`.
 
-## Limites actuelles
+3. Émettre un code temporaire depuis le serveur :
 
-- Le fournisseur est limité à l’endpoint \`/v1/auth/pair\`. Les routes mot de passe/TOTP échouent volontairement.
-- La génération du code se fait par SSH ; l’écran d’administration Dendrila permettant de le générer n’est pas encore construit.
-- Avant d’exposer un site publiquement, configurer aussi une limitation de débit pour \`POST /v1/auth/pair\` au niveau du serveur HTTP / pare-feu. Le code à usage unique et son expiration ne remplacent pas cette barrière.
-- La PR RésoSoin lit la configuration et le snapshot, mais n’édite ni ne publie encore les pages du cabinet.
+   `php bin/issue-device-pairing-code.php resosoin-demo demo-owner 600`
+
+   La commande affiche une seule fois un code aléatoire valable 10 minutes. Le CMS ne stocke que son SHA-256.
+
+4. Dans **RésoSoin → Gérer le site public du cabinet**, saisir l’origine HTTPS du CMS et ce code. Le code est consommé une fois ; l’appareil reçoit un jeton stocké dans le stockage sécurisé Android.
+
+Avant d’exposer `/v1/auth/pair`, configurer une limite de débit au niveau du serveur HTTP ou du pare-feu. Ne jamais exposer la commande d’émission par HTTP.
+
+## Synchronisation éditoriale
+
+L’espace soignant peut créer les contenus publics suivants :
+
+- services (nom, description, durée, lien de réservation) ;
+- diplômes et formations (diplôme, DU/DIU ou formation, établissement, année, précisions).
+
+Après l’écriture, l’app relit le snapshot Dendrila et affiche le statut réel. Selon la politique du site, le nouvel élément est un brouillon ou attend une validation.
+
+Cette étape n’ajoute pas encore l’action de publication ni le rendu public dynamique des contenus. Un brouillon ou un élément en revue ne doit pas être présenté comme publié sur le site.
+
+## Base de données
+
+Dendrila exige actuellement PHP 8.5 avec PDO MySQL et ses migrations utilisent des fonctions et du DDL MySQL. SQLite n’est donc pas utilisable sans un adaptateur et des migrations dédiés. Le kit de démonstration ne justifie pas, à lui seul, ce chantier de portage.
