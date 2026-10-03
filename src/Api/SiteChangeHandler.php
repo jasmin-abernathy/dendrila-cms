@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace LePotager\Cms\Api;
+namespace Dendrila\Cms\Api;
 
-use LePotager\Cms\Authorization\ActorContext;
+use Dendrila\Cms\Authorization\ActorContext;
 
 interface SiteChangeHandler
 {

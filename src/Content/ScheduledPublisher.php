@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-namespace LePotager\Cms\Content;
+namespace Dendrila\Cms\Content;
 
 use DateTimeImmutable;
 use DateTimeZone;
-use LePotager\Cms\Storage\CmsStore;
+use Dendrila\Cms\Storage\CmsStore;
 
 /** Internal cron entrypoint. Never expose this method as a public HTTP route. */
 final readonly class ScheduledPublisher

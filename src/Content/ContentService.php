@@ -1,14 +1,14 @@
 <?php
 declare(strict_types=1);
 
-namespace LePotager\Cms\Content;
+namespace Dendrila\Cms\Content;
 
 use DateTimeImmutable;
 use DateTimeZone;
-use LePotager\Cms\Authorization\AccessDenied;
-use LePotager\Cms\Authorization\ActorContext;
-use LePotager\Cms\Authorization\AuthorizationService;
-use LePotager\Cms\Storage\CmsStore;
+use Dendrila\Cms\Authorization\AccessDenied;
+use Dendrila\Cms\Authorization\ActorContext;
+use Dendrila\Cms\Authorization\AuthorizationService;
+use Dendrila\Cms\Storage\CmsStore;
 
 final readonly class ContentService
 {

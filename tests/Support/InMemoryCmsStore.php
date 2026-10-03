@@ -1,10 +1,10 @@
 <?php
 declare(strict_types=1);
 
-namespace LePotager\Cms\Tests\Support;
+namespace Dendrila\Cms\Tests\Support;
 
-use LePotager\Cms\Content\VersionConflict;
-use LePotager\Cms\Storage\CmsStore;
+use Dendrila\Cms\Content\VersionConflict;
+use Dendrila\Cms\Storage\CmsStore;
 
 final class InMemoryCmsStore implements CmsStore
 {

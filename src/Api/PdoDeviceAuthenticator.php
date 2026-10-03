@@ -1,10 +1,10 @@
 <?php
 declare(strict_types=1);
 
-namespace LePotager\Cms\Api;
+namespace Dendrila\Cms\Api;
 
-use LePotager\Cms\Authorization\ActorContext;
-use LePotager\Cms\Http\Request;
+use Dendrila\Cms\Authorization\ActorContext;
+use Dendrila\Cms\Http\Request;
 use PDO;
 
 final readonly class PdoDeviceAuthenticator implements DeviceAuthenticator

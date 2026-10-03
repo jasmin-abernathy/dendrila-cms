@@ -1,17 +1,17 @@
 <?php
 declare(strict_types=1);
 
-namespace LePotager\Cms\Api;
+namespace Dendrila\Cms\Api;
 
-use LePotager\Cms\Authorization\AccessDenied;
-use LePotager\Cms\Content\ContentNotFound;
-use LePotager\Cms\Content\IdempotencyConflict;
-use LePotager\Cms\Content\InvalidTransition;
-use LePotager\Cms\Content\VersionConflict;
-use LePotager\Cms\Http\HttpException;
-use LePotager\Cms\Http\Request;
-use LePotager\Cms\Http\Response;
-use LePotager\Cms\Http\Router;
+use Dendrila\Cms\Authorization\AccessDenied;
+use Dendrila\Cms\Content\ContentNotFound;
+use Dendrila\Cms\Content\IdempotencyConflict;
+use Dendrila\Cms\Content\InvalidTransition;
+use Dendrila\Cms\Content\VersionConflict;
+use Dendrila\Cms\Http\HttpException;
+use Dendrila\Cms\Http\Request;
+use Dendrila\Cms\Http\Response;
+use Dendrila\Cms\Http\Router;
 use Throwable;
 
 final class ApiKernel

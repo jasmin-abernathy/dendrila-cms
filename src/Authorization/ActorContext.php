@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace LePotager\Cms\Authorization;
+namespace Dendrila\Cms\Authorization;
 
 /** Identity supplied only after the MMW adapter has verified the device token. */
 final readonly class ActorContext

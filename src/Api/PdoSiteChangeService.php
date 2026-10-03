@@ -1,14 +1,14 @@
 <?php
 declare(strict_types=1);
 
-namespace LePotager\Cms\Api;
+namespace Dendrila\Cms\Api;
 
-use LePotager\Cms\Authorization\AccessDenied;
-use LePotager\Cms\Authorization\ActorContext;
-use LePotager\Cms\Authorization\AuthorizationService;
-use LePotager\Cms\Content\ContentNotFound;
-use LePotager\Cms\Content\ContentService;
-use LePotager\Cms\Storage\PdoCmsStore;
+use Dendrila\Cms\Authorization\AccessDenied;
+use Dendrila\Cms\Authorization\ActorContext;
+use Dendrila\Cms\Authorization\AuthorizationService;
+use Dendrila\Cms\Content\ContentNotFound;
+use Dendrila\Cms\Content\ContentService;
+use Dendrila\Cms\Storage\PdoCmsStore;
 use PDO;
 use RuntimeException;
 
@@ -144,7 +144,7 @@ final readonly class PdoSiteChangeService implements SiteChangeHandler
             throw new AccessDenied('This business action is not configured for the module.');
         }
         if ($this->businessActions === null) {
-            throw new \LePotager\Cms\Http\HttpException(501, 'business_connector_unavailable',
+            throw new \Dendrila\Cms\Http\HttpException(501, 'business_connector_unavailable',
                 'No site business connector is configured for this action.');
         }
         return $this->businessActions->execute($actor, $module, [

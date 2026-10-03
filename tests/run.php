@@ -3,15 +3,15 @@ declare(strict_types=1);
 
 require dirname(__DIR__) . '/vendor/autoload.php';
 
-use LePotager\Cms\Authorization\AccessDenied;
-use LePotager\Cms\Authorization\ActorContext;
-use LePotager\Cms\Authorization\AuthorizationService;
-use LePotager\Cms\Content\ContentService;
-use LePotager\Cms\Content\ContentTypeDefinition;
-use LePotager\Cms\Content\IdempotencyConflict;
-use LePotager\Cms\Content\ScheduledPublisher;
-use LePotager\Cms\Content\VersionConflict;
-use LePotager\Cms\Tests\Support\InMemoryCmsStore;
+use Dendrila\Cms\Authorization\AccessDenied;
+use Dendrila\Cms\Authorization\ActorContext;
+use Dendrila\Cms\Authorization\AuthorizationService;
+use Dendrila\Cms\Content\ContentService;
+use Dendrila\Cms\Content\ContentTypeDefinition;
+use Dendrila\Cms\Content\IdempotencyConflict;
+use Dendrila\Cms\Content\ScheduledPublisher;
+use Dendrila\Cms\Content\VersionConflict;
+use Dendrila\Cms\Tests\Support\InMemoryCmsStore;
 
 function check(bool $condition, string $message): void
 {
@@ -124,15 +124,15 @@ check($publicForContributor['status'] === 'published'
     && $publicForContributor['values']['title'] === 'Nouvelle version'
     && $publicForContributor['version'] === $publishedVersion,
     'Contributor sees the public snapshot, not another editor working draft.');
-expect(LePotager\Cms\Content\ContentNotFound::class, fn () => $service->updateDraft(
+expect(Dendrila\Cms\Content\ContentNotFound::class, fn () => $service->updateDraft(
     $contributor, $id, $store->contents['site-a'][$id]['version'], $values, 'request-0012'));
 $unpublishedDraft = $service->createDraft($actor, 'page', [
     'title' => 'Brouillon privé', 'slug' => 'brouillon-prive', 'blocks' => [],
 ], 'request-0014');
-expect(LePotager\Cms\Content\ContentNotFound::class, fn () =>
+expect(Dendrila\Cms\Content\ContentNotFound::class, fn () =>
     $service->get($contributor, $unpublishedDraft['content']['id']));
 $privateVersion = $store->contents['site-a'][$unpublishedDraft['content']['id']]['version'];
-expect(LePotager\Cms\Content\ContentNotFound::class, fn () => $service->updateDraft(
+expect(Dendrila\Cms\Content\ContentNotFound::class, fn () => $service->updateDraft(
     $contributor, $unpublishedDraft['content']['id'], $privateVersion,
     ['title' => 'Pirate', 'slug' => 'brouillon-prive', 'blocks' => []], 'request-0015'));
 $ownUpdated = $service->updateDraft($contributor, $ownDraft['content']['id'], 1, [
@@ -163,6 +163,6 @@ $foreignActor = new ActorContext('site-b', 'editor-1');
 $store->permissions['site-b']['editor-1'] = ['content.read'];
 expect(AccessDenied::class, fn () => $service->updateDraft($foreignActor, $id, 5, $values, 'request-0007'));
 check(!isset($store->contents['site-b'][$id]), 'Cross-site identifier does not expose or mutate content.');
-expect(LePotager\Cms\Content\ContentNotFound::class, fn () => $service->get($foreignActor, $id));
+expect(Dendrila\Cms\Content\ContentNotFound::class, fn () => $service->get($foreignActor, $id));
 
 echo "CMS core contract tests passed (" . count($store->audit) . " audit events).\n";

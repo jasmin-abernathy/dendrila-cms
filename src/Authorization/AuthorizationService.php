@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace LePotager\Cms\Authorization;
+namespace Dendrila\Cms\Authorization;
 
-use LePotager\Cms\Storage\CmsStore;
+use Dendrila\Cms\Storage\CmsStore;
 
 final readonly class AuthorizationService
 {

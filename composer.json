@@ -1,6 +1,6 @@
 {
-  "name": "lepotager/mon-manager-web-cms-core",
-  "description": "Noyau serveur CMS générique compatible avec les primitives Mon Manager Web",
+  "name": "dendrila/cms-core",
+  "description": "Noyau modulaire Dendrila CMS compatible avec les primitives Mon Manager Web",
   "type": "project",
   "require": {
     "php": ">=8.5",
@@ -11,12 +11,12 @@
   },
   "autoload": {
     "psr-4": {
-      "LePotager\\Cms\\": "src/"
+      "Dendrila\\Cms\\": "src/"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "LePotager\\Cms\\Tests\\": "tests/"
+      "Dendrila\\Cms\\Tests\\": "tests/"
     }
   },
   "scripts": {

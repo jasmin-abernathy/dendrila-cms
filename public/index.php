@@ -1,13 +1,13 @@
 <?php
 declare(strict_types=1);
 
-use LePotager\Cms\Api\ApiKernel;
-use LePotager\Cms\Api\PdoDeviceAuthenticator;
-use LePotager\Cms\Api\PdoSiteChangeService;
-use LePotager\Cms\Api\PdoSiteReadModel;
-use LePotager\Cms\Http\HttpException;
-use LePotager\Cms\Http\Request;
-use LePotager\Cms\Http\Response;
+use Dendrila\Cms\Api\ApiKernel;
+use Dendrila\Cms\Api\PdoDeviceAuthenticator;
+use Dendrila\Cms\Api\PdoSiteChangeService;
+use Dendrila\Cms\Api\PdoSiteReadModel;
+use Dendrila\Cms\Http\HttpException;
+use Dendrila\Cms\Http\Request;
+use Dendrila\Cms\Http\Response;
 
 require dirname(__DIR__) . '/vendor/autoload.php';
 

@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace LePotager\Cms\Design;
+namespace Dendrila\Cms\Design;
 
 final readonly class DesignStyleDefinition
 {
