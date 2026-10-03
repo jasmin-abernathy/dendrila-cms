@@ -112,6 +112,28 @@ final readonly class PrivacyService
         ];
     }
 
+    /** @return list<array<string,mixed>> */
+    public function legalDocumentsState(ActorContext $actor): array
+    {
+        $this->authorization->require($actor, 'privacy.read');
+        $states = [];
+        foreach (LegalDocumentRenderer::KINDS as $kind) {
+            $preview = $this->legalDocumentPreview($actor, $kind);
+            $stored = $this->repository->findLegalDocument($actor->siteId, $kind);
+            $current = $stored !== null
+                && is_string($stored['source_hash'] ?? null)
+                && hash_equals($preview['source_hash'], $stored['source_hash']);
+            $states[] = [
+                'kind' => $kind,
+                'readiness' => $preview['readiness'],
+                'current' => $current,
+                'has_approved_version' => $stored !== null,
+                'approved_at' => is_string($stored['approved_at'] ?? null) ? $stored['approved_at'] : null,
+            ];
+        }
+        return $states;
+    }
+
     /** @return array<string,mixed> */
     public function approveLegalDocument(ActorContext $actor, string $kind): array
     {

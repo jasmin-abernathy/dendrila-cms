@@ -6,6 +6,7 @@ require dirname(__DIR__) . '/vendor/autoload.php';
 use Dendrila\Cms\Api\PdoSiteChangeService;
 use Dendrila\Cms\Api\PdoSiteReadModel;
 use Dendrila\Cms\Api\PrivacyLegalModules;
+use Dendrila\Cms\Api\PrivacyDocumentsModule;
 use Dendrila\Cms\Authorization\AccessDenied;
 use Dendrila\Cms\Authorization\ActorContext;
 use Dendrila\Cms\Authorization\AuthorizationService;
@@ -114,6 +115,8 @@ foreach (PrivacyLegalModules::ids() as $nativeLegalId) {
     privacyPdoCheck(in_array($nativeLegalId, $ownerModuleIds, true),
         "Owner receives native legal module {$nativeLegalId}.");
 }
+privacyPdoCheck(in_array(PrivacyDocumentsModule::ID, $ownerModuleIds, true),
+    'Owner receives the native public privacy documents module.');
 
 $editor = new ActorContext('site-native', 'editor-native', 'device-editor');
 $editorConfig = $readModel->configuration($editor);
@@ -125,7 +128,8 @@ privacyPdoCheck(count($editorPrivacyModules) === 1 && $editorPrivacyModules[0]['
     'Editor can read the privacy settings module but cannot manage it.');
 
 foreach ($editorConfig['modules'] as $module) {
-    if (PrivacyLegalModules::handles((string) ($module['id'] ?? ''))) {
+    $moduleId = (string) ($module['id'] ?? '');
+    if (PrivacyLegalModules::handles($moduleId) || $moduleId === PrivacyDocumentsModule::ID) {
         privacyPdoCheck(($module['writable'] ?? null) === false,
             'Editor receives legal documentation modules as read-only.');
     }
@@ -375,10 +379,42 @@ privacyPdoCheck($legalPreview['readiness']['errors'] === []
     && str_contains($legalPreview['html'], 'Mentions légales'),
     'Legal notice preview is generated only from normalized native data.');
 
-$approvedLegal = $service->approveLegalDocument($owner, 'legal_notice');
+$documentSnapshotBefore = $readModel->snapshot($owner);
+$documentItemsBefore = ((array) $documentSnapshotBefore['data'])[PrivacyDocumentsModule::ID]['items'] ?? [];
+$noticeBefore = array_values(array_filter(
+    $documentItemsBefore,
+    static fn (array $item): bool => ($item['id'] ?? null) === 'legal_notice',
+))[0] ?? null;
+privacyPdoCheck(is_array($noticeBefore) && ($noticeBefore['status'] ?? null) === 'Prêt à valider',
+    'MMW exposes a legal notice as ready before human approval.');
+
+$approveViaMmw = $changeService->apply($owner, [
+    'module_id' => PrivacyDocumentsModule::ID,
+    'action' => 'item_action',
+    'client_request_id' => 'privacy-doc-approve-1',
+    'payload' => (object) [
+        'item_id' => 'legal_notice',
+        'action_id' => 'approve',
+    ],
+]);
+privacyPdoCheck(($approveViaMmw['result']['item']['status'] ?? null) === 'Publié',
+    'Owner can explicitly approve a ready privacy document through MMW.');
+
+$approveReplay = $changeService->apply($owner, [
+    'module_id' => PrivacyDocumentsModule::ID,
+    'action' => 'item_action',
+    'client_request_id' => 'privacy-doc-approve-1',
+    'payload' => (object) [
+        'item_id' => 'legal_notice',
+        'action_id' => 'approve',
+    ],
+]);
+privacyPdoCheck($approveReplay === $approveViaMmw,
+    'Privacy document approval replays idempotently.');
+
 $publicLegal = $service->publicLegalDocument('site-native', 'legal_notice');
 privacyPdoCheck(is_array($publicLegal)
-    && $publicLegal['html'] === $approvedLegal['html']
+    && $publicLegal['html'] === $legalPreview['html']
     && !array_key_exists('approved_by_id', $publicLegal),
     'Only an explicitly approved and current legal document is exposed publicly.');
 
@@ -394,6 +430,14 @@ privacyPdoCheck($privacyPreview['readiness']['errors'] === []
 $service->updateLegalProfile($owner, ['site_name' => 'Native Site Updated']);
 privacyPdoCheck($service->publicLegalDocument('site-native', 'legal_notice') === null,
     'Changing legal source data invalidates the previously approved public document.');
+$documentSnapshotAfter = $readModel->snapshot($owner);
+$documentItemsAfter = ((array) $documentSnapshotAfter['data'])[PrivacyDocumentsModule::ID]['items'] ?? [];
+$noticeAfter = array_values(array_filter(
+    $documentItemsAfter,
+    static fn (array $item): bool => ($item['id'] ?? null) === 'legal_notice',
+))[0] ?? null;
+privacyPdoCheck(is_array($noticeAfter) && ($noticeAfter['status'] ?? null) === 'À revalider',
+    'MMW makes stale approved documents visibly require a new validation.');
 
 $legacyState = $service->state(new ActorContext('legacy-site', 'legacy-owner'));
 privacyPdoCheck(

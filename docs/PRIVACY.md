@@ -67,6 +67,8 @@ La génération n'entraîne **aucune publication automatique**. `PrivacyService:
 
 Le rendu échappe les valeurs administratives, ne publie pas les preuves de scan et réutilise le bouton natif « Gérer mes choix » pour la politique cookies lorsque le moteur de consentement est actif.
 
+Le premier front Dendrila raccorde ces versions approuvées à `/mentions-legales`, `/confidentialite` et `/cookies` via `PublicPrivacyDocumentRouter`. Si l’empreinte n’est plus actuelle, la source publique ne fournit plus le document : une version périmée n’est donc pas servie silencieusement.
+
 ## Permissions initiales
 
 - `owner` et `admin` : lecture, configuration et lancement/enregistrement des analyses ;
@@ -85,10 +87,8 @@ Le code du plugin WordPress n'est pas copié dans le noyau : ses hooks, options,
 
 Restent à raccorder côté Dendrila :
 
-- collecteur concret raccordé au premier moteur de rendu public (le contrat `PrivacyDocumentCollector` et `PrivacyScanRunner` est prêt) ;
-- interface cliente complète du profil documentaire (le modèle, la validation, la progression et les mutations serveur sont présents) ;
+- finition ergonomique du long parcours documentaire dans Mon Manager Web (sections, résumé et navigation) ;
 - connecteurs externes facultatifs (par exemple registre d'entreprise) ;
-- raccordement des documents publics natifs aux routes/pages du premier moteur de rendu Dendrila ; les documents sont générés, validés et stockés dans le noyau mais le routeur du futur front doit choisir leurs URLs publiques ;
 - migration du contenu WordPress construit hors Dendrila Privacy : l’import natif couvre les réglages, le profil documentaire et le dernier scan, pas les pages arbitraires d’un builder.
 
 Dendrila Privacy aide à documenter et à contrôler le comportement technique d'un site ; ce n'est pas une certification juridique.

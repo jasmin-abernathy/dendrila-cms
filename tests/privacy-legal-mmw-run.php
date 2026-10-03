@@ -5,6 +5,7 @@ require dirname(__DIR__) . '/vendor/autoload.php';
 
 use Dendrila\Cms\Api\PdoSiteReadModel;
 use Dendrila\Cms\Api\PrivacyLegalModules;
+use Dendrila\Cms\Api\PrivacyDocumentsModule;
 use Dendrila\Cms\Privacy\LegalProfile;
 
 function legalMmwCheck(bool $condition, string $message): void
@@ -32,6 +33,44 @@ legalMmwCheck($safe[0]['kind'] === 'settings' && $safe[1]['kind'] === 'records' 
     'Legal documentation uses existing settings and records kinds only.');
 legalMmwCheck(count($safe[0]['fields']) > 50 && count($safe[0]['fields']) < 100,
     'Legal settings stay within the bounded MMW field contract.');
+legalMmwCheck(
+    ($safe[0]['fields'][0]['hint'] ?? '') !== '',
+    'Legal settings provide contextual field guidance through the existing MMW hint contract.',
+);
+
+$documentModule = PdoSiteReadModel::safeModules([PrivacyDocumentsModule::definition(true)])[0];
+legalMmwCheck($documentModule['kind'] === 'records'
+    && ($documentModule['actions'][0]['id'] ?? null) === 'approve'
+    && ($documentModule['actions'][0]['allow_offline'] ?? true) === false,
+    'Public privacy documents use a generic records module with explicit online-only approval.');
+
+$documentSnapshot = PrivacyDocumentsModule::snapshot([
+    [
+        'kind' => 'legal_notice',
+        'readiness' => ['errors' => [], 'warnings' => []],
+        'current' => false,
+        'has_approved_version' => false,
+        'approved_at' => null,
+    ],
+    [
+        'kind' => 'privacy',
+        'readiness' => ['errors' => ['responsable du traitement'], 'warnings' => []],
+        'current' => false,
+        'has_approved_version' => false,
+        'approved_at' => null,
+    ],
+    [
+        'kind' => 'cookies',
+        'readiness' => ['errors' => [], 'warnings' => []],
+        'current' => true,
+        'has_approved_version' => true,
+        'approved_at' => '2026-10-03 08:00:00.000000',
+    ],
+]);
+legalMmwCheck($documentSnapshot['items'][0]['status'] === 'Prêt à valider'
+    && $documentSnapshot['items'][1]['status'] === 'À compléter'
+    && $documentSnapshot['items'][2]['status'] === 'Publié',
+    'Public privacy document state is projected without exposing generated HTML or audit evidence.');
 
 $profile = LegalProfile::normalize([
     'controller_name' => 'Association Example',

@@ -7,6 +7,8 @@ use Dendrila\Cms\Authorization\ActorContext;
 use Dendrila\Cms\Content\ContentTypeDefinition;
 use Dendrila\Cms\Front\PublicPageRenderer;
 use Dendrila\Cms\Front\PublicPageSource;
+use Dendrila\Cms\Front\PublicPrivacyDocumentRouter;
+use Dendrila\Cms\Front\PublicPrivacyDocumentSource;
 use Dendrila\Cms\Privacy\FrontPageDocumentCollector;
 use Dendrila\Cms\Privacy\PrivacyInspector;
 
@@ -135,6 +137,51 @@ $source = new class($fixture, $presentation, $themeCssUrl) implements PublicPage
         ]];
     }
 };
+
+$privacySource = new class implements PublicPrivacyDocumentSource {
+    public bool $current = true;
+
+    public function find(string $siteId, string $kind): ?array
+    {
+        if (!$this->current || $siteId !== 'site-a') return null;
+        return [
+            'kind' => $kind,
+            'html' => '<article class="dendrila-privacy-document"><h1>'
+                . match ($kind) {
+                    'legal_notice' => 'Mentions légales',
+                    'privacy' => 'Protection des données personnelles',
+                    'cookies' => 'Cookies et traceurs',
+                }
+                . '</h1><p>Contenu généré et validé.</p></article>',
+            'approved_at' => '2026-10-03 08:00:00.000000',
+        ];
+    }
+};
+$privacyRouter = new PublicPrivacyDocumentRouter($privacySource);
+$legalHtml = $privacyRouter->render(
+    'site-a',
+    '/mentions-legales/',
+    $fixture['site'],
+    $presentation,
+    $themeCssUrl,
+    $fixture['navigation'],
+    '<div data-test-privacy="legal"></div>',
+);
+frontCheck(is_string($legalHtml)
+    && str_contains($legalHtml, '<article class="dendrila-privacy-document">')
+    && str_contains($legalHtml, 'href="/confidentialite"')
+    && str_contains($legalHtml, 'data-test-privacy="legal"')
+    && str_contains($legalHtml, 'mailto:bonjour@example.test'),
+    'Approved native privacy documents are routable through the public Dendrila front.');
+frontCheck(PublicPrivacyDocumentRouter::pathForKind('cookies') === '/cookies',
+    'Privacy document kinds have stable public routes.');
+frontCheck($privacyRouter->render(
+    'site-a', '/not-a-privacy-route', $fixture['site'], $presentation, $themeCssUrl,
+) === null, 'Unknown public privacy routes fail closed.');
+$privacySource->current = false;
+frontCheck($privacyRouter->render(
+    'site-a', '/mentions-legales', $fixture['site'], $presentation, $themeCssUrl,
+) === null, 'Stale or unavailable approved documents are not rendered publicly.');
 
 $collector = new FrontPageDocumentCollector($renderer, $source);
 $documents = $collector->collect(new ActorContext('site-a', 'editor-1'), 'standard');

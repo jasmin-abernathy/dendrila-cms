@@ -148,10 +148,10 @@ final class PrivacyLegalModules
     private static function legalFields(): array
     {
         return [
-            self::textField('controller_name', 'Responsable du traitement'),
+            self::textField('controller_name', 'Responsable du traitement', 1000, 'Structure ou personne qui décide pourquoi et comment les données sont utilisées.'),
             self::multilineField('controller_address', 'Adresse du responsable'),
-            self::textField('privacy_contact', 'Contact vie privée'),
-            self::choiceField('dpo_designated', 'DPO désigné', self::yesNoUnknown()),
+            self::textField('privacy_contact', 'Contact vie privée', 1000, 'Adresse ou moyen de contact réellement utilisable pour exercer les droits.'),
+            self::choiceField('dpo_designated', 'DPO désigné', self::yesNoUnknown(), 'Répondez oui uniquement si un DPO/DPD est effectivement désigné.'),
             self::textField('dpo_contact', 'Coordonnées du DPO'),
             self::textField('site_editor_name', 'Éditeur du site'),
             self::multilineField('site_editor_address', 'Adresse de l’éditeur'),
@@ -162,7 +162,7 @@ final class PrivacyLegalModules
                 'association' => 'Association',
                 'other' => 'Autre',
             ]),
-            self::textField('company_country', 'Pays de la structure', 2),
+            self::textField('company_country', 'Pays de la structure', 2, 'Code pays à deux lettres, par exemple fr.'),
             self::textField('company_registration_number', 'Numéro d’immatriculation'),
             self::textField('company_registration_label', 'Libellé du registre'),
             self::textField('company_siren', 'SIREN'),
@@ -176,7 +176,7 @@ final class PrivacyLegalModules
             self::urlField('site_url', 'Adresse du site'),
             self::emailField('public_contact_email', 'E-mail public'),
             self::textField('public_contact_phone', 'Téléphone public'),
-            self::textField('publication_director', 'Direction de la publication'),
+            self::textField('publication_director', 'Direction de la publication', 1000, 'Personne responsable de la publication du site.'),
             self::textField('host_name', 'Hébergeur'),
             self::multilineField('host_address', 'Adresse de l’hébergeur'),
             self::textField('host_phone', 'Téléphone de l’hébergeur'),
@@ -191,41 +191,41 @@ final class PrivacyLegalModules
                 'direct' => 'Directe',
                 'indirect' => 'Indirecte',
                 'both' => 'Directe et indirecte',
-            ]),
+            ], 'Indirecte = données reçues d’un autre service, partenaire ou outil.'),
             self::multilineField('indirect_categories', 'Catégories de données reçues indirectement'),
             self::multilineField('indirect_sources', 'Autres sources indirectes'),
             self::multilineField('mandatory_information', 'Caractère obligatoire des informations'),
-            self::choiceField('transfers_status', 'Transferts hors UE/EEE', self::yesNoUnknown()),
+            self::choiceField('transfers_status', 'Transferts hors UE/EEE', self::yesNoUnknown(), 'Indiquez oui si des données sont transférées ou rendues accessibles hors UE/EEE.'),
             self::multilineField('transfer_destinations', 'Destinations des transferts'),
             self::multilineField('transfer_mechanism', 'Mécanisme de transfert'),
             self::multilineField('transfer_safeguards', 'Garanties de transfert'),
-            self::choiceField('automated_decision', 'Décision automatisée', self::yesNoUnknown()),
+            self::choiceField('automated_decision', 'Décision automatisée', self::yesNoUnknown(), 'Décision produisant des effets significatifs sans intervention humaine.'),
             self::multilineField('automated_details', 'Détails de la décision automatisée'),
-            self::choiceField('special_categories', 'Données sensibles', self::yesNoUnknown()),
+            self::choiceField('special_categories', 'Données sensibles', self::yesNoUnknown(), 'Par exemple santé, biométrie, opinions, religion ou orientation sexuelle.'),
             self::multilineField('special_categories_basis', 'Cadre des données sensibles'),
             self::choiceField('criminal_data', 'Données pénales', self::yesNoUnknown()),
             self::multilineField('criminal_data_basis', 'Cadre des données pénales'),
             self::choiceField('minors_data', 'Données de mineurs', self::yesNoUnknown()),
             self::multilineField('minors_details', 'Modalités prévues pour les mineurs'),
-            self::choiceField('high_risk_processing', 'Traitement à risque élevé', self::yesNoUnknown()),
+            self::choiceField('high_risk_processing', 'Traitement à risque élevé', self::yesNoUnknown(), 'Si oui, vérifiez si une analyse d’impact (AIPD/DPIA) est requise.'),
             self::choiceField('dpia_status', 'Analyse d’impact', [
                 'unknown' => 'Je ne sais pas encore',
                 'not_required' => 'Non requise',
                 'to_do' => 'À réaliser',
                 'done' => 'Réalisée',
             ]),
-            self::choiceField('cookie_nonessential', 'Traceurs facultatifs', self::yesNoUnknown()),
+            self::choiceField('cookie_nonessential', 'Traceurs facultatifs', self::yesNoUnknown(), 'Traceurs ou services non strictement nécessaires au fonctionnement demandé.'),
             self::choiceField('cookie_consent_status', 'Choix avant traceurs', [
                 'unknown' => 'Je ne sais pas encore',
                 'no' => 'Non',
                 'yes' => 'Oui',
                 'exempt_only' => 'Uniquement des traceurs exemptés',
-            ]),
+            ], 'Choisissez oui seulement si les services concernés restent bloqués avant le choix.'),
             self::multilineField('cookie_preferences', 'Gestion des préférences cookies'),
             self::textField('cookie_choice_retention', 'Durée de conservation du choix'),
             self::choiceField('cookie_cross_device', 'Choix partagé entre appareils', self::yesNoUnknown()),
             self::multilineField('cookie_cross_device_explanation', 'Explication du partage du choix'),
-            self::choiceField('email_pixels', 'Pixels de suivi dans les e-mails', self::yesNoUnknown()),
+            self::choiceField('email_pixels', 'Pixels de suivi dans les e-mails', self::yesNoUnknown(), 'Pixels invisibles permettant notamment de mesurer l’ouverture d’un e-mail.'),
             self::multilineField('email_pixel_purposes', 'Finalités des pixels e-mail'),
             self::choiceField('email_pixel_status', 'Cadre des pixels e-mail', [
                 'unknown' => 'Je ne sais pas encore',
@@ -233,7 +233,7 @@ final class PrivacyLegalModules
                 'exempt_delivery' => 'Strictement nécessaire à la délivrance',
             ]),
             self::multilineField('email_pixel_preferences', 'Préférences de suivi e-mail'),
-            self::choiceField('tracked_links', 'Liens suivis individuellement', self::yesNoUnknown()),
+            self::choiceField('tracked_links', 'Liens suivis individuellement', self::yesNoUnknown(), 'Liens permettant de rattacher un clic à un destinataire ou à un profil.'),
             self::multilineField('tracked_links_details', 'Détails du suivi de liens'),
             self::choiceField('external_email_use', 'E-mail externe', self::yesNoUnknown()),
             self::choiceField('external_bulk_email', 'Envoi d’e-mails en nombre', self::yesNoUnknown()),
@@ -260,8 +260,8 @@ final class PrivacyLegalModules
     private static function treatmentFields(): array
     {
         return [
-            self::textField('purpose', 'Finalité'),
-            self::multilineField('data_categories', 'Catégories de données'),
+            self::textField('purpose', 'Finalité', 1000, 'Décrivez ce que vous faites réellement avec les données.'),
+            self::multilineField('data_categories', 'Catégories de données', 'Décrivez les données concernées sans recopier une liste générique inutile.'),
             self::choiceField('legal_basis', 'Base légale', [
                 'unknown' => 'Je ne sais pas encore',
                 'consent' => 'Consentement',
@@ -270,17 +270,17 @@ final class PrivacyLegalModules
                 'vital_interests' => 'Intérêts vitaux',
                 'public_task' => 'Mission d’intérêt public',
                 'legitimate_interest' => 'Intérêt légitime',
-            ]),
-            self::multilineField('basis_detail', 'Précision sur la base légale'),
-            self::multilineField('recipients', 'Destinataires'),
-            self::multilineField('retention', 'Durée de conservation'),
+            ], 'Choisissez la base applicable à cette finalité, pas à l’organisation en général.'),
+            self::multilineField('basis_detail', 'Précision sur la base légale', 'À préciser notamment lorsque la base choisie est l’intérêt légitime.'),
+            self::multilineField('recipients', 'Destinataires', 'Équipes, prestataires ou catégories de tiers qui reçoivent ou accèdent aux données.'),
+            self::multilineField('retention', 'Durée de conservation', 'Indiquez une durée ou le critère qui permet de la déterminer.'),
             self::choiceField('mandatory', 'Caractère obligatoire', [
                 'unknown' => 'Je ne sais pas encore',
                 'optional' => 'Facultatif',
                 'contract' => 'Nécessaire au contrat',
                 'law' => 'Imposé par la loi',
-            ]),
-            self::multilineField('consequences', 'Conséquences en cas de non-fourniture'),
+            ], 'Précisez si fournir ces données est facultatif, contractuel ou légal.'),
+            self::multilineField('consequences', 'Conséquences en cas de non-fourniture', 'À renseigner lorsque la donnée est nécessaire au contrat ou imposée par la loi.'),
         ];
     }
 
@@ -482,38 +482,66 @@ final class PrivacyLegalModules
     }
 
     /** @return array<string,mixed> */
-    private static function textField(string $id, string $label, int $maxLength = 1000): array
-    {
-        return ['id' => $id, 'type' => 'text', 'label' => $label, 'max_length' => $maxLength];
+    private static function textField(
+        string $id,
+        string $label,
+        int $maxLength = 1000,
+        string $hint = '',
+    ): array {
+        return self::withHint(
+            ['id' => $id, 'type' => 'text', 'label' => $label, 'max_length' => $maxLength],
+            $hint,
+        );
     }
 
     /** @return array<string,mixed> */
-    private static function multilineField(string $id, string $label): array
+    private static function multilineField(string $id, string $label, string $hint = ''): array
     {
-        return ['id' => $id, 'type' => 'multiline', 'label' => $label, 'max_length' => 4000];
+        return self::withHint(
+            ['id' => $id, 'type' => 'multiline', 'label' => $label, 'max_length' => 4000],
+            $hint,
+        );
     }
 
     /** @return array<string,mixed> */
-    private static function emailField(string $id, string $label): array
+    private static function emailField(string $id, string $label, string $hint = ''): array
     {
-        return ['id' => $id, 'type' => 'email', 'label' => $label, 'max_length' => 254];
+        return self::withHint(
+            ['id' => $id, 'type' => 'email', 'label' => $label, 'max_length' => 254],
+            $hint,
+        );
     }
 
     /** @return array<string,mixed> */
-    private static function urlField(string $id, string $label): array
+    private static function urlField(string $id, string $label, string $hint = ''): array
     {
-        return ['id' => $id, 'type' => 'url', 'label' => $label, 'max_length' => 2048];
+        return self::withHint(
+            ['id' => $id, 'type' => 'url', 'label' => $label, 'max_length' => 2048],
+            $hint,
+        );
     }
 
     /** @param array<string,string> $choices @return array<string,mixed> */
-    private static function choiceField(string $id, string $label, array $choices): array
+    private static function choiceField(string $id, string $label, array $choices, string $hint = ''): array
     {
-        return [
+        return self::withHint([
             'id' => $id,
             'type' => 'single_choice',
             'label' => $label,
             'choices' => self::choices($choices),
-        ];
+        ], $hint);
+    }
+
+    /** @param array<string,mixed> $field @return array<string,mixed> */
+    private static function withHint(array $field, string $hint): array
+    {
+        if ($hint !== '') {
+            if (mb_strlen($hint) > 300) {
+                throw new \InvalidArgumentException('MMW field hint is too long.');
+            }
+            $field['hint'] = $hint;
+        }
+        return $field;
     }
 
     /** @return array<string,string> */

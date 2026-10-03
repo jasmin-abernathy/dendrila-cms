@@ -50,6 +50,9 @@ final readonly class PdoSiteChangeService implements SiteChangeHandler
         if (PrivacyLegalModules::handles($moduleId)) {
             return $this->updatePrivacyLegal($actor, $moduleId, $action, $payload, $requestId);
         }
+        if ($moduleId === PrivacyDocumentsModule::ID) {
+            return $this->updatePrivacyDocument($actor, $action, $payload, $requestId);
+        }
 
         [$module, $safeModule] = $this->module($actor->siteId, $moduleId);
         if (($module['writable'] ?? false) !== true) {
@@ -239,6 +242,109 @@ final readonly class PdoSiteChangeService implements SiteChangeHandler
                 $moduleId,
                 'denied',
                 ['operation' => 'privacy.legal_profile_update', 'action' => $action],
+            );
+            throw $error;
+        } catch (\Throwable $error) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            throw $error;
+        }
+    }
+
+    /** @param array<string, mixed> $payload @return array<string, mixed> */
+    private function updatePrivacyDocument(
+        ActorContext $actor,
+        string $action,
+        array $payload,
+        string $requestId,
+    ): array {
+        if ($action !== 'item_action') {
+            throw new \InvalidArgumentException('The privacy documents module only supports item_action.');
+        }
+        if (array_diff(array_keys($payload), ['item_id', 'action_id']) !== []) {
+            throw new \InvalidArgumentException('Privacy document actions only accept item_id and action_id.');
+        }
+        $kind = $this->string($payload, 'item_id', 32);
+        $actionId = $this->string($payload, 'action_id', 64);
+        if (!in_array($kind, ['legal_notice', 'privacy', 'cookies'], true) || $actionId !== 'approve') {
+            throw new AccessDenied('This privacy document action is not available.');
+        }
+
+        $requestHash = hash('sha256', self::canonicalJson([
+            'module_id' => PrivacyDocumentsModule::ID,
+            'action' => $action,
+            'payload' => $payload,
+        ]));
+
+        $this->pdo->beginTransaction();
+        try {
+            $existing = $this->store->findIdempotency($actor->siteId, $actor->actorId, $requestId);
+            if ($existing !== null) {
+                if (!hash_equals($existing['request_hash'], $requestHash)) {
+                    throw new IdempotencyConflict('client_request_id was already used with a different request.');
+                }
+                if (!is_array($existing['response'] ?? null)) {
+                    throw new IdempotencyConflict('This client_request_id is already being processed.');
+                }
+                $this->pdo->commit();
+                return $existing['response'];
+            }
+
+            if (!$this->store->claimIdempotency($actor->siteId, $actor->actorId, $requestId, $requestHash)) {
+                $raced = $this->store->findIdempotency($actor->siteId, $actor->actorId, $requestId);
+                if ($raced === null || !hash_equals($raced['request_hash'], $requestHash)
+                    || !is_array($raced['response'] ?? null)) {
+                    throw new IdempotencyConflict('client_request_id conflicts with another request.');
+                }
+                $this->pdo->commit();
+                return $raced['response'];
+            }
+
+            $this->privacy->approveLegalDocument($actor, $kind);
+            $siteRevision = $this->store->incrementDataRevision($actor->siteId);
+            $snapshot = PrivacyDocumentsModule::snapshot($this->privacy->legalDocumentsState($actor));
+            $item = null;
+            foreach ($snapshot['items'] as $candidate) {
+                if (($candidate['id'] ?? null) === $kind) {
+                    $item = $candidate;
+                    break;
+                }
+            }
+            if (!is_array($item)) {
+                throw new RuntimeException('Approved privacy document disappeared from the native snapshot.');
+            }
+
+            $response = [
+                'status' => 'applied',
+                'request_id' => $requestId,
+                'message' => PrivacyDocumentsModule::label($kind) . ' validée pour publication.',
+                'result' => [
+                    'item' => $item,
+                    'site_revision' => $siteRevision,
+                ],
+            ];
+            $this->store->completeIdempotency(
+                $actor->siteId,
+                $actor->actorId,
+                $requestId,
+                json_encode($response, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+            );
+            $this->pdo->commit();
+            return $response;
+        } catch (AccessDenied $error) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            $this->store->appendAudit(
+                $actor->siteId,
+                $actor->actorId,
+                $actor->deviceId,
+                'authorization.denied',
+                'privacy',
+                $kind,
+                'denied',
+                ['operation' => 'privacy.legal_document_approve', 'action' => $actionId],
             );
             throw $error;
         } catch (\Throwable $error) {

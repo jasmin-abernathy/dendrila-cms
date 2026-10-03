@@ -47,6 +47,7 @@ final readonly class PdoSiteReadModel implements SiteReadModel
         $modules = self::decodeList($row['modules_json'] ?? '[]', 'site modules');
         PrivacySettingsModule::assertReservedIdAvailable($modules);
         PrivacyLegalModules::assertReservedIdsAvailable($modules);
+        PrivacyDocumentsModule::assertReservedIdAvailable($modules);
         $safeModules = self::safeModules($modules);
         $privacyState = $this->privacyState($actor);
         if ($privacyState !== null) {
@@ -57,6 +58,9 @@ final readonly class PdoSiteReadModel implements SiteReadModel
             foreach (self::safeModules(PrivacyLegalModules::definitions($writablePrivacy)) as $privacyModule) {
                 $safeModules[] = $privacyModule;
             }
+            $safeModules[] = self::safeModules([
+                PrivacyDocumentsModule::definition($writablePrivacy),
+            ])[0];
         }
         return [
             'schema_version' => 1,
@@ -87,6 +91,7 @@ final readonly class PdoSiteReadModel implements SiteReadModel
         $storedModules = self::decodeList($row['modules_json'] ?? '[]', 'site modules');
         PrivacySettingsModule::assertReservedIdAvailable($storedModules);
         PrivacyLegalModules::assertReservedIdsAvailable($storedModules);
+        PrivacyDocumentsModule::assertReservedIdAvailable($storedModules);
         self::safeModules($storedModules);
         $data = (new SnapshotProjector())->project(
             $storedModules,
@@ -109,6 +114,9 @@ final readonly class PdoSiteReadModel implements SiteReadModel
             foreach (PrivacyLegalModules::snapshot($privacyState['settings']['legal_profile']) as $moduleId => $moduleData) {
                 $data[$moduleId] = $moduleData;
             }
+            $data[PrivacyDocumentsModule::ID] = PrivacyDocumentsModule::snapshot(
+                $this->privacy->legalDocumentsState($actor),
+            );
         }
         return [
             'schema_version' => 1,
