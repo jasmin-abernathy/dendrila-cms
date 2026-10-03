@@ -65,11 +65,12 @@ $presentation = [
 ];
 
 $renderer = new PublicPageRenderer();
+$themeCssUrl = '/design-kits/simple-illustrated/theme.css';
 $html = $renderer->render(
     $fixture['site'],
     $fixture['page'],
     $presentation,
-    $fixture['theme_css_url'],
+    $themeCssUrl,
     $fixture['media_urls'],
     $fixture['navigation'],
     '<div data-test-privacy="1"></div>',
@@ -95,7 +96,7 @@ $hostileHtml = $renderer->render(
     $fixture['site'],
     $hostile,
     $presentation,
-    $fixture['theme_css_url'],
+    $themeCssUrl,
     $fixture['media_urls'],
     $fixture['navigation'],
 );
@@ -110,12 +111,16 @@ frontExpect(InvalidArgumentException::class, fn () => $renderer->render(
 $missingMedia = $fixture['media_urls'];
 unset($missingMedia['hero']);
 frontExpect(InvalidArgumentException::class, fn () => $renderer->render(
-    $fixture['site'], $fixture['page'], $presentation, $fixture['theme_css_url'],
+    $fixture['site'], $fixture['page'], $presentation, $themeCssUrl,
     $missingMedia, $fixture['navigation'],
 ));
 
-$source = new class($fixture, $presentation) implements PublicPageSource {
-    public function __construct(private array $fixture, private array $presentation) {}
+$source = new class($fixture, $presentation, $themeCssUrl) implements PublicPageSource {
+    public function __construct(
+        private array $fixture,
+        private array $presentation,
+        private string $themeCssUrl,
+    ) {}
     public function pages(ActorContext $actor, string $mode): array
     {
         return [[
@@ -124,7 +129,7 @@ $source = new class($fixture, $presentation) implements PublicPageSource {
             'site' => $this->fixture['site'],
             'page' => $this->fixture['page'],
             'presentation' => $this->presentation,
-            'theme_css_url' => $this->fixture['theme_css_url'],
+            'theme_css_url' => $this->themeCssUrl,
             'media_urls' => $this->fixture['media_urls'],
             'navigation' => $this->fixture['navigation'],
         ]];

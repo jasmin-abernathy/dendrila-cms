@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" role="img" aria-labelledby="title desc">
+  <title id="title">Illustration abstraite de référence</title>
+  <desc id="desc">Formes organiques neutres destinées aux tests visuels Dendrila.</desc>
+  <rect width="1200" height="900" fill="#edf2ee"/>
+  <circle cx="895" cy="235" r="185" fill="#b9cec0"/>
+  <path d="M0 690C180 540 350 545 510 660C665 772 805 790 1200 555V900H0Z" fill="#789985"/>
+  <path d="M180 640C260 420 430 275 710 130" fill="none" stroke="#4b6857" stroke-width="22" stroke-linecap="round"/>
+  <path d="M370 505C435 402 530 345 645 305M500 390C555 285 645 225 760 190" fill="none" stroke="#f8faf8" stroke-width="15" stroke-linecap="round"/>
+</svg>

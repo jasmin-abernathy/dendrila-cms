@@ -12,10 +12,14 @@ on:
       - 'design-styles/**'
       - 'schemas/site-composition.schema.json'
       - 'examples/site-composition.json'
+      - 'examples/design-reference-page.json'
+      - 'examples/reference-media/**'
       - 'tests/design-run.php'
       - 'tests/front-run.php'
+      - 'tests/reference-site-run.php'
       - 'tests/run.php'
       - 'bin/resolve-site-presentation.php'
+      - 'bin/build-reference-site.php'
       - '.github/workflows/design-kit-bridge.yml'
 
 permissions:
@@ -49,6 +53,7 @@ jobs:
           php tests/run.php
           php tests/design-run.php
           php tests/front-run.php
+          php tests/reference-site-run.php
       - name: JSON syntax
         run: |
           python3 -m json.tool schemas/site-composition.schema.json >/dev/null
