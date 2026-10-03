@@ -35,6 +35,17 @@ Un prototype PHP interne est présent dans `src/`, avec migrations, commandes de
 - [ ] Site pilote générique réutilisant le CMS Core.
 - [ ] Tests de contrat locaux.
 
+## P1 — Vie privée native
+
+- [x] Intégrer le socle Dendrila Privacy au CMS : stockage local, permissions, inspection générique, constats et manifeste de consentement.
+- [x] Initialiser automatiquement les réglages Privacy pour chaque nouveau site et migrer les sites existants.
+- [ ] Raccorder le premier adaptateur front à la collecte du rendu public.
+- [ ] Rendre la barre / l'encart de consentement et le blocage avant choix indépendants du moteur de templates.
+- [ ] Ajouter l'interface d'administration du profil documentaire et des pratiques externes.
+- [ ] Prévoir l'import d'une configuration provenant du plugin WordPress Dendrila Privacy.
+
+Voir [`PRIVACY.md`](PRIVACY.md).
+
 ## P1 — Kits fonctionnels
 
 - [ ] Kit Artisan / TPE.

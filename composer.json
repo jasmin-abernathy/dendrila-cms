@@ -20,7 +20,7 @@
     }
   },
   "scripts": {
-    "test": "php tests/run.php && php tests/http-run.php && php tests/design-run.php",
+    "test": "php tests/run.php && php tests/http-run.php && php tests/design-run.php && php tests/privacy-run.php",
     "lint": "find src tests bin public -name '*.php' -print0 | xargs -0 -n1 php -l"
   }
 }

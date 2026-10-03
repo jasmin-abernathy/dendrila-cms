@@ -27,6 +27,7 @@ $pdo = new PDO($dsn, $username, getenv('DB_PASSWORD') ?: '', [
 $root = dirname(__DIR__);
 $roles = json_decode(file_get_contents($root . '/database/seeders/default-roles.json'), true, 512, JSON_THROW_ON_ERROR);
 $pageType = json_decode(file_get_contents($root . '/examples/content-types/page.json'), true, 512, JSON_THROW_ON_ERROR);
+$privacySettings = Dendrila\Cms\Privacy\PrivacyService::defaultSettings();
 $now = gmdate('Y-m-d H:i:s');
 
 $pdo->beginTransaction();
@@ -45,6 +46,16 @@ try {
     $apiSettings->execute([
         'site_id' => $siteId, 'branding_json' => '{}', 'modules_json' => '[]',
         'created_at' => $now, 'updated_at' => $now,
+    ]);
+    $privacy = $pdo->prepare(
+        'INSERT INTO privacy_settings (site_id, settings_json, created_at, updated_at)
+         VALUES (:site_id, :settings_json, :created_at, :updated_at)'
+    );
+    $privacy->execute([
+        'site_id' => $siteId,
+        'settings_json' => json_encode($privacySettings, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+        'created_at' => $now,
+        'updated_at' => $now,
     ]);
     $insertRole = $pdo->prepare('INSERT INTO roles (site_id, role_id, label) VALUES (:site_id, :role_id, :label)');
     $insertPermission = $pdo->prepare('INSERT INTO role_permissions (site_id, role_id, permission) VALUES (:site_id, :role_id, :permission)');
