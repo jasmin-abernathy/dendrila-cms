@@ -13,11 +13,17 @@ final class PrivacyDocumentsModule
         $definition = [
             'id' => self::ID,
             'kind' => 'records',
-            'title' => 'Vie privée — documents publics',
-            'subtitle' => 'Prévisualiser l’état des mentions légales, de la politique de confidentialité et des cookies',
+            'title' => 'Documents publics',
+            'subtitle' => 'Vérifier ce qui est prêt, puis valider explicitement la version publiée',
             'icon' => 'file-check',
             'order' => 940,
             'writable' => $writable,
+            'options' => [
+                'group_id' => 'privacy',
+                'group_title' => 'Vie privée',
+                'group_description' => 'Documentez ce qui existe réellement, sans inventer de réponse. Vous pourrez revenir sur chaque étape plus tard.',
+                'group_order' => 900,
+            ],
             'fields' => [
                 [
                     'id' => 'readiness',
