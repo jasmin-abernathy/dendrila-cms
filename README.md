@@ -29,12 +29,15 @@ La V1 est considérée exploitable lorsque :
 5. Révisions et restauration.
 6. Navigation.
 7. Bibliothèque média et SEO essentiel.
-8. Kits fonctionnels Artisan/TPE puis Association.
-9. Galerie de styles visuels indépendante des kits métier.
+8. Vie privée et consentement natifs (Dendrila Privacy).
+9. Kits fonctionnels Artisan/TPE puis Association.
+10. Galerie de styles visuels indépendante des kits métier.
 
 Voir `docs/ROADMAP.md`.
 
 La composition visuelle est volontairement séparée du métier : `docs/DESIGN-STYLES.md` décrit les presets graphiques et `docs/SITE-COMPOSITION.md` la combinaison kit fonctionnel + style visuel + identité de marque.
+
+**Dendrila Privacy fait partie du socle du CMS.** Chaque site dispose nativement d'un état local de vie privée, d'un moteur générique d'inspection de services/traceurs, d'un profil documentaire et d'un manifeste de consentement destiné aux adaptateurs front. Aucun plugin WordPress n'est nécessaire pour un site Dendrila ; le plugin `dendrila-privacy` reste la déclinaison WordPress autonome. Voir `docs/PRIVACY.md`.
 
 Le contrat P0 de départ, ses interfaces logiques et les limites de compatibilité MMW v1 sont décrits dans `docs/P0-CORE-CONTRACT.md`.
 
@@ -70,5 +73,6 @@ Par défaut, les réglages d'API d'un site commencent avec une liste de modules 
 - Toute nouvelle primitive doit être générique et réutilisable.
 - Les outils tiers passent par des connecteurs côté serveur.
 - Les kits fonctionnels et les styles visuels restent indépendants.
+- La vie privée est un socle du CMS, pas une extension à installer après coup.
 - Export et réversibilité doivent rester possibles.
 - Accessibilité et sobriété sont des contraintes de base, pas des options.

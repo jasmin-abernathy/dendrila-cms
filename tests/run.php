@@ -90,21 +90,23 @@ $publicWhileEditing = $service->get($reader, $id);
 check($publicWhileEditing['status'] === 'published' && $publicWhileEditing['slug'] === 'accueil'
     && $publicWhileEditing['values']['title'] === 'Accueil modifié', 'Read-only role receives only the last public version.');
 
-$needsReview = $service->transition($actor, $id, 'scheduled', 5, 'request-0008', '2026-10-02T09:00:00+02:00');
+$publishAt = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->modify('+2 hours');
+$publishAtIso = $publishAt->format(DATE_ATOM);
+$needsReview = $service->transition($actor, $id, 'scheduled', 5, 'request-0008', $publishAtIso);
 check($needsReview['status'] === 'pending_review' && $needsReview['content']['status'] === 'review', 'Review policy gates a new scheduled publication.');
-$scheduled = $service->transition($actor, $id, 'scheduled', 6, 'request-0009', '2026-10-02T09:00:00+02:00');
+$scheduled = $service->transition($actor, $id, 'scheduled', 6, 'request-0009', $publishAtIso);
 check($scheduled['content']['status'] === 'scheduled', 'Authorized editor can schedule reviewed content.');
 $publisher = new ScheduledPublisher($store);
-$publishedByCron = $publisher->runForSite('site-a', new DateTimeImmutable('2026-10-02T06:00:00Z'));
+$publishedByCron = $publisher->runForSite('site-a', $publishAt->modify('-1 hour'));
 check(count($publishedByCron) === 0, 'Scheduler does not publish before its due time.');
-$publishedByCron = $publisher->runForSite('site-a', new DateTimeImmutable('2026-10-02T08:00:00Z'));
+$publishedByCron = $publisher->runForSite('site-a', $publishAt);
 check(count($publishedByCron) === 1 && $publishedByCron[0]['status'] === 'published', 'Due scheduled content is published once.');
 $publishedVersion = $publishedByCron[0]['version'];
 $restored = $service->restoreRevision($actor, $id, $created['content']['current_revision_id'],
     $publishedVersion, 'request-0010');
 check($restored['content']['status'] === 'draft', 'Restoring an old revision creates a working draft.');
 check($restored['content']['version'] === $publishedVersion + 1, 'Restoration does not roll back the version counter.');
-check(count($publisher->runForSite('site-a', new DateTimeImmutable('2026-10-02T10:00:00Z'))) === 0,
+check(count($publisher->runForSite('site-a', $publishAt->modify('+1 hour'))) === 0,
     'A scheduled item is not published twice.');
 
 $contributor = new ActorContext('site-a', 'contributor-1');
