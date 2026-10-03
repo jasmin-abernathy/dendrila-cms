@@ -1,0 +1,12 @@
+{
+  "id": "consultation_service",
+  "label": "Service de consultation",
+  "collection": true,
+  "workflow": "editorial",
+  "fields": [
+    {"id": "title", "type": "text", "label": "Nom du service", "required": true},
+    {"id": "description", "type": "multiline", "label": "Description publique", "required": false},
+    {"id": "duration_minutes", "type": "number", "label": "Durée en minutes", "required": false},
+    {"id": "booking_url", "type": "url", "label": "Lien de réservation", "required": false}
+  ]
+}

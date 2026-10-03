@@ -1,0 +1,10 @@
+{
+  "id": "practical_info",
+  "label": "Information pratique",
+  "collection": true,
+  "workflow": "editorial",
+  "fields": [
+    {"id": "title", "type": "text", "label": "Titre", "required": true},
+    {"id": "details", "type": "multiline", "label": "Détails publics", "required": true}
+  ]
+}

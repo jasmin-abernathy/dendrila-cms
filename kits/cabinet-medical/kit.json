@@ -5,7 +5,49 @@
     "page",
     "practitioner",
     "consultation_service",
+    "practitioner_qualification",
     "practical_info"
+  ],
+  "api_modules": [
+    {
+      "id": "services",
+      "kind": "gallery",
+      "title": "Services",
+      "subtitle": "Prestations publiques du cabinet",
+      "icon": "medical-services",
+      "order": 10,
+      "writable": true,
+      "source": {"type_id": "consultation_service", "title_field": "title", "subtitle_field": "description"},
+      "fields": [
+        {"id": "title", "type": "text", "label": "Nom du service", "required": true, "max_length": 120, "source_field_id": "title"},
+        {"id": "description", "type": "multiline", "label": "Description publique", "max_length": 2000, "source_field_id": "description"},
+        {"id": "duration_minutes", "type": "number", "label": "Durée en minutes", "min": 5, "max": 480, "source_field_id": "duration_minutes"},
+        {"id": "booking_url", "type": "url", "label": "Lien de réservation", "source_field_id": "booking_url"}
+      ],
+      "options": {"allow_create": true, "allow_update": true, "allow_delete": true}
+    },
+    {
+      "id": "qualifications",
+      "kind": "gallery",
+      "title": "Diplômes et formations",
+      "subtitle": "Diplômes, DU, DIU et formations publiques",
+      "icon": "school",
+      "order": 20,
+      "writable": true,
+      "source": {"type_id": "practitioner_qualification", "title_field": "title", "subtitle_field": "institution"},
+      "fields": [
+        {"id": "title", "type": "text", "label": "Intitulé", "required": true, "max_length": 180, "source_field_id": "title"},
+        {"id": "category", "type": "single_choice", "label": "Type", "required": true, "source_field_id": "category", "choices": [
+          {"value": "diploma", "label": "Diplôme"},
+          {"value": "du", "label": "DU / DIU"},
+          {"value": "training", "label": "Formation"}
+        ]},
+        {"id": "institution", "type": "text", "label": "Établissement", "max_length": 180, "source_field_id": "institution"},
+        {"id": "year", "type": "number", "label": "Année", "min": 1900, "max": 2100, "source_field_id": "year"},
+        {"id": "details", "type": "multiline", "label": "Précisions publiques", "max_length": 2000, "source_field_id": "details"}
+      ],
+      "options": {"allow_create": true, "allow_update": true, "allow_delete": true}
+    }
   ],
   "modules": [
     "content",
