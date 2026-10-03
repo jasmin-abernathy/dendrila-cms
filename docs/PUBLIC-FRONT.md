@@ -23,3 +23,16 @@ Ainsi, le scan observe le HTML que le site Dendrila produirait réellement, y co
 ## Jeu de référence
 
 `examples/design-reference-page.json` contient un contenu générique commun destiné aux tests et aux futures comparaisons de thèmes. Il couvre texte, image, cartes, chiffres-clés, paires clé/valeur, galerie, FAQ, embed externe et CTA.
+
+
+## Documents vie privée publics
+
+`PublicPrivacyDocumentRouter` raccorde les documents approuvés par Dendrila Privacy au premier front de référence sans dupliquer leur contenu dans des pages CMS ordinaires.
+
+Routes natives stables :
+
+- `/mentions-legales` → mentions légales ;
+- `/confidentialite` → politique de confidentialité ;
+- `/cookies` → politique cookies et traceurs.
+
+`PrivacyServicePublicDocumentSource` fournit uniquement une version approuvée dont l’empreinte correspond encore aux données sources. Une route inconnue ou un document devenu obsolète renvoie donc `null` au routeur du site, qui peut répondre en 404 plutôt que publier une version périmée. Le fragment HTML généré est borné et contrôlé avant insertion dans la coque du design kit ; scripts, styles, iframes, objets et documents HTML complets y sont refusés.

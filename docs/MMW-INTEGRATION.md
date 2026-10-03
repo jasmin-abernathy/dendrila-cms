@@ -85,10 +85,18 @@ Le même principe s'étend au profil documentaire sans créer de nouveau `kind` 
 
 - `privacy_legal` utilise `settings` pour l'identité, les flux, les risques, les cookies, le suivi e-mail, les outils externes et l'autorité de contrôle ;
 - `privacy_treatments` utilise `records` pour les traitements structurés ;
-- `privacy_sources` utilise `records` pour les services et sources de collecte indirecte.
+- `privacy_sources` utilise `records` pour les services et sources de collecte indirecte ;
+- `privacy_documents` utilise `records` pour présenter l’état des trois documents publics et une action explicite « Valider / republier ».
 
-Ces trois identifiants sont réservés au noyau. Leur visibilité dépend de `privacy.read` et leur caractère modifiable de `privacy.manage`.
+Ces quatre identifiants sont réservés au noyau. Leur visibilité dépend de `privacy.read` et leur caractère modifiable de `privacy.manage`.
 
 Les créations, modifications et suppressions utilisent `POST /v1/changes` avec les actions v1 existantes (`update_fields`, `create_item`, `update_item`, `delete_item`). Les lignes de traitement et de source reçoivent un identifiant natif stable de 32 caractères hexadécimaux. Les mutations partagent l'idempotence et la révision globale du CMS.
 
 Le profil complet reste stocké côté serveur. MMW ne reçoit que les champs explicitement projetés par ces modules et ne reçoit jamais le journal d'audit ni les preuves techniques des scans.
+
+
+### Validation des documents publics depuis MMW
+
+Le module `privacy_documents` ne transmet pas le HTML généré. Il expose seulement, pour chaque document, son état (`À compléter`, `Prêt à valider`, `Publié` ou `À revalider`), une synthèse des points à corriger et la date de dernière validation.
+
+L'action `item_action` / `approve` est déclarée par le serveur, demande confirmation côté client, n'est jamais rejouable hors connexion et passe par `privacy.manage`. Une validation échoue tant que le renderer signale des données indispensables manquantes. Après modification du profil ou du manifeste de consentement, l'empreinte change et MMW affiche automatiquement le document comme `À revalider`.
