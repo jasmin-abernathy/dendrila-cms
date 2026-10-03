@@ -135,11 +135,10 @@
     ]
   },
   "media_urls": {
-    "hero": "/media/reference-hero.svg",
-    "card-a": "/media/reference-card.svg",
-    "gallery-a": "/media/reference-gallery-a.svg",
-    "gallery-b": "/media/reference-gallery-b.svg",
-    "gallery-c": "/media/reference-gallery-c.svg"
-  },
-  "theme_css_url": "/design-kits/simple-illustrated/theme.css"
+    "hero": "/media/reference.svg",
+    "card-a": "/media/reference.svg",
+    "gallery-a": "/media/reference.svg",
+    "gallery-b": "/media/reference.svg",
+    "gallery-c": "/media/reference.svg"
+  }
 }

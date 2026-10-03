@@ -32,7 +32,7 @@ Un prototype PHP interne est présent dans `src/`, avec migrations, commandes de
 - [ ] Bibliothèque média complète : recherche, filtres, texte alternatif selon le contexte, variantes, réutilisation et suppression sûre.
 - [ ] SEO essentiel : métadonnées, URLs canoniques, sitemap et partage social.
 - [x] Premier adaptateur de référence (`PublicPageRenderer`) pour un front HTML/CSS léger.
-- [ ] Site pilote générique réutilisant le CMS Core.
+- [x] Site pilote générique réutilisant le CMS Core, générable localement depuis un design kit installé.
 - [ ] Tests de contrat locaux.
 
 ## P1 — Vie privée native
