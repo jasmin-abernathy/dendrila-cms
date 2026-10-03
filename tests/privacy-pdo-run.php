@@ -348,6 +348,53 @@ privacyPdoCheck(
     'Public manifest excludes legal profile and scan evidence.',
 );
 
+$completeProfile = $service->updateLegalProfile($owner, [
+    'controller_address' => "1 rue Exemple\n57000 Metz",
+    'public_contact_email' => 'contact@native.test',
+    'publication_director' => 'Direction Native',
+    'host_name' => 'Hébergeur France',
+    'host_address' => '2 rue Serveur, 75000 Paris',
+    'host_phone' => '+33 1 00 00 00 00',
+    'cookie_nonessential' => 'yes',
+    'cookie_consent_status' => 'yes',
+    'treatments' => [[
+        'purpose' => 'Gérer les rendez-vous',
+        'data_categories' => 'Identité et informations de rendez-vous',
+        'legal_basis' => 'contract',
+        'recipients' => 'Équipe du service',
+        'retention' => 'Durée nécessaire au suivi puis archivage applicable',
+        'mandatory' => 'contract',
+        'consequences' => 'Le rendez-vous ne peut pas être organisé sans ces informations.',
+    ]],
+]);
+privacyPdoCheck($completeProfile['controller_address'] !== '',
+    'Legal profile can be completed before explicit document approval.');
+
+$legalPreview = $service->legalDocumentPreview($owner, 'legal_notice');
+privacyPdoCheck($legalPreview['readiness']['errors'] === []
+    && str_contains($legalPreview['html'], 'Mentions légales'),
+    'Legal notice preview is generated only from normalized native data.');
+
+$approvedLegal = $service->approveLegalDocument($owner, 'legal_notice');
+$publicLegal = $service->publicLegalDocument('site-native', 'legal_notice');
+privacyPdoCheck(is_array($publicLegal)
+    && $publicLegal['html'] === $approvedLegal['html']
+    && !array_key_exists('approved_by_id', $publicLegal),
+    'Only an explicitly approved and current legal document is exposed publicly.');
+
+$privacyPreview = $service->legalDocumentPreview($owner, 'privacy');
+$cookiePreview = $service->legalDocumentPreview($owner, 'cookies');
+privacyPdoCheck($privacyPreview['readiness']['errors'] === []
+    && str_contains($privacyPreview['html'], 'Protection des données personnelles')
+    && $cookiePreview['readiness']['errors'] === []
+    && str_contains($cookiePreview['html'], 'Services facultatifs détectés')
+    && str_contains($cookiePreview['html'], 'YouTube'),
+    'Privacy and cookie policies reflect the current consent state and detected optional services.');
+
+$service->updateLegalProfile($owner, ['site_name' => 'Native Site Updated']);
+privacyPdoCheck($service->publicLegalDocument('site-native', 'legal_notice') === null,
+    'Changing legal source data invalidates the previously approved public document.');
+
 $legacyState = $service->state(new ActorContext('legacy-site', 'legacy-owner'));
 privacyPdoCheck(
     $legacyState['latest_scan'] === null && $legacyState['settings']['consent']['enabled'] === false,
@@ -364,12 +411,12 @@ $auditRows = (int) $pdo->query(
     "SELECT COUNT(*) FROM audit_events WHERE site_id = 'site-native' AND entity_type = 'privacy'"
 )->fetchColumn();
 privacyPdoCheck($scanRows === 1 && $findingRows === 3, 'Privacy scans and findings persist with site isolation.');
-privacyPdoCheck($auditRows === 10,
-    'Privacy settings, legal documentation, scan and denied mutations append shared CMS audit events.');
+privacyPdoCheck($auditRows === 13,
+    'Privacy settings, legal documentation, scan, approval and denied mutations append shared CMS audit events.');
 
 $migrations = $pdo->query('SELECT migration_id FROM schema_migrations ORDER BY migration_id')->fetchAll(PDO::FETCH_COLUMN);
 privacyPdoCheck(
-    $migrations === ['001_core.sql', '002_api_devices_and_settings.sql', '003_privacy_core.sql'],
+    $migrations === ['001_core.sql', '002_api_devices_and_settings.sql', '003_privacy_core.sql', '004_privacy_documents.sql'],
     'Migration runner records privacy migration exactly once.',
 );
 

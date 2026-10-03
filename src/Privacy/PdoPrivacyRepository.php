@@ -143,6 +143,46 @@ final readonly class PdoPrivacyRepository implements PrivacyRepository
         }
     }
 
+    public function findLegalDocument(string $siteId, string $kind): ?array
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT kind, html, source_hash, approved_by_id, approved_at, updated_at
+             FROM privacy_documents WHERE site_id = :site_id AND kind = :kind'
+        );
+        $statement->execute(['site_id' => $siteId, 'kind' => $kind]);
+        $row = $statement->fetch();
+        if (!is_array($row)) {
+            return null;
+        }
+        return [
+            'kind' => $row['kind'],
+            'html' => $row['html'],
+            'source_hash' => $row['source_hash'],
+            'approved_by_id' => $row['approved_by_id'],
+            'approved_at' => $row['approved_at'],
+            'updated_at' => $row['updated_at'],
+        ];
+    }
+
+    public function saveLegalDocument(string $siteId, array $document): void
+    {
+        $statement = $this->pdo->prepare(
+            'INSERT INTO privacy_documents
+             (site_id, kind, html, source_hash, approved_by_id, approved_at, updated_at)
+             VALUES (:site_id, :kind, :html, :source_hash, :approved_by_id, :approved_at, UTC_TIMESTAMP(6))
+             ON DUPLICATE KEY UPDATE html = VALUES(html), source_hash = VALUES(source_hash),
+             approved_by_id = VALUES(approved_by_id), approved_at = VALUES(approved_at), updated_at = UTC_TIMESTAMP(6)'
+        );
+        $statement->execute([
+            'site_id' => $siteId,
+            'kind' => $document['kind'],
+            'html' => $document['html'],
+            'source_hash' => $document['source_hash'],
+            'approved_by_id' => $document['approved_by_id'],
+            'approved_at' => $document['approved_at'],
+        ]);
+    }
+
     public function appendAudit(
         string $siteId,
         ?string $actorId,

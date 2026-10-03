@@ -42,14 +42,16 @@ final class TestPrivacyRepository implements PrivacyRepository
     public array $findings = [];
     /** @var list<array<string, mixed>> */
     public array $audit = [];
+    /** @var array<string, array<string, array<string,mixed>>> */
+    public array $documents = [];
 
     public function transaction(callable $operation): mixed
     {
-        $snapshot = serialize([$this->settings, $this->scans, $this->findings, $this->audit]);
+        $snapshot = serialize([$this->settings, $this->scans, $this->findings, $this->audit, $this->documents]);
         try {
             return $operation();
         } catch (Throwable $error) {
-            [$this->settings, $this->scans, $this->findings, $this->audit] = unserialize(
+            [$this->settings, $this->scans, $this->findings, $this->audit, $this->documents] = unserialize(
                 $snapshot,
                 ['allowed_classes' => false],
             );
@@ -88,6 +90,16 @@ final class TestPrivacyRepository implements PrivacyRepository
         unset($publicScan['site_id']);
         $this->scans[$scan['site_id']][$scan['scan_id']] = $publicScan;
         $this->findings[$scan['site_id']][$scan['scan_id']] = $findings;
+    }
+
+    public function findLegalDocument(string $siteId, string $kind): ?array
+    {
+        return $this->documents[$siteId][$kind] ?? null;
+    }
+
+    public function saveLegalDocument(string $siteId, array $document): void
+    {
+        $this->documents[$siteId][$document['kind']] = $document;
     }
 
     public function appendAudit(

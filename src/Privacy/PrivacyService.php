@@ -95,6 +95,82 @@ final readonly class PrivacyService
         return LegalProfile::progress($this->legalProfile($actor));
     }
 
+    /** @return array{kind:string,html:string,readiness:array{errors:list<string>,warnings:list<string>},source_hash:string} */
+    public function legalDocumentPreview(ActorContext $actor, string $kind): array
+    {
+        $this->authorization->require($actor, 'privacy.read');
+        $settings = $this->normalizedStoredSettings($actor->siteId);
+        $manifest = $this->consentManifest($actor->siteId);
+        $renderer = new LegalDocumentRenderer();
+        $profile = $settings['legal_profile'];
+
+        return [
+            'kind' => $kind,
+            'html' => $renderer->render($kind, $profile, $manifest),
+            'readiness' => $renderer->readiness($kind, $profile, $manifest),
+            'source_hash' => self::legalDocumentSourceHash($kind, $profile, $manifest),
+        ];
+    }
+
+    /** @return array<string,mixed> */
+    public function approveLegalDocument(ActorContext $actor, string $kind): array
+    {
+        $this->authorization->require($actor, 'privacy.manage');
+        $preview = $this->legalDocumentPreview($actor, $kind);
+        if ($preview['readiness']['errors'] !== []) {
+            throw new \InvalidArgumentException(
+                'Legal document is incomplete: ' . implode('; ', $preview['readiness']['errors'])
+            );
+        }
+        $now = (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s.u');
+        $document = [
+            'kind' => $kind,
+            'html' => $preview['html'],
+            'source_hash' => $preview['source_hash'],
+            'approved_by_id' => $actor->actorId,
+            'approved_at' => $now,
+        ];
+
+        return $this->repository->transaction(function () use ($actor, $document): array {
+            $this->repository->saveLegalDocument($actor->siteId, $document);
+            $this->repository->appendAudit(
+                $actor->siteId,
+                $actor->actorId,
+                $actor->deviceId,
+                'privacy.legal_document_approve',
+                $document['kind'],
+                ['kind' => $document['kind'], 'source' => $actor->source],
+            );
+            return $document;
+        });
+    }
+
+    /** @return array{kind:string,html:string,approved_at:string}|null */
+    public function publicLegalDocument(string $siteId, string $kind): ?array
+    {
+        if ($siteId === '') {
+            throw new \InvalidArgumentException('A site id is required.');
+        }
+        if (!in_array($kind, LegalDocumentRenderer::KINDS, true)) {
+            throw new \InvalidArgumentException('Unknown privacy legal document kind.');
+        }
+        $stored = $this->repository->findLegalDocument($siteId, $kind);
+        if ($stored === null) {
+            return null;
+        }
+        $settings = $this->normalizedStoredSettings($siteId);
+        $manifest = $this->consentManifest($siteId);
+        $expected = self::legalDocumentSourceHash($kind, $settings['legal_profile'], $manifest);
+        if (!is_string($stored['source_hash'] ?? null) || !hash_equals($expected, $stored['source_hash'])) {
+            return null;
+        }
+        return [
+            'kind' => $kind,
+            'html' => (string) $stored['html'],
+            'approved_at' => (string) $stored['approved_at'],
+        ];
+    }
+
     /**
      * Stores a completed inspection. The actual collector is adapter-specific; PrivacyInspector is the built-in detector.
      * @param list<array<string, mixed>> $findings
@@ -177,6 +253,26 @@ final readonly class PrivacyService
             'services' => $services,
             'fingerprint' => $fingerprint,
         ];
+    }
+
+    /** @param array<string,mixed> $profile @param array<string,mixed> $manifest */
+    private static function legalDocumentSourceHash(string $kind, array $profile, array $manifest): string
+    {
+        if (!in_array($kind, LegalDocumentRenderer::KINDS, true)) {
+            throw new \InvalidArgumentException('Unknown privacy legal document kind.');
+        }
+        $source = $kind === 'legal_notice'
+            ? [$kind, $profile]
+            : [$kind, $profile, [
+                'enabled' => $manifest['enabled'] ?? false,
+                'retention_days' => $manifest['retention_days'] ?? 180,
+                'services' => $manifest['services'] ?? [],
+                'fingerprint' => $manifest['fingerprint'] ?? '',
+            ]];
+        return hash(
+            'sha256',
+            json_encode($source, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+        );
     }
 
     /** @param array<string, mixed> $settings @return array<string, mixed> */

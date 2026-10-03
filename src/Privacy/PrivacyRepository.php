@@ -22,6 +22,12 @@ interface PrivacyRepository
     /** @param array<string, mixed> $scan @param list<array<string, mixed>> $findings */
     public function saveCompletedScan(array $scan, array $findings): void;
 
+    /** @return array<string, mixed>|null */
+    public function findLegalDocument(string $siteId, string $kind): ?array;
+
+    /** @param array<string, mixed> $document */
+    public function saveLegalDocument(string $siteId, array $document): void;
+
     /** @param array<string, mixed> $details */
     public function appendAudit(
         string $siteId,

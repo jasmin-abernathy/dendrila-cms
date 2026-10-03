@@ -57,6 +57,16 @@ Le noyau applique une validation stricte et refuse les champs inconnus. Les rép
 
 `PrivacyService::legalProgress()` reprend la logique contextuelle du parcours WordPress : par exemple une destination de transfert n'est exigée que si un transfert est déclaré, et les détails d'un DPO ne deviennent nécessaires que lorsqu'un DPO est déclaré comme désigné. Ces états servent à guider l'interface ; ils ne constituent pas un score de conformité.
 
+## Documents publics natifs
+
+`LegalDocumentRenderer` génère maintenant trois documents portables à partir du profil validé : mentions légales, information sur les données personnelles et politique cookies/traceurs.
+
+La génération n'entraîne **aucune publication automatique**. `PrivacyService::legalDocumentPreview()` produit un aperçu et une liste de points manquants ; `approveLegalDocument()` exige `privacy.manage` et refuse l'approbation tant que des erreurs bloquantes subsistent. Le HTML approuvé est stocké avec une empreinte des données sources.
+
+`publicLegalDocument()` ne renvoie un document que si cette empreinte correspond toujours au profil et, lorsque nécessaire, au manifeste de consentement actuels. Une modification ultérieure rend donc automatiquement l'ancienne version publique indisponible jusqu'à une nouvelle validation humaine.
+
+Le rendu échappe les valeurs administratives, ne publie pas les preuves de scan et réutilise le bouton natif « Gérer mes choix » pour la politique cookies lorsque le moteur de consentement est actif.
+
 ## Permissions initiales
 
 - `owner` et `admin` : lecture, configuration et lancement/enregistrement des analyses ;
@@ -78,6 +88,7 @@ Restent à raccorder côté Dendrila :
 - collecteur concret raccordé au premier moteur de rendu public (le contrat `PrivacyDocumentCollector` et `PrivacyScanRunner` est prêt) ;
 - interface cliente complète du profil documentaire (le modèle, la validation, la progression et les mutations serveur sont présents) ;
 - connecteurs externes facultatifs (par exemple registre d'entreprise) ;
-- migration des pages WordPress elles-mêmes : l’import natif couvre désormais les réglages, le profil documentaire et le dernier scan, mais pas les IDs/pages WordPress ni le contenu géré par un constructeur.
+- raccordement des documents publics natifs aux routes/pages du premier moteur de rendu Dendrila ; les documents sont générés, validés et stockés dans le noyau mais le routeur du futur front doit choisir leurs URLs publiques ;
+- migration du contenu WordPress construit hors Dendrila Privacy : l’import natif couvre les réglages, le profil documentaire et le dernier scan, pas les pages arbitraires d’un builder.
 
 Dendrila Privacy aide à documenter et à contrôler le comportement technique d'un site ; ce n'est pas une certification juridique.
