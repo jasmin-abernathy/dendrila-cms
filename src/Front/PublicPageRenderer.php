@@ -189,23 +189,40 @@ final readonly class PublicPageRenderer
     {
         $type = $block['type'] ?? null;
         if (!is_string($type)) throw new InvalidArgumentException('Block type is missing.');
-        $sectionClass = 'd-section' . ($this->softSection($index, $type, $structure['accent_backgrounds']) ? ' d-section--soft' : '');
+        $sectionClass = 'd-section d-section--block-' . str_replace('_', '-', $type)
+            . ($this->softSection($index, $type, $structure['accent_backgrounds']) ? ' d-section--soft' : '');
         return match ($type) {
             'text', 'rich_text' => '<section class="' . $sectionClass . '"><div class="d-shell d-prose"><p class="'
                 . ($type === 'rich_text' ? 'd-rich-text' : '') . '">' . nl2br(self::escape(self::longText($block['text'] ?? null, 'text block')), false)
                 . '</p></div></section>',
             'image' => '<section class="' . $sectionClass . '"><div class="d-shell">' . $this->renderImageFigure($block, $mediaUrls, $supportedShapes) . '</div></section>',
-            'gallery' => '<section class="' . $sectionClass . '"><div class="d-shell">' . $this->renderGallery($block, $mediaUrls, $supportedShapes) . '</div></section>',
-            'cards' => '<section class="' . $sectionClass . '"><div class="d-shell">' . $this->renderCards($block, $mediaUrls) . '</div></section>',
-            'faq' => '<section class="' . $sectionClass . '"><div class="d-shell d-prose">' . $this->renderFaq($block) . '</div></section>',
-            'key_values' => '<section class="' . $sectionClass . '"><div class="d-shell">' . $this->renderKeyValues($block) . '</div></section>',
-            'statistics' => '<section class="' . $sectionClass . '"><div class="d-shell">' . $this->renderStatistics($block) . '</div></section>',
-            'cta' => '<section class="d-cta-band"><div class="d-shell d-cta-band__inner"><div><strong>'
-                . self::escape(self::shortText($block['label'] ?? null, 'CTA label', 300)) . '</strong></div>'
+            'gallery' => '<section class="' . $sectionClass . '"><div class="d-shell">'
+                . $this->renderSectionHeading($block) . $this->renderGallery($block, $mediaUrls, $supportedShapes) . '</div></section>',
+            'cards' => '<section class="' . $sectionClass . '"><div class="d-shell">'
+                . $this->renderSectionHeading($block) . $this->renderCards($block, $mediaUrls) . '</div></section>',
+            'faq' => '<section class="' . $sectionClass . '"><div class="d-shell d-prose">'
+                . $this->renderSectionHeading($block) . $this->renderFaq($block) . '</div></section>',
+            'key_values' => '<section class="' . $sectionClass . '"><div class="d-shell">'
+                . $this->renderSectionHeading($block) . $this->renderKeyValues($block) . '</div></section>',
+            'statistics' => '<section class="' . $sectionClass . '"><div class="d-shell">'
+                . $this->renderSectionHeading($block) . $this->renderStatistics($block) . '</div></section>',
+            'cta' => '<section class="d-cta-band"><div class="d-shell d-cta-band__inner">'
                 . $this->renderCtaLink($block) . '</div></section>',
-            'embed_safe' => '<section class="' . $sectionClass . '"><div class="d-shell d-embed">' . $this->renderEmbed($block, $locale) . '</div></section>',
+            'embed_safe' => '<section class="' . $sectionClass . '"><div class="d-shell">'
+                . $this->renderSectionHeading($block) . '<div class="d-embed">' . $this->renderEmbed($block, $locale)
+                . '</div></div></section>',
             default => throw new InvalidArgumentException("Unsupported public block type '{$type}'."),
         };
+    }
+
+    private function renderSectionHeading(array $block): string
+    {
+        if (!isset($block['heading']) || !is_string($block['heading']) || trim($block['heading']) === '') {
+            return '';
+        }
+        return '<div class="d-section__heading"><h2 class="d-heading">'
+            . self::escape(self::shortText($block['heading'], 'section heading', 2000))
+            . '</h2></div>';
     }
 
     private function renderCtaLink(array $block): string

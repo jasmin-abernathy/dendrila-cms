@@ -72,6 +72,25 @@ expect(InvalidArgumentException::class, fn () => $contentDefinition->validateVal
     'blocks' => [['type' => 'image', 'media_id' => 'media-1', 'focal_x' => 101]],
 ]));
 
+$contentDefinition->validateValues([
+    'title' => 'Sections titrées',
+    'slug' => 'sections-titrees',
+    'blocks' => [[
+        'type' => 'cards',
+        'heading' => 'À découvrir',
+        'items' => [['title' => 'Carte']],
+    ]],
+]);
+expect(InvalidArgumentException::class, fn () => $contentDefinition->validateValues([
+    'title' => 'Titre de section invalide',
+    'slug' => 'titre-section-invalide',
+    'blocks' => [[
+        'type' => 'gallery',
+        'heading' => ['pas', 'du', 'texte'],
+        'media_ids' => ['media-1'],
+    ]],
+]));
+
 $created = $service->createDraft($actor, 'page', $values, 'request-0001');
 check($created['content']['version'] === 1, 'New content starts at version 1.');
 check($created['site_revision'] === 2, 'Creating content advances the site snapshot revision.');

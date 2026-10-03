@@ -62,7 +62,7 @@ file_put_contents($themeRoot . '/theme.json', json_encode([
     'schema_version' => 1,
     'id' => 'simple-illustrated',
     'design_style_id' => 'simple-illustrated',
-    'version' => '0.2.1',
+    'version' => '0.3.0',
     'entrypoint' => 'theme.css',
     'components' => ['header', 'hero-split', 'media', 'gallery', 'statistics'],
     'media_shapes' => ['auto', 'organic-soft', 'organic-tall', 'arch', 'circle', 'rounded', 'none'],
@@ -81,7 +81,7 @@ file_put_contents($catalogPath, json_encode([
     'themes' => [[
         'id' => 'simple-illustrated',
         'design_style_id' => 'simple-illustrated',
-        'version' => '0.2.1',
+        'version' => '0.3.0',
         'path' => 'themes/simple-illustrated',
         'manifest' => 'theme.json',
     ]],
@@ -123,6 +123,8 @@ referenceCheck(str_contains($html, 'src="/media/reference.svg"'), 'Built page re
 referenceCheck(str_contains($html, 'data-dendrila-theme="simple-illustrated"'), 'Built page applies the selected theme.');
 referenceCheck(str_contains($html, 'data-media-shape="organic-tall"'), 'Built page keeps media shape metadata.');
 referenceCheck(str_contains($html, '--d-media-x:46%;--d-media-y:38%;'), 'Built page keeps focal point metadata.');
+referenceCheck(str_contains($html, '<h2 class="d-heading">Quelques images</h2>'), 'Built page keeps section hierarchy.');
+referenceCheck(substr_count($html, 'Action finale') === 1, 'Built page avoids duplicated CTA copy.');
 
 referenceExpect(InvalidArgumentException::class, fn () => $builder->build(
     new SiteCompositionDefinition($compositionRaw),
