@@ -132,6 +132,7 @@ final readonly class ContentTypeDefinition
             'cards' => ['type', 'items'],
             'faq' => ['type', 'items'],
             'key_values' => ['type', 'items'],
+            'statistics' => ['type', 'items'],
             'embed_safe' => ['type', 'provider', 'url', 'label'],
         ];
         foreach ($value as $block) {
@@ -169,11 +170,11 @@ final readonly class ContentTypeDefinition
             if ($type === 'cta' && strlen($block['label']) > 300) {
                 return false;
             }
-            if (in_array($type, ['cards', 'faq', 'key_values'], true)
+            if (in_array($type, ['cards', 'faq', 'key_values', 'statistics'], true)
                 && (!is_array($block['items'] ?? null) || !array_is_list($block['items']) || count($block['items']) > 50)) {
                 return false;
             }
-            if (in_array($type, ['cards', 'faq', 'key_values'], true)
+            if (in_array($type, ['cards', 'faq', 'key_values', 'statistics'], true)
                 && !$this->validBlockItems($type, $block['items'])) {
                 return false;
             }
@@ -190,6 +191,7 @@ final readonly class ContentTypeDefinition
             'cards' => [['title'], ['title', 'text', 'url', 'media_id']],
             'faq' => [['question', 'answer'], ['question', 'answer']],
             'key_values' => [['label', 'value'], ['label', 'value']],
+            'statistics' => [['label', 'value'], ['label', 'value', 'note']],
         };
         foreach ($items as $item) {
             if (!is_array($item) || array_diff(array_keys($item), $allowed) !== []

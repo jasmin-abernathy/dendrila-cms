@@ -106,6 +106,10 @@ designCheck($presentation['css_variables']['--dendrila-content-max'] === '68rem'
 designCheck($presentation['css_variables']['--dendrila-color-primary'] === '#4B6857', 'Presentation carries safe brand colors.');
 designCheck(str_contains($presentation['compiled_css'], '--dendrila-font-heading: Georgia'), 'Presentation maps font choices to controlled stacks.');
 designCheck($presentation['media']['supported_shapes'][1] === 'organic-soft', 'Presentation exposes theme media capabilities.');
+designCheck($presentation['structure']['hero'] === $simpleStyle->token('layout.hero'), 'Presentation exposes the hero structure token.');
+designCheck($presentation['structure']['gallery'] === $simpleStyle->token('media.gallery'), 'Presentation exposes the gallery structure token.');
+designCheck($presentation['structure']['full_bleed'] === $simpleStyle->token('media.full_bleed'), 'Presentation exposes the full-bleed token.');
+designCheck($presentation['structure']['illustration_frequency'] === $simpleStyle->token('illustration.frequency'), 'Presentation exposes illustration frequency.');
 designCheck($presentation['brand_assets']['logo_url'] === 'https://example.test/logo.svg', 'Presentation keeps safe brand asset URLs separate from CSS.');
 
 designExpect(InvalidArgumentException::class, fn () => new SiteCompositionDefinition([

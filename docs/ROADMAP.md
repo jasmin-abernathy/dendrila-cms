@@ -28,10 +28,10 @@ Un prototype PHP interne est présent dans `src/`, avec migrations, commandes de
 ## P1 — Fonctions éditoriales indispensables
 
 - [ ] Navigation / menus.
-- [ ] Blocs de contenu réutilisables (texte, image, CTA, cartes, FAQ, galerie, statistiques), déclaratifs et sans code.
+- [x] Blocs de contenu réutilisables (texte, image, CTA, cartes, FAQ, galerie, statistiques), déclaratifs et sans code.
 - [ ] Bibliothèque média complète : recherche, filtres, texte alternatif selon le contexte, variantes, réutilisation et suppression sûre.
 - [ ] SEO essentiel : métadonnées, URLs canoniques, sitemap et partage social.
-- [ ] Premier adaptateur de référence.
+- [x] Premier adaptateur de référence (`PublicPageRenderer`) pour un front HTML/CSS léger.
 - [ ] Site pilote générique réutilisant le CMS Core.
 - [ ] Tests de contrat locaux.
 
@@ -40,7 +40,7 @@ Un prototype PHP interne est présent dans `src/`, avec migrations, commandes de
 - [x] Intégrer le socle Dendrila Privacy au CMS : stockage local, permissions, inspection générique, constats et manifeste de consentement.
 - [x] Initialiser automatiquement les réglages Privacy pour chaque nouveau site et migrer les sites existants.
 - [x] Définir le contrat de collecte et le runner `collecte → inspection → enregistrement` pour les adaptateurs front.
-- [ ] Raccorder un collecteur concret au premier moteur de rendu public Dendrila.
+- [x] Raccorder un collecteur concret au premier moteur de rendu public Dendrila.
 - [x] Fournir la barre / l'encart de consentement et le blocage déclaratif avant choix, indépendants du moteur de templates.
 - [x] Exposer les réglages Privacy de base dans MMW via le module natif `settings` sans étendre le protocole v1.
 - [x] Porter le modèle natif du profil documentaire : identité, traitements, flux, risques, cookies, e-mail et outils externes, avec validation et progression contextuelle.
@@ -69,7 +69,7 @@ Voir [`PRIVACY.md`](PRIVACY.md) et [`PRIVACY-FRONTEND.md`](PRIVACY-FRONTEND.md).
 - [x] Ajouter un compilateur de référence qui traduit les tokens autorisés en variables CSS bornées.
 - [x] Raccorder les presets à un catalogue local versionné de `dendrila-design-kits`, sans téléchargement de code à l'exécution.
 - [x] Ajouter le contrat média non destructif (forme + point focal) utilisé par les design kits.
-- [ ] Ajouter un adaptateur de front complet qui applique aussi les variantes de structure (hero, galeries, alignement et illustrations).
+- [x] Ajouter un adaptateur de front complet qui applique aussi les variantes de structure (hero, galeries, alignement et illustrations).
 - [ ] Tester chaque style sur mobile, grand écran, navigation clavier et préférences de mouvement réduit.
 
 ## P2
