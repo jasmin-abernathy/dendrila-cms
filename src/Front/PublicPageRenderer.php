@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Dendrila\Cms\Front;
 
 use Dendrila\Cms\Privacy\ConsentResourceRenderer;
+use Dendrila\Cms\Seo\SeoHeadRenderer;
 use InvalidArgumentException;
 
 final readonly class PublicPageRenderer
@@ -18,7 +19,10 @@ final readonly class PublicPageRenderer
     private const HEADING_STYLES = ['neutral', 'humanist', 'editorial', 'display'];
     private const BODY_STYLES = ['neutral', 'humanist', 'editorial'];
 
-    public function __construct(private ConsentResourceRenderer $consentResources = new ConsentResourceRenderer()) {}
+    public function __construct(
+        private ConsentResourceRenderer $consentResources = new ConsentResourceRenderer(),
+        private SeoHeadRenderer $seoHead = new SeoHeadRenderer(),
+    ) {}
 
     public function render(
         array $site,
@@ -28,6 +32,7 @@ final readonly class PublicPageRenderer
         array $mediaUrls = [],
         array $navigation = [],
         string $privacyMarkup = '',
+        array $seo = [],
     ): string {
         $siteName = self::shortText($site['name'] ?? null, 'site name', 190);
         $language = in_array($site['language'] ?? 'fr', ['fr', 'en'], true) ? (string) ($site['language'] ?? 'fr') : 'fr';
@@ -114,7 +119,7 @@ final readonly class PublicPageRenderer
 
         return '<!doctype html><html lang="' . self::escape($language) . '"><head>'
             . '<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
-            . '<title>' . self::escape($title . ' — ' . $siteName) . '</title>'
+            . $this->seoHead->render($site, $page, $seo)
             . '<link rel="stylesheet" href="' . self::escape($themeCssUrl) . '">'
             . '<style data-dendrila-presentation>' . $compiledCss . '</style>'
             . '</head><body ' . $attributes . '>'

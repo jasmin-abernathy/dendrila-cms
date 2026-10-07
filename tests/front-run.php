@@ -94,6 +94,31 @@ frontCheck(str_contains($html, 'd-section--block-gallery'), 'Public blocks expos
 frontCheck(substr_count($html, 'Action finale') === 1, 'Standalone CTA labels are not duplicated.');
 frontCheck(str_contains($html, 'data-test-privacy="1"'), 'Native privacy markup can be mounted by the front.');
 
+$seoSite = $fixture['site'];
+$seoSite['canonical_base_url'] = 'https://example.test';
+$seoHtml = $renderer->render(
+    $seoSite,
+    $fixture['page'],
+    $presentation,
+    $themeCssUrl,
+    $fixture['media_urls'],
+    $fixture['navigation'],
+    '',
+    [
+        'title' => 'Titre SEO',
+        'description' => 'Description publique',
+        'canonical_url' => '/accueil',
+        'social_title' => 'Titre partagé',
+        'social_description' => null,
+        'social_image_url' => '/media/reference.svg',
+        'indexable' => false,
+    ],
+);
+frontCheck(str_contains($seoHtml, '<title>Titre SEO</title>'), 'Public renderer mounts the SEO title.');
+frontCheck(str_contains($seoHtml, 'rel="canonical" href="https://example.test/accueil"'), 'Public renderer mounts an absolute canonical URL.');
+frontCheck(str_contains($seoHtml, 'property="og:title" content="Titre partagé"'), 'Public renderer mounts social metadata.');
+frontCheck(str_contains($seoHtml, 'name="robots" content="noindex,follow"'), 'Public renderer mounts robots metadata.');
+
 $hostile = $fixture['page'];
 $hostile['blocks'][] = ['type' => 'text', 'text' => '<script>alert(1)</script>'];
 $hostileHtml = $renderer->render(

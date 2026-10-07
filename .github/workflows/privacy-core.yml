@@ -12,6 +12,12 @@ on:
       - 'database/migrations/005_navigation.sql'
       - 'tests/navigation-run.php'
       - 'tests/navigation-pdo-run.php'
+      - 'src/Seo/**'
+      - 'src/Front/PdoPublicSeoSource.php'
+      - 'src/Front/PublicSeoSource.php'
+      - 'database/migrations/006_seo.sql'
+      - 'tests/seo-run.php'
+      - 'tests/seo-pdo-run.php'
       - 'composer.json'
       - '.github/workflows/privacy-core.yml'
 
@@ -76,6 +82,8 @@ jobs:
         run: php tests/privacy-pdo-run.php
       - name: Navigation PDO contract
         run: php tests/navigation-pdo-run.php
+      - name: SEO PDO contract
+        run: php tests/seo-pdo-run.php
       - name: Bootstrap WordPress import test site
         run: php bin/bootstrap-site.php site-import "Imported Privacy" owner-import false
       - name: Import WordPress Dendrila Privacy twice
