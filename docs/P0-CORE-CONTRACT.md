@@ -149,7 +149,7 @@ L'adaptateur expose des primitives déjà comprises par le client, sans ajouter 
 | Échéances et rendez-vous | `calendar` | même règle `item_action`, avec dates ISO 8601 |
 | Galerie | `gallery` | `create_item`, `update_item`, `delete_item` selon les capacités déclarées |
 | Demandes | `requests` | le protocole v1 ne définit pas de CRUD éditorial générique pour ces éléments |
-| Bibliothèque média mobile | `media_library` | présente dans l'application et son test de contrat ; opérations observées : `update_item`, `rotate_left`, `rotate_right`, `delete_item`. Absente de la liste des modules du document `protocol-v1.md`, donc extension implémentée à documenter avant de la déclarer contractuelle |
+| Bibliothèque média mobile | `media_library` | documentée dans MMW v1 ; snapshot `items`, métadonnées déclaratives et opérations `update_item`, `rotate_left`, `rotate_right`, `delete_item` selon les capacités annoncées ; jamais de file hors connexion |
 | Téléversement de média | `POST /v1/media` | MIME, taille, dimensions, autorisation et idempotence vérifiés côté serveur |
 | SEO et navigation | champs `form` ou interface web du site | aucun nouveau `kind` n'est introduit par cette spécification |
 
@@ -188,7 +188,6 @@ Les tests de contrat locaux doivent prouver que :
 - stratégie de migration ascendante et restauration après échec partiel ;
 - raccordement du contexte d'acteur à la vérification serveur des jetons MMW (l'app cliente seule ne constitue pas un fournisseur d'identité serveur) ;
 - représentation de blocs riches dans les clients actuels ;
-- déclaration formelle et tests du module `media_library` dans la documentation et le schéma du protocole ;
 - politique exacte de suppression/anonymisation et rétention des révisions ;
 - séparation des capacités par rôle par défaut pour chaque kit ;
 - seuils initiaux de taille, dimensions, réencodage et conservation des médias temporaires.
