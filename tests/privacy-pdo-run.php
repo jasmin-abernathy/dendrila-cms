@@ -459,9 +459,13 @@ privacyPdoCheck($auditRows === 13,
     'Privacy settings, legal documentation, scan, approval and denied mutations append shared CMS audit events.');
 
 $migrations = $pdo->query('SELECT migration_id FROM schema_migrations ORDER BY migration_id')->fetchAll(PDO::FETCH_COLUMN);
+$privacyMigrations = array_values(array_filter(
+    $migrations,
+    static fn (string $migration): bool => in_array($migration, ['003_privacy_core.sql', '004_privacy_documents.sql'], true),
+));
 privacyPdoCheck(
-    $migrations === ['001_core.sql', '002_api_devices_and_settings.sql', '003_privacy_core.sql', '004_privacy_documents.sql'],
-    'Migration runner records privacy migration exactly once.',
+    $privacyMigrations === ['003_privacy_core.sql', '004_privacy_documents.sql'],
+    'Migration runner records each native Privacy migration exactly once without assuming it is the last CMS migration.',
 );
 
 echo "Native privacy PDO integration tests passed.\n";
