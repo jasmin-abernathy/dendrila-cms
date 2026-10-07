@@ -6,6 +6,7 @@ require dirname(__DIR__) . '/vendor/autoload.php';
 use Dendrila\Cms\Authorization\AccessDenied;
 use Dendrila\Cms\Authorization\ActorContext;
 use Dendrila\Cms\Authorization\AuthorizationService;
+use Dendrila\Cms\Content\ContentNotFound;
 use Dendrila\Cms\Content\VersionConflict;
 use Dendrila\Cms\Seo\SeoHeadRenderer;
 use Dendrila\Cms\Seo\SeoMetadataDefinition;
@@ -117,7 +118,19 @@ seoExpect(InvalidArgumentException::class, fn () => SeoMetadataDefinition::norma
 ]));
 
 $viewer = new ActorContext('site-a', 'viewer-1');
-seoCheck($service->get($viewer, 'page-1')['version'] === 2, 'Content reader can read SEO metadata.');
+seoCheck($service->get($viewer, 'page-1')['version'] === 2, 'Content reader can read SEO metadata for public content.');
+$store->contents['site-a']['draft-1'] = array_replace($store->contents['site-a']['page-1'], [
+    'content_id' => 'draft-1',
+    'status' => 'draft',
+    'published_values' => null,
+    'published_slug' => null,
+    'published_version' => null,
+    'published_revision_id' => null,
+]);
+$repository->records['site-a']['draft-1'] = array_replace($updated['seo'], [
+    'content_id' => 'draft-1',
+]);
+seoExpect(ContentNotFound::class, fn () => $service->get($viewer, 'draft-1'));
 seoExpect(AccessDenied::class, fn () => $service->save($viewer, 'page-1', [], 2));
 
 $head = (new SeoHeadRenderer())->render(

@@ -78,8 +78,18 @@ final readonly class SeoService
 
     private function assertContentExists(ActorContext $actor, string $contentId): void
     {
-        if (!preg_match('/^[A-Za-z0-9_-]{1,128}$/D', $contentId)
-            || $this->store->findContent($actor->siteId, $contentId, true) === null) {
+        if (!preg_match('/^[A-Za-z0-9_-]{1,128}$/D', $contentId)) {
+            throw new ContentNotFound('SEO target content does not exist.');
+        }
+        $includeDrafts = $this->store->actorHasPermission($actor->siteId, $actor->actorId, 'content.read_draft');
+        $ownDrafts = !$includeDrafts
+            && $this->store->actorHasPermission($actor->siteId, $actor->actorId, 'content.read_own_draft');
+        if ($this->store->findContent(
+            $actor->siteId,
+            $contentId,
+            $includeDrafts,
+            $ownDrafts ? $actor->actorId : null,
+        ) === null) {
             throw new ContentNotFound('SEO target content does not exist.');
         }
     }
