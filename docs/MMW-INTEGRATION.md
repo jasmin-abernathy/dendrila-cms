@@ -9,14 +9,14 @@ Référence : `jasmin-abernathy/lepotager-site-manager/docs/protocol-v1.md`.
 - collections -> `records`
 - agenda -> `calendar`
 - galerie -> `gallery`
-- bibliothèque média mobile -> `media_library` (prise en charge dans l'application MMW et un test de contrat, mais pas encore listée dans `docs/protocol-v1.md`)
+- bibliothèque média mobile -> `media_library` (contrat v1 formalisé dans Mon Manager Web)
 - demandes -> `requests`
 
-Les opérations observées dans l'app et le test `MediaLibraryContractTest` sont `update_item`, `rotate_left`, `rotate_right` et `delete_item`. Elles restent une extension provisoire tant que le protocole et son schéma ne les documentent pas. L'API serveur ne doit pas supposer qu'un ancien client les comprend.
+Le contrat MMW v1 documente désormais `media_library`, son snapshot `items`, ses champs déclaratifs et les opérations `update_item`, `rotate_left`, `rotate_right` et `delete_item` selon les capacités du module. Un ancien client reste libre d'ignorer ce `kind`; le serveur ne doit donc jamais rendre son support indispensable aux autres modules.
 
 Le protocole v1 documente les champs `text`, `multiline`, `boolean`, `single_choice`, `number`, `url` et `email`. Les champs internes CMS comme `rich_text`, `blocks` ou `relation` doivent être projetés de façon sûre ou rester indisponibles dans le client ; ils ne deviennent pas automatiquement de nouveaux types v1.
 
-Les mutations génériques v1 sont limitées à `update_fields` pour `form`, `create_item`/`update_item`/`delete_item` pour `gallery`, et `item_action` déclaré pour `records`/`calendar`. Le serveur revérifie droits, état de l'objet et idempotence dans tous les cas.
+Les mutations génériques v1 couvrent `update_fields` pour `form`, `create_item`/`update_item`/`delete_item` pour `gallery`, `item_action` déclaré pour `records`/`calendar`, et les opérations documentées de `media_library`. Le serveur revérifie droits, appartenance de l'objet, état courant et idempotence dans tous les cas.
 
 La configuration privée du site porte `config_version` (branding, politique, modules, champs et actions) ; `snapshot.revision` décrit l'évolution des données. Les deux sont distincts des versions de révision par contenu du CMS. La politique `review_before_publish` peut imposer l'étape de revue ; le serveur renvoie alors le résultat MMW prévu (`pending_review`) au lieu d'annoncer une publication directe (`applied`).
 
