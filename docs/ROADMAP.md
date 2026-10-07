@@ -27,7 +27,7 @@ Un prototype PHP interne est présent dans `src/`, avec migrations, commandes de
 
 ## P1 — Fonctions éditoriales indispensables
 
-- [ ] Navigation / menus.
+- [x] Navigation / menus : stockage versionné, permissions, source publique et tests PDO.
 - [x] Blocs de contenu réutilisables (texte, image, CTA, cartes, FAQ, galerie, statistiques), déclaratifs et sans code.
 - [ ] Bibliothèque média complète : recherche, filtres, texte alternatif selon le contexte, variantes, réutilisation et suppression sûre.
 - [ ] SEO essentiel : métadonnées, URLs canoniques, sitemap et partage social.
