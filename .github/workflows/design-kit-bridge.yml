@@ -7,6 +7,8 @@ on:
     paths:
       - 'src/Design/**'
       - 'src/Front/**'
+      - 'src/Navigation/**'
+      - 'database/migrations/005_navigation.sql'
       - 'src/Privacy/FrontPageDocumentCollector.php'
       - 'src/Content/ContentTypeDefinition.php'
       - 'design-styles/**'
@@ -18,6 +20,7 @@ on:
       - 'tests/front-run.php'
       - 'tests/reference-site-run.php'
       - 'tests/run.php'
+      - 'tests/navigation-run.php'
       - 'bin/resolve-site-presentation.php'
       - 'bin/build-reference-site.php'
       - '.github/workflows/design-kit-bridge.yml'
@@ -51,6 +54,7 @@ jobs:
       - name: Core and design contracts
         run: |
           php tests/run.php
+          php tests/navigation-run.php
           php tests/design-run.php
           php tests/front-run.php
           php tests/reference-site-run.php
