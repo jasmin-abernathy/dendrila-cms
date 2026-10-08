@@ -73,7 +73,9 @@ function fakeResponse(status, payload) {
         { id: 'alt', type: 'multiline', label: 'Description alternative' }
     ];
     const editor = new MediaEditorSession(Object.assign({}, item, { alt: 'Ancien texte' }), fields);
+    assert.equal(editor.hasChanges(), false);
     editor.setValue('alt', 'Texte local non enregistré');
+    assert.equal(editor.hasChanges(), true);
     const payload = editor.payload();
     assert.equal(payload.expected_revision, 4);
     assert.equal(payload.alt, 'Texte local non enregistré');
@@ -94,6 +96,7 @@ function fakeResponse(status, payload) {
     editor.adoptServer();
     assert.equal(editor.expectedRevision, 6);
     assert.equal(editor.values.alt, 'Valeur serveur retenue');
+    assert.equal(editor.hasChanges(), false);
 
     await client.startAuthentication('owner@example.test', 'secret', 'Navigateur web');
     assert.equal(calls[2].init.headers.get('X-Lepotager-Device-Token'), null,

@@ -183,6 +183,14 @@
             this.values[id] = value;
         }
 
+        hasChanges() {
+            return this.fields.some((field) => {
+                const initial = Object.prototype.hasOwnProperty.call(this.item, field.id)
+                    ? normalizeFieldValue(field, this.item[field.id]) : defaultFieldValue(field);
+                return normalizeFieldValue(field, this.values[field.id]) !== initial;
+            });
+        }
+
         payload() {
             const payload = {
                 item_id: this.item.id,

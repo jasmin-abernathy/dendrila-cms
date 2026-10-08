@@ -4,7 +4,7 @@
 
 L’interface légère est servie depuis `public/admin/media-library/`. Elle utilise exclusivement l’API MMW v1 du même déploiement et n’embarque aucun compte, mot de passe ou jeton partagé.
 
-Le navigateur essaie d’abord un jeton appareil conservé uniquement dans `sessionStorage`. Sans session valide, il propose les méthodes déjà prévues par le protocole : identifiant/mot de passe avec TOTP, ou code d’association. Si le site n’a pas encore configuré son `IdentityProvider`, l’API répond 503 et l’interface reste fermée.
+Le navigateur essaie d’abord un jeton appareil conservé uniquement dans `sessionStorage`. Sans session valide, il propose les méthodes déjà prévues par le protocole : identifiant/mot de passe avec TOTP, ou code d’association. Le point d’entrée actuel `public/index.php` ne raccorde pas encore de `AuthenticationService` ni de `IdentityProvider`. Les routes de connexion répondent donc 503 et l’interface reste fermée sans jeton déjà émis. Le raccordement d’une identité réelle exige un lot serveur ; un simple réglage o2switch ne suffit pas.
 
 Le mot de passe et le code TOTP ne sont jamais persistés. Le jeton appareil n’est jamais placé dans l’URL.
 
@@ -62,3 +62,19 @@ Les vignettes de la bibliothèque sont décoratives dans leur carte, car le titr
 `tests/media-web-ui.js` vérifie le client API et les transitions de conflit. La CI exécute également `node --check` sur les deux fichiers JavaScript. Les contrats MariaDB restent dans `tests/media-pdo-run.php`, y compris tri global, filtres, pagination, relecture exacte et capacité `allow_update`.
 
 Les tests automatisés ne remplacent pas la vérification finale sur l’hébergement réel : navigateur téléphone/ordinateur, clavier, focus de modale, PHP/GD/WebP, stockage privé et configuration d’identité.
+
+## Protection des interactions asynchrones
+
+Une recherche ancienne arrivée en retard ne remplace plus les résultats de la recherche suivante. Une déconnexion invalide également les lectures encore en vol.
+
+Pendant une mutation ou un transfert, le formulaire concerné et sa fermeture sont bloqués jusqu’à la réponse. Cela évite de perdre une saisie effectuée pendant l’enregistrement ou de remplacer le fichier pendant son envoi. Après un échec réseau, les champs et le fichier restent disponibles pour réessayer avec le même identifiant. La rotation demande d’abord d’enregistrer les métadonnées modifiées ; un conflit exige une décision explicite avant une nouvelle action.
+
+Le test navigateur optionnel `node tests/media-web-browser.cjs` exige Playwright et Chromium installés dans l’environnement de test. Il utilise une API simulée sans compte réel et vérifie ces interactions, le retour de focus et l’absence de débordement horizontal à 390 et 1280 pixels. Il ne valide pas l’identité réelle ni l’hébergement. Les contrats légers restent exécutés par la CI existante.
+
+## Prochain lot : connexion réelle du site pilote
+
+Les PR #24 (socle) et #25 (interface) restent ouvertes et dépendantes ; ce lot ne les fusionne pas et ne déploie rien.
+
+Avant une utilisation réelle, raccorder `AuthenticationService` dans `public/index.php` à une implémentation de `IdentityProvider` pour les comptes du site pilote. Choisir explicitement la source des comptes ; ne pas utiliser de compte de démonstration ni de jeton partagé. Le contrat `src/Api/IdentityProvider.php` et le protocole MMW v1 restent la référence. Valider le membre et son site, les tentatives limitées, les challenges courts à usage unique, la révocation et les refus inter-sites.
+
+Ensuite seulement, valider sur o2switch PHP 8.5, MariaDB, GD/WebP, les limites d’envoi, les permissions du stockage privé, la maintenance et une sauvegarde/restauration cohérente. Tester une connexion réelle puis import, édition, conflit, rotation et suppression sur un site pilote privé. Ne pas publier Materceleste ni retirer ses outils existants pendant cette validation.

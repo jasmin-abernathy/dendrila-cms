@@ -25,7 +25,10 @@
         pendingMutation: null,
         challengeId: null,
         uploadObjectUrl: null,
-        uploadRequestId: null
+        uploadRequestId: null,
+        editorBusy: false,
+        uploadBusy: false,
+        listRequest: 0
     };
 
     function setMessage(element, message, tone) {
@@ -50,6 +53,17 @@
         buttons.forEach(function (button) { if (button) button.disabled = busy; });
     }
 
+    function lockForm(id) {
+        const controls = Array.from($(id).querySelectorAll('input, select, textarea, button'));
+        const previous = controls.map(function (control) { return control.disabled; });
+        controls.forEach(function (control) { control.disabled = true; });
+        $(id).setAttribute('aria-busy', 'true');
+        return function () {
+            controls.forEach(function (control, index) { control.disabled = previous[index]; });
+            $(id).setAttribute('aria-busy', 'false');
+        };
+    }
+
     function rememberToken(payload) {
         if (!payload || payload.status !== 'authenticated' || typeof payload.device_token !== 'string') {
             throw new Core.MediaApiError('Réponse de connexion incomplète.', 0, 'invalid_auth_response');
@@ -59,6 +73,10 @@
     }
 
     function localLogout(message) {
+        state.listRequest++;
+        state.challengeId = null;
+        $('totp-form').hidden = true;
+        $('password-form').hidden = false;
         sessionStorage.removeItem(tokenKey);
         client.setToken('');
         state.config = null;
@@ -133,6 +151,7 @@
 
     async function loadMedia() {
         if (!state.module) return;
+        const request = ++state.listRequest;
         const results = $('media-results');
         results.setAttribute('aria-busy', 'true');
         results.replaceChildren(makeState('Chargement…', 'loading-state'));
@@ -140,9 +159,11 @@
         $('next-page').disabled = true;
         try {
             const page = await client.listMedia(state.module.id, state.filters);
+            if (request !== state.listRequest) return;
             state.page = page;
             renderResults();
         } catch (error) {
+            if (request !== state.listRequest) return;
             results.replaceChildren(makeState(formatError(error), 'empty-state'));
             $('results-status').textContent = '';
             if (error instanceof Core.MediaApiError && error.status === 401) {
@@ -153,7 +174,7 @@
                 setMessage($('global-message'), formatError(error), 'error');
             }
         } finally {
-            results.setAttribute('aria-busy', 'false');
+            if (request === state.listRequest) results.setAttribute('aria-busy', 'false');
         }
     }
 
@@ -354,13 +375,15 @@
         $('edit-dialog').showModal();
     }
 
-    function closeEditor() {
+    function closeEditor(force) {
+        if (state.editorBusy && force !== true) return;
         if ($('edit-dialog').open) $('edit-dialog').close();
         const trigger = state.editorTrigger;
         state.editor = null;
         state.editorTrigger = null;
         state.pendingMutation = null;
         if (trigger && document.contains(trigger)) trigger.focus();
+        else $('grid-view').focus();
     }
 
     function collectEditorValues() {
@@ -376,21 +399,30 @@
 
     async function mutateEditor(action) {
         const session = state.editor;
-        if (!session) return;
-        if (action === 'update_item') collectEditorValues();
+        if (!session || state.editorBusy) return;
+        collectEditorValues();
+        if ((action === 'rotate_left' || action === 'rotate_right') && session.hasChanges()) {
+            setMessage($('edit-message'), 'Enregistrez vos modifications avant de faire pivoter l’image.', 'error');
+            return;
+        }
+        if (session.conflict) {
+            setMessage($('edit-message'), 'Choisissez d’abord comment résoudre le conflit.', 'error');
+            return;
+        }
         const payload = action === 'update_item' ? session.payload() : session.actionPayload();
         const key = mutationKey(action, payload);
         if (!state.pendingMutation || state.pendingMutation.key !== key) {
             state.pendingMutation = { key: key, id: Core.requestId() };
         }
         const id = state.pendingMutation.id;
-        setBusy([$ ('save-media'), $('rotate-left'), $('rotate-right'), $('delete-media')], true);
+        state.editorBusy = true;
+        const unlock = lockForm('edit-form');
         setMessage($('edit-message'), 'Enregistrement…', '');
         try {
             await client.change(state.module.id, action, payload, id);
             state.pendingMutation = null;
             if (action === 'delete_item') {
-                closeEditor();
+                closeEditor(true);
                 setMessage($('global-message'), 'Image retirée de la médiathèque.', 'success');
                 await loadMedia();
                 return;
@@ -422,7 +454,8 @@
                 setMessage($('edit-message'), formatError(error), 'error');
             }
         } finally {
-            setBusy([$ ('save-media'), $('rotate-left'), $('rotate-right'), $('delete-media')], false);
+            unlock();
+            state.editorBusy = false;
         }
     }
 
@@ -528,12 +561,14 @@
     }
 
     async function submitUpload() {
+        if (state.uploadBusy) return;
         const file = $('upload-file').files && $('upload-file').files[0];
         if (!file) return;
         if (!$('upload-form').reportValidity()) return;
         const metadata = uploadFields();
         if (!state.uploadRequestId) state.uploadRequestId = Core.requestId();
-        $('upload-submit').disabled = true;
+        state.uploadBusy = true;
+        const unlock = lockForm('upload-form');
         $('upload-progress-wrap').hidden = false;
         setMessage($('upload-message'), 'Envoi de l’image…', '');
         try {
@@ -550,6 +585,10 @@
             }
             setMessage($('upload-message'), formatError(error), 'error');
             $('upload-submit').disabled = false;
+        } finally {
+            unlock();
+            state.uploadBusy = false;
+            if (!$('upload-dialog').open) $('upload-submit').disabled = true;
         }
     }
 
@@ -688,9 +727,10 @@
         $('upload-dialog').showModal();
         $('upload-file').focus();
     });
-    $('upload-close').addEventListener('click', function () { $('upload-dialog').close(); resetUpload(); $('upload-open').focus(); });
+    $('upload-close').addEventListener('click', function () { if (state.uploadBusy) return; $('upload-dialog').close(); resetUpload(); $('upload-open').focus(); });
     $('upload-dialog').addEventListener('cancel', function (event) {
         event.preventDefault();
+        if (state.uploadBusy) return;
         $('upload-dialog').close();
         resetUpload();
         $('upload-open').focus();
