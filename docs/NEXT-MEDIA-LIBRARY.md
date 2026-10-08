@@ -1,5 +1,7 @@
 # Relais d’implémentation — médiathèque native Dendrila — 7 octobre 2026
 
+> Implémentation du 8 octobre : voir [MEDIA-LIBRARY.md](MEDIA-LIBRARY.md) pour le fonctionnement, les limites et la mise en service. Le contrat ci-dessous est conservé comme checklist de référence. La validation o2switch reste nécessaire avant activation.
+
 ## Point de départ vérifié
 
 - Dépôt principal : `jasmin-abernathy/dendrila-cms`.
@@ -125,3 +127,4 @@ Ne pas modifier Mon Manager Web sauf découverte d’un vrai écart avec le cont
 Une fois la médiathèque fusionnée, le prochain point réellement humain sera la validation o2switch : PHP 8.5, extensions image retenues (`gd` ou `imagick`), chemins privés/permissions, MariaDB, sauvegarde/restauration. Pour Bookings, les clés sandbox Stripe/PayPal/Google et la configuration privée restent également des actions serveur/humaines avant activation.
 
 Ne pas activer publiquement Materceleste ni retirer Easy!Appointments/AbanteCart pendant ce lot.
+

@@ -21,7 +21,7 @@ final readonly class PdoSiteChangeService implements SiteChangeHandler
     private ContentService $content;
     private PrivacyService $privacy;
 
-    public function __construct(private PDO $pdo, private ?BusinessActionExecutor $businessActions = null)
+    public function __construct(private PDO $pdo, private ?BusinessActionExecutor $businessActions = null, private ?\Dendrila\Cms\Media\MediaService $media = null)
     {
         $this->store = new PdoCmsStore($pdo);
         $authorization = new AuthorizationService($this->store);
@@ -57,6 +57,10 @@ final readonly class PdoSiteChangeService implements SiteChangeHandler
         [$module, $safeModule] = $this->module($actor->siteId, $moduleId);
         if (($module['writable'] ?? false) !== true) {
             throw new AccessDenied('This module is read-only.');
+        }
+        if ($module['kind'] === 'media_library') {
+            if ($this->media === null) throw new \Dendrila\Cms\Http\HttpException(503, 'media_unavailable', 'Media storage is not configured.');
+            return $this->media->change($actor, $moduleId, $action, $payload, $requestId);
         }
         $content = match ($action) {
             'update_fields' => $this->updateForm($actor, $module, $safeModule, $payload, $requestId),
@@ -566,3 +570,4 @@ final readonly class PdoSiteChangeService implements SiteChangeHandler
         return trim($value);
     }
 }
+

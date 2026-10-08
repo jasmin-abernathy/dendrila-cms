@@ -6,6 +6,15 @@ on:
   workflow_dispatch:
   pull_request:
     paths:
+      - 'src/Media/**'
+      - 'src/Http/**'
+      - 'src/Api/**'
+      - 'src/Storage/PdoCmsStore.php'
+      - 'public/media.php'
+      - 'public/index.php'
+      - 'database/migrations/007_media.sql'
+      - 'tests/media*'
+      - 'bin/*media*.php'
       - 'src/Navigation/**'
       - 'src/Front/PdoPublicNavigationSource.php'
       - 'src/Front/PublicNavigationSource.php'
@@ -58,7 +67,7 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.5'
-          extensions: mbstring, pdo_mysql
+          extensions: mbstring, pdo_mysql, gd, fileinfo
           tools: composer:v2
           coverage: none
           ini-values: error_reporting=E_ALL, display_errors=On
@@ -92,5 +101,8 @@ jobs:
           php bin/import-wordpress-privacy.php site-import owner-import tests/fixtures/wordpress-privacy-export.json
       - name: WordPress privacy import persistence tests
         run: php tests/privacy-wordpress-import-pdo-run.php
+      - name: Media PDO and multipart contracts
+        run: php tests/media-pdo-run.php
       - name: Verify migrations are idempotent
         run: php bin/migrate.php
+

@@ -78,3 +78,8 @@ Par défaut, les réglages d'API d'un site commencent avec une liste de modules 
 - La vie privée est un socle du CMS, pas une extension à installer après coup.
 - Export et réversibilité doivent rester possibles.
 - Accessibilité et sobriété sont des contraintes de base, pas des options.
+
+
+## Médiathèque native
+
+Images privées à l’origine, dérivés WebP, upload MMW, recherche et suppression protégée : [mise en service et contrat](docs/MEDIA-LIBRARY.md).

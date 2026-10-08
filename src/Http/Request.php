@@ -11,6 +11,9 @@ final readonly class Request
         public string $path,
         public array $headers,
         public string $body,
+        public array $form = [],
+        public array $files = [],
+        public array $query = [],
     ) {
     }
 
@@ -42,7 +45,21 @@ final readonly class Request
             $path,
             $headers,
             is_string($body) ? $body : '',
+            $_POST,
+            $_FILES,
+            $_GET,
         );
+    }
+
+    public function uploadedMedia(): UploadedFile
+    {
+        if (strtolower(trim(explode(';', $this->header('content-type') ?? '')[0])) !== 'multipart/form-data') {
+            throw new HttpException(415, 'unsupported_media_type', 'Multipart upload required.');
+        }
+        if (array_keys($this->files) !== ['media']) throw new \InvalidArgumentException('One media upload required.');
+        $file = $this->files['media'];
+        if (!$file instanceof UploadedFile && !is_array($file)) throw new \InvalidArgumentException('Invalid upload.');
+        return $file instanceof UploadedFile ? $file : UploadedFile::fromPhp($file);
     }
 
     public function header(string $name): ?string
@@ -71,3 +88,4 @@ final readonly class Request
         return (array) $value;
     }
 }
+
