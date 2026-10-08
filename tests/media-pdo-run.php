@@ -49,6 +49,7 @@ try {
     $a = $service->upload($actor, $fields, $file);
     mc($a === $service->upload($actor, $fields, $file), 'Upload retry identical.');
     $id = $a['result']['id'];
+    mc($a['result']['revision'] === 1 && $a['result']['version'] === 1, 'Initial revision and pixel version.');
     mc((int)$pdo->query("SELECT COUNT(*) FROM media_assets WHERE site_id = 'site-native'")->fetchColumn() === 1, 'One asset only.');
     $conflict = $fields; $conflict['metadata'] = '{"title":"Different"}';
     me(IdempotencyConflict::class, fn () => $service->upload($actor, $conflict, $file));
@@ -57,6 +58,9 @@ try {
     $snapshot = $read->snapshot($actor);
     $item = $snapshot['data']->media_library['items'][0];
     mc($item['id'] === $id && $item['parent_id'] === 'media_library' && str_starts_with($item['thumb'], 'https://example.test/media.php?'), 'Snapshot contract.');
+    mc($item['original_width'] === 40 && $item['original_height'] === 20 && $item['bytes'] === filesize($path), 'Original measurements exposed explicitly.');
+    mc($item['variants']['web']['width'] === 40 && $item['variants']['web']['mime'] === 'image/webp', 'Derivative has its own measurements and MIME.');
+    mc(str_ends_with($item['created_at'], 'Z') && $item['revision'] === 1, 'UTC date and revision exposed.');
     mc(!str_contains(json_encode($snapshot), $root) && !str_contains(json_encode($snapshot), 'original_key'), 'No private paths.');
     mc(!isset($read->snapshot($plain)['data']->media_library), 'Content reader cannot see media.');
     mc(count($service->items($other, $module)) === 0, 'Cross-site list empty.');
@@ -70,6 +74,9 @@ try {
     $rotated = $service->change($actor, 'media_library', 'rotate_right', $payload, 'media-rotation-001');
     mc($rotated === $service->change($actor, 'media_library', 'rotate_right', $payload, 'media-rotation-001'), 'Rotation retry identical.');
     mc($rotated['result']['rotation'] === 90 && hash_file('sha256', $storage->path($original)) === $hash, 'Original preserved on rotation.');
+    $rotatedItem = $service->items($actor, $module)[0];
+    mc($rotatedItem['revision'] === 2 && $rotatedItem['version'] === 2, 'Rotation increments revision and pixel version.');
+    mc($rotatedItem['original_width'] === 40 && $rotatedItem['variants']['web']['width'] === 20, 'Original and displayed dimensions remain distinct.');
     me(ContentNotFound::class, fn () => $service->change($other, 'media_library', 'rotate_right', $payload, 'other-rotation-001'));
     me(AccessDenied::class, fn () => $service->change($reader, 'media_library', 'rotate_right', $payload, 'reader-rotation-001'));
     me(InvalidArgumentException::class, fn () => $service->change($actor, 'media_library', 'update_item', $payload + ['alt' => []], 'bad-meta-array-001'));
@@ -77,6 +84,20 @@ try {
     me(InvalidArgumentException::class, fn () => $service->change($actor, 'media_library', 'update_item', $payload + ['allow_delete' => true], 'bad-meta-option-001'));
     $updated = $service->change($actor, 'media_library', 'update_item', $payload + ['alt' => 'Un pommier'], 'update-media-alt-001');
     mc($service->items($actor, $module)[0]['alt'] === 'Un pommier', 'Metadata updated.');
+    mc($updated['result']['revision'] === 3 && $updated['result']['version'] === 2, 'Metadata increments revision without changing pixels.');
+    $stale = $payload + ['alt' => 'Overwrite refused', 'expected_revision' => 2];
+    me(\Dendrila\Cms\Content\VersionConflict::class, fn () => $service->change($actor, 'media_library', 'update_item', $stale, 'stale-metadata-001'));
+    me(\Dendrila\Cms\Content\VersionConflict::class, fn () => $service->change($actor, 'media_library', 'rotate_left', $payload + ['expected_revision' => 2], 'stale-rotation-001'));
+    me(\Dendrila\Cms\Content\VersionConflict::class, fn () => $service->change($actor, 'media_library', 'delete_item', $payload + ['expected_revision' => 2], 'stale-delete-001'));
+    me(InvalidArgumentException::class, fn () => $service->change($actor, 'media_library', 'update_item', $payload + ['alt' => 'Bad', 'expected_revision' => '3'], 'invalid-revision-001'));
+    mc($service->items($actor, $module)[0]['alt'] === 'Un pommier', 'Stale writes change nothing.');
+    $fresh = $payload + ['alt' => 'Un pommier', 'expected_revision' => 3];
+    $saved = $service->change($actor, 'media_library', 'update_item', $fresh, 'fresh-metadata-001');
+    mc($saved['result']['revision'] === 4, 'Current revision accepted.');
+    mc($saved === $service->change($actor, 'media_library', 'update_item', $fresh, 'fresh-metadata-001'), 'Applied retry bypasses stale revision check.');
+    $migration = file_get_contents(dirname(__DIR__) . '/database/migrations/008_media_revision.sql');
+    $pdo->exec($migration); $pdo->exec($migration);
+    mc($service->items($actor, $module)[0]['revision'] === 4, 'Reapplying additive migration preserves data and revisions.');
     $disabled = $module; $disabled['options'] = ['allow_rotate' => false, 'allow_delete' => false];
     $pdo->prepare('UPDATE site_api_settings SET modules_json = ? WHERE site_id = ?')->execute([json_encode([$disabled]), $actor->siteId]);
     me(AccessDenied::class, fn () => $service->change($actor, 'media_library', 'rotate_right', $payload + ['allow_rotate' => true], 'forged-rotate-001'));
@@ -86,6 +107,7 @@ try {
     $store = new PdoCmsStore($pdo); $content = new ContentService($store, new AuthorizationService($store));
     $draft = $content->createDraft($actor, 'page', ['title' => 'Media usage', 'slug' => 'media-usage', 'blocks' => [['type' => 'image', 'media_id' => $id, 'alt' => 'Contextual alt']]], 'media-draft-001');
     $cid = $draft['content']['id'];
+    me(LogicException::class, fn () => MediaReferences::guardContent($pdo, ['site_id' => $actor->siteId, 'status' => 'draft', 'values' => ['cover' => $id]], ['fields' => [['id' => 'cover', 'type' => 'media']]]));
     me(HttpException::class, fn () => $service->change($actor, 'media_library', 'delete_item', $payload, 'used-delete-001'));
     mc(count($service->items($actor, $module, ['usage' => 'used'])) === 1, 'Usage filter detects draft.');
     $published = $content->transition($actor, $cid, 'published', $draft['content']['version'], 'media-publish-001');

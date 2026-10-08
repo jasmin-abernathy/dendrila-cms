@@ -59,7 +59,7 @@ final readonly class MediaService
             $q->execute([$actor->siteId, $id, $original, $info['mime'], $info['bytes'], $info['width'], $info['height'],
                 $filename, json_encode($values, JSON_THROW_ON_ERROR), $actor->actorId]);
             $this->saveVariants($actor->siteId, $id, 1, $variants);
-            return ['id' => $id, 'parent_id' => $module['id'], 'version' => 1];
+            return ['id' => $id, 'parent_id' => $module['id'], 'version' => 1, 'revision' => 1];
         });
     }
 
@@ -72,20 +72,28 @@ final readonly class MediaService
         if ($action === 'delete_item' && ($module['options']['allow_delete'] ?? false) !== true) throw new AccessDenied('Deletion unavailable.');
         if (($payload['parent_id'] ?? null) !== $moduleId || !is_string($payload['item_id'] ?? null)
             || !preg_match('/^m_[a-f0-9]{32}$/D', $payload['item_id'])) throw new \InvalidArgumentException('Invalid media context.');
-        $values = array_diff_key($payload, array_flip(['item_id', 'parent_id']));
+        if (array_key_exists('expected_revision', $payload)
+            && (!is_int($payload['expected_revision']) || $payload['expected_revision'] < 1)) {
+            throw new \InvalidArgumentException('expected_revision must be a positive integer.');
+        }
+        $values = array_diff_key($payload, array_flip(['item_id', 'parent_id', 'expected_revision']));
         if ($action !== 'update_item' && $values !== []) throw new \InvalidArgumentException('Unexpected action fields.');
         if ($action === 'update_item') $values = $this->metadata($values, $module['fields'] ?? []);
         return $this->mutate($actor, $requestId, self::hash([$moduleId, $action, $payload]), function () use ($actor, $action, $payload, $values): array {
             $asset = $this->asset($actor->siteId, $payload['item_id'], true);
-            $version = (int) $asset['version'] + 1;
+            if (isset($payload['expected_revision']) && $payload['expected_revision'] !== (int) $asset['revision']) {
+                throw new \Dendrila\Cms\Content\VersionConflict('Ce média a été modifié. Actualisez-le avant de réessayer.');
+            }
+            $revision = (int) $asset['revision'] + 1;
+            $version = (int) $asset['version'];
             $rotation = (int) $asset['rotation'];
             $metadata = json_decode($asset['metadata_json'], true, 32, JSON_THROW_ON_ERROR);
             if ($action === 'delete_item') {
                 if (MediaReferences::used($this->pdo, $actor->siteId, $asset['media_id'], true)) {
                     throw new HttpException(409, 'media_in_use', 'Ce média est encore utilisé dans un brouillon ou une publication. Retirez ses usages avant de le supprimer.');
                 }
-                $q = $this->pdo->prepare("UPDATE media_assets SET state = 'deleting', version = ?, updated_at = UTC_TIMESTAMP(6) WHERE site_id = ? AND media_id = ?");
-                $q->execute([$version, $actor->siteId, $asset['media_id']]);
+                $q = $this->pdo->prepare("UPDATE media_assets SET state = 'deleting', revision = ?, updated_at = UTC_TIMESTAMP(6) WHERE site_id = ? AND media_id = ?");
+                $q->execute([$revision, $actor->siteId, $asset['media_id']]);
                 // Physical deletion is a resumable maintenance step, only after this commit.
             } else {
                 if ($action === 'update_item') {
@@ -93,14 +101,15 @@ final readonly class MediaService
                     // Retain the same derivative version on metadata-only changes.
                     $version = (int) $asset['version'];
                 } else {
+                    $version++;
                     $rotation = ($rotation + ($action === 'rotate_right' ? 90 : 270)) % 360;
                     $this->saveVariants($actor->siteId, $asset['media_id'], $version,
                         $this->storage->variants($this->storage->path($asset['original_key']), $rotation));
                 }
-                $q = $this->pdo->prepare('UPDATE media_assets SET metadata_json = ?, rotation = ?, version = ?, updated_at = UTC_TIMESTAMP(6) WHERE site_id = ? AND media_id = ?');
-                $q->execute([json_encode($metadata, JSON_THROW_ON_ERROR), $rotation, $version, $actor->siteId, $asset['media_id']]);
+                $q = $this->pdo->prepare('UPDATE media_assets SET metadata_json = ?, rotation = ?, version = ?, revision = ?, updated_at = UTC_TIMESTAMP(6) WHERE site_id = ? AND media_id = ?');
+                $q->execute([json_encode($metadata, JSON_THROW_ON_ERROR), $rotation, $version, $revision, $actor->siteId, $asset['media_id']]);
             }
-            return ['id' => $asset['media_id'], 'version' => $version, 'rotation' => $rotation];
+            return ['id' => $asset['media_id'], 'version' => $version, 'revision' => $revision, 'rotation' => $rotation];
         });
     }
 
@@ -128,10 +137,26 @@ final readonly class MediaService
             if ($query !== '' && mb_stripos(implode(' ', [$asset['filename'], $meta['title'], $meta['alt'], $meta['credit']]), $query) === false) continue;
             if ($usage !== 'all' && MediaReferences::used($this->pdo, $actor->siteId, $asset['media_id']) !== ($usage === 'used')) continue;
             if ($matched++ < $offset) continue;
-            $item = ['id' => $asset['media_id'], 'parent_id' => $module['id'], 'title' => $meta['title'], 'subtitle' => $asset['mime']];
+            $item = [
+                'id' => $asset['media_id'], 'parent_id' => $module['id'],
+                'title' => $meta['title'], 'subtitle' => $asset['mime'],
+                'filename' => $asset['filename'], 'mime' => $asset['mime'], 'bytes' => (int) $asset['bytes'],
+                'original_width' => (int) $asset['width'], 'original_height' => (int) $asset['height'],
+                'version' => (int) $asset['version'], 'revision' => (int) $asset['revision'],
+                'rotation' => (int) $asset['rotation'], 'state' => $asset['state'],
+                'created_at' => str_replace(' ', 'T', $asset['created_at']) . 'Z',
+                'updated_at' => str_replace(' ', 'T', $asset['updated_at']) . 'Z',
+                'variants' => [],
+            ];
             foreach ($module['fields'] ?? [] as $field) if (array_key_exists($field['id'], $meta)) $item[$field['id']] = $meta[$field['id']];
             foreach ($this->variantRows($actor->siteId, $asset['media_id'], (int) $asset['version']) as $variant) {
-                $item[$variant['kind'] === 'thumb' ? 'thumb' : 'path'] = $this->url($actor->siteId, $variant['public_token']);
+                $url = $this->url($actor->siteId, $variant['public_token']);
+                $item[$variant['kind'] === 'thumb' ? 'thumb' : 'path'] = $url;
+                $item['variants'][$variant['kind']] = [
+                    'url' => $url, 'mime' => 'image/webp',
+                    'width' => (int) $variant['width'], 'height' => (int) $variant['height'],
+                    'bytes' => (int) $variant['bytes'],
+                ];
             }
             $items[] = $item;
             if (count($items) >= $limit) break;
@@ -173,7 +198,7 @@ final readonly class MediaService
                 $ok = true;
                 foreach ([$asset['original_key'], ...$q->fetchAll(PDO::FETCH_COLUMN)] as $key) $ok = $this->storage->remove($key) && $ok;
                 if ($ok) {
-                    $q = $this->pdo->prepare("UPDATE media_assets SET state = 'deleted' WHERE site_id = ? AND media_id = ? AND state = 'deleting'");
+                    $q = $this->pdo->prepare("UPDATE media_assets SET state = 'deleted', updated_at = UTC_TIMESTAMP(6) WHERE site_id = ? AND media_id = ? AND state = 'deleting'");
                     $q->execute([$asset['site_id'], $asset['media_id']]);
                     $deleted++;
                 }

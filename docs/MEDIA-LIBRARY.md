@@ -4,7 +4,7 @@ La médiathèque gère des images JPEG, PNG et WebP. Chaque import reçoit un id
 
 ## Mise en service
 
-1. Sauvegarder la base et appliquer `php bin/migrate.php` (migration `007_media.sql`).
+1. Sauvegarder la base et appliquer `php bin/migrate.php` (migrations `007_media.sql` puis `008_media_revision.sql`).
 2. Vérifier PHP 8.5, PDO MySQL, mbstring, fileinfo et GD avec WebP. Prévoir `memory_limit=256M`, `upload_max_filesize=10M` et `post_max_size=12M` au minimum pour les limites par défaut.
 3. Créer un répertoire privé, **hors de toute racine web et de toute synchronisation Git→live**, accessible uniquement au compte PHP, par exemple `/home/COMPTE/private/dendrila-media` (0700). Aucun alias HTTP ne doit le servir.
 4. Définir `MEDIA_PRIVATE_ROOT` et `MEDIA_PUBLIC_ENDPOINT=https://domaine.example/media.php` dans la configuration privée du serveur. L'URL est une valeur administrateur, jamais une valeur fournie par la requête. Installer `public/media.php` à cette URL.
@@ -35,7 +35,7 @@ Le champ `alt` est une **proposition par défaut**. Le contenu conserve son alt 
 - Une requête est identifiée par site, acteur et `client_request_id`. Un retry identique renvoie la première réponse ; un autre contenu avec le même identifiant est refusé.
 - Le fichier original et les dérivés sont créés avant la validation transactionnelle en base. Une panne peut laisser des fichiers orphelins privés, mais aucune référence validée vers un fichier non créé. Le nettoyage efface les orphelins de plus d'une heure.
 - Un verrou `flock` commun à cette racine de stockage sérialise les mutations de médias et la maintenance, y compris entre processus. Tous les workers doivent utiliser ce même stockage local ; ce premier lot ne vise pas plusieurs serveurs aux disques indépendants.
-- La rotation crée une nouvelle version de dérivés à partir de l'original ; l'ancienne version reste en stockage pour traçabilité jusqu'à la suppression de l'asset. `version` désigne la version de représentation ; un changement de métadonnées incrémente la révision du site, pas la version des pixels.
+- La rotation crée une nouvelle version de dérivés à partir de l'original ; l'ancienne version reste en stockage pour traçabilité jusqu'à la suppression de l'asset. `version` désigne la version de représentation ; un changement de métadonnées incrémente `revision` sur l’asset et la révision du site, pas la version des pixels. La nouvelle interface doit fournir `expected_revision` ; les anciens clients restent compatibles sans ce champ.
 - La suppression place d'abord l'asset en `deleting` dans une transaction. Il disparaît immédiatement des projections et de la route publique. La maintenance supprime les fichiers puis marque `deleted`. Un échec de fichier conserve `deleting` et le passage suivant reprend. La ligne tombstone et les réponses d'idempotence restent présentes.
 - La vérification des usages relit les valeurs typées des contenus, sans `LIKE` sur le JSON : champs média, image, galerie et cartes. Elle vérifie le brouillon et la projection publiée stable. Les contenus archivés ne sont plus actifs ; leur restauration avec un média supprimé est refusée.
 - Les écritures CMS verrouillent et valident les assets `m_…` avant enregistrement. La suppression verrouille l'asset puis relit les usages avec une lecture courante `FOR UPDATE`. Un conflit concurrent peut produire un deadlock MariaDB ; la transaction est annulée intégralement et peut être retentée avec le même identifiant, sans suppression partielle. Les anciens identifiants externes/des kits restent compatibles ; ils ne correspondent pas aux nouveaux assets gérés.
@@ -47,3 +47,7 @@ La recherche et le recalcul d'usage sont volontairement simples (lecture par sit
 Les contrats images sont dans `tests/media-run.php`. `tests/media-pdo-run.php` couvre MariaDB, uploads/retries, droits, isolation de sites, rotations, métadonnées, usages brouillon/publication, suppression récupérable et routes HTTP. Ils sont intégrés aux workflows existants, sous PHP 8.5 et MariaDB 11.4.
 
 Le prochain relais humain reste la validation o2switch : extensions GD/WebP, limites PHP, permissions/racine privée, tâche de maintenance, sauvegarde **cohérente base + stockage**, puis restauration sur une copie. Suspendre les écritures pendant cette sauvegarde et restaurer les deux ensembles ensemble. Ne pas activer Materceleste publiquement et ne pas retirer ses anciens outils dans ce lot.
+
+## Modèle stabilisé et relais interface
+
+Voir [le contrat des données](MEDIA-DATA-MODEL.md) puis [le relais interface pour GPT 5.4](RELAIS-MEDIATHEQUE-INTERFACE-GPT54.md). Le socle serveur ne constitue pas encore une médiathèque web complète.

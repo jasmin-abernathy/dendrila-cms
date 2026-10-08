@@ -41,6 +41,7 @@ final class MediaReferences
         foreach ($ids as $id) {
             // Existing sites may still use external/reference-kit media identifiers.
             if (!str_starts_with($id, 'm_')) continue;
+            if (!$pdo->inTransaction()) throw new \LogicException('Managed media references require a content transaction.');
             $q = $pdo->prepare('SELECT state FROM media_assets WHERE site_id = ? AND media_id = ? FOR UPDATE');
             $q->execute([$content['site_id'], $id]);
             if ($q->fetchColumn() !== 'ready') {
