@@ -176,6 +176,8 @@ final readonly class PdoCmsStore implements CmsStore
 
     public function insertContent(array $content): void
     {
+        \Dendrila\Cms\Media\MediaReferences::guardContent($this->pdo, $content,
+            $this->findContentType($content['site_id'], $content['type_id']) ?? []);
         $statement = $this->pdo->prepare(
             'INSERT INTO contents
               (site_id, content_id, created_by_id, type_id, slug, status, values_json, published_values_json,
@@ -191,6 +193,8 @@ final readonly class PdoCmsStore implements CmsStore
 
     public function saveContent(array $content, int $expectedVersion): void
     {
+        \Dendrila\Cms\Media\MediaReferences::guardContent($this->pdo, $content,
+            $this->findContentType($content['site_id'], $content['type_id']) ?? []);
         $parameters = $this->contentParameters($content);
         unset($parameters['created_at']);
         unset($parameters['created_by_id']);
@@ -378,3 +382,4 @@ final readonly class PdoCmsStore implements CmsStore
         return json_encode($value, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 }
+

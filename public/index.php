@@ -22,8 +22,9 @@ try {
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         PDO::ATTR_EMULATE_PREPARES => false,
     ]);
-    $kernel = new ApiKernel(new PdoDeviceAuthenticator($pdo), new PdoSiteReadModel($pdo),
-        changes: new PdoSiteChangeService($pdo));
+    $media = \Dendrila\Cms\Media\MediaFactory::fromEnvironment($pdo);
+    $kernel = new ApiKernel(new PdoDeviceAuthenticator($pdo), new PdoSiteReadModel($pdo, $media),
+        changes: new PdoSiteChangeService($pdo, media: $media), media: $media);
     $kernel->handle(Request::fromGlobals())->emit();
 } catch (Throwable $error) {
     error_log('MMW API bootstrap error: ' . $error::class . ': ' . $error->getMessage());
@@ -32,3 +33,4 @@ try {
         'message' => 'The API is temporarily unavailable.',
     ]], 503)->emit();
 }
+
