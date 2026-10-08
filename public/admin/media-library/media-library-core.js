@@ -45,7 +45,8 @@
     class MediaApiClient {
         constructor(options) {
             options = options || {};
-            this.baseUrl = new URL(options.apiBase || './', options.documentUrl || (typeof document !== 'undefined' ? document.baseURI : 'https://example.test/'));
+            this.documentUrl = new URL(options.documentUrl || (typeof document !== 'undefined' ? document.baseURI : 'https://example.test/'));
+            this.baseUrl = new URL(options.apiBase || './', this.documentUrl);
             this.token = options.token || '';
             this.fetchImpl = options.fetchImpl || (typeof fetch !== 'undefined' ? fetch.bind(globalThis) : null);
             if (!this.fetchImpl) throw new Error('fetch is required');
@@ -89,6 +90,37 @@
                 );
             }
             return payload || {};
+        }
+
+        async discovery() {
+            const url = new URL('/.well-known/lepotager-site-manager.json', this.documentUrl).toString();
+            let response;
+            try {
+                response = await this.fetchImpl(url, {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' },
+                    cache: 'no-store',
+                    credentials: 'same-origin'
+                });
+            } catch (error) {
+                throw new MediaApiError('Impossible de lire les méthodes de connexion du site.', 0, 'network_error', error);
+            }
+            let payload = null;
+            try {
+                payload = await response.json();
+            } catch (_) {
+                payload = null;
+            }
+            if (!response.ok || !payload || !Array.isArray(payload.auth_methods)) {
+                throw new MediaApiError('Le manifeste de connexion du site est invalide.', response.status || 0, 'invalid_manifest', payload);
+            }
+            const methods = payload.auth_methods.filter(function (method) {
+                return method === 'password_totp' || method === 'pairing_code';
+            });
+            if (!methods.length) {
+                throw new MediaApiError('Aucune méthode de connexion compatible n’est annoncée.', 0, 'unsupported_auth');
+            }
+            return Object.assign({}, payload, { auth_methods: methods });
         }
 
         startAuthentication(username, password, deviceName) {

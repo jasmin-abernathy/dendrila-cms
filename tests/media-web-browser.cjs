@@ -27,6 +27,15 @@ function deferred() { let resolve; const promise = new Promise(r => { resolve = 
             const req = route.request();
             const url = new URL(req.url());
             const json = body => route.fulfill({ json: body });
+            if (url.pathname === '/.well-known/lepotager-site-manager.json') {
+                return json({
+                    schema_version: 1,
+                    site_id: 'pilot',
+                    display_name: 'Site pilote',
+                    api_base_url: 'https://media.test/',
+                    auth_methods: ['pairing_code']
+                });
+            }
             if (url.pathname === '/v1/config') return json(config);
             if (url.pathname === '/v1/media' && req.method() === 'GET') {
                 const query = url.searchParams.get('query');
@@ -57,6 +66,8 @@ function deferred() { let resolve; const promise = new Promise(r => { resolve = 
         });
         await page.addInitScript(() => sessionStorage.setItem('dendrila.media.device_token', 'test-only-token'));
         await page.goto('https://media.test/admin/media-library/');
+        assert.equal(await page.locator('#password-panel').isHidden(), true);
+        assert.equal(await page.locator('#pair-panel').isHidden(), false);
         await page.locator('.card-button').click();
         await page.locator('#edit-fields [data-field-id="title"]').fill('Saisie conservée');
         await page.locator('#rotate-right').click();
@@ -107,6 +118,6 @@ function deferred() { let resolve; const promise = new Promise(r => { resolve = 
             assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
         }
         assert.deepEqual(errors, []);
-        console.log('Browser regressions passed: input preservation, in-flight locks, search ordering, upload retry, focus and responsive widths.');
+        console.log('Browser regressions passed: manifest auth selection, input preservation, in-flight locks, search ordering, upload retry, focus and responsive widths.');
     } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });

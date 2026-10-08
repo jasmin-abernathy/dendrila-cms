@@ -15,8 +15,11 @@ on:
       - 'public/admin/media-library/**'
       - 'database/migrations/007_media.sql'
       - 'database/migrations/008_media_revision.sql'
+      - 'database/migrations/009_auth_rate_limits.sql'
       - 'tests/media*'
       - 'tests/media-web-ui.js'
+      - 'tests/identity-pdo-run.php'
+      - 'bin/identity-preflight.php'
       - 'bin/*media*.php'
       - 'src/Navigation/**'
       - 'src/Front/PdoPublicNavigationSource.php'
@@ -111,6 +114,8 @@ jobs:
           node --check public/admin/media-library/media-library-core.js
           node --check public/admin/media-library/media-library.js
           node tests/media-web-ui.js
+      - name: Pilot identity bridge contracts
+        run: php tests/identity-pdo-run.php
       - name: Verify migrations are idempotent
         run: php bin/migrate.php
 

@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 use Dendrila\Cms\Api\ApiKernel;
-use Dendrila\Cms\Api\PdoDeviceAuthenticator;
+use Dendrila\Cms\Api\IdentityRuntimeFactory;
 use Dendrila\Cms\Api\PdoSiteChangeService;
 use Dendrila\Cms\Api\PdoSiteReadModel;
 use Dendrila\Cms\Http\HttpException;
@@ -23,8 +23,14 @@ try {
         PDO::ATTR_EMULATE_PREPARES => false,
     ]);
     $media = \Dendrila\Cms\Media\MediaFactory::fromEnvironment($pdo);
-    $kernel = new ApiKernel(new PdoDeviceAuthenticator($pdo), new PdoSiteReadModel($pdo, $media),
-        changes: new PdoSiteChangeService($pdo, media: $media), media: $media);
+    $identity = IdentityRuntimeFactory::fromEnvironment($pdo);
+    $kernel = new ApiKernel(
+        $identity->authenticator,
+        new PdoSiteReadModel($pdo, $media),
+        authentication: $identity->authentication,
+        changes: new PdoSiteChangeService($pdo, media: $media),
+        media: $media,
+    );
     $kernel->handle(Request::fromGlobals())->emit();
 } catch (Throwable $error) {
     error_log('MMW API bootstrap error: ' . $error::class . ': ' . $error->getMessage());

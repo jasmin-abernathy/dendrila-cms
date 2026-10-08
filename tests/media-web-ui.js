@@ -44,6 +44,15 @@ function fakeResponse(status, payload) {
         token: 'a'.repeat(64),
         fetchImpl: async function (url, init) {
             calls.push({ url, init });
+            if (url.endsWith('/.well-known/lepotager-site-manager.json')) {
+                return fakeResponse(200, {
+                    schema_version: 1,
+                    site_id: 'pilot',
+                    display_name: 'Site pilote',
+                    api_base_url: 'https://example.test/api/',
+                    auth_methods: ['pairing_code']
+                });
+            }
             if (url.includes('/v1/media?')) {
                 return fakeResponse(200, {
                     items: [{ id: 'm_' + '1'.repeat(32), parent_id: 'media_library', revision: 4, title: 'Arbre' }],
@@ -60,12 +69,20 @@ function fakeResponse(status, payload) {
         }
     });
 
+    const manifest = await client.discovery();
+    assert.deepEqual(manifest.auth_methods, ['pairing_code']);
+    const manifestCall = calls.find((call) => call.url.endsWith('/.well-known/lepotager-site-manager.json'));
+    assert.ok(manifestCall, 'Discovery manifest is loaded from the site root.');
+    assert.equal(manifestCall.init.headers['X-Lepotager-Device-Token'], undefined,
+        'Discovery never sends a device token.');
+
     const page = await client.listMedia('media_library', { query: 'arbre', limit: 24, offset: 0 });
     assert.equal(page.total, 1);
-    assert.equal(new URL(calls[0].url).pathname, '/v1/media');
-    assert.equal(new URL(calls[0].url).searchParams.get('query'), 'arbre');
-    assert.equal(calls[0].init.headers.get('X-Lepotager-Device-Token'), 'a'.repeat(64));
-    assert.equal(calls[0].url.includes('a'.repeat(64)), false, 'Device token must never be placed in the URL.');
+    const mediaCall = calls.find((call) => call.url.includes('/v1/media?'));
+    assert.equal(new URL(mediaCall.url).pathname, '/v1/media');
+    assert.equal(new URL(mediaCall.url).searchParams.get('query'), 'arbre');
+    assert.equal(mediaCall.init.headers.get('X-Lepotager-Device-Token'), 'a'.repeat(64));
+    assert.equal(mediaCall.url.includes('a'.repeat(64)), false, 'Device token must never be placed in the URL.');
 
     const item = page.items[0];
     const fields = [
@@ -81,7 +98,8 @@ function fakeResponse(status, payload) {
     assert.equal(payload.alt, 'Texte local non enregistré');
 
     await client.change('media_library', 'update_item', payload, 'request-test-001');
-    const changeBody = JSON.parse(calls[1].init.body);
+    const changeCall = calls.find((call) => call.url.endsWith('/v1/changes'));
+    const changeBody = JSON.parse(changeCall.init.body);
     assert.equal(changeBody.payload.expected_revision, 4);
     assert.equal(changeBody.client_request_id, 'request-test-001');
 
@@ -99,7 +117,8 @@ function fakeResponse(status, payload) {
     assert.equal(editor.hasChanges(), false);
 
     await client.startAuthentication('owner@example.test', 'secret', 'Navigateur web');
-    assert.equal(calls[2].init.headers.get('X-Lepotager-Device-Token'), null,
+    const authCall = calls.find((call) => call.url.endsWith('/v1/auth/start'));
+    assert.equal(authCall.init.headers.get('X-Lepotager-Device-Token'), null,
         'Authentication request must not leak an existing device token.');
 
     const failing = new MediaApiClient({
