@@ -71,10 +71,25 @@ Pendant une mutation ou un transfert, le formulaire concerné et sa fermeture so
 
 Le test navigateur optionnel `node tests/media-web-browser.cjs` exige Playwright et Chromium installés dans l’environnement de test. Il utilise une API simulée sans compte réel et vérifie ces interactions, le retour de focus et l’absence de débordement horizontal à 390 et 1280 pixels. Il ne valide pas l’identité réelle ni l’hébergement. Les contrats légers restent exécutés par la CI existante.
 
-## Prochain lot : connexion réelle du site pilote
+## Connexion réelle du site pilote
 
-Les PR #24 (socle) et #25 (interface) restent ouvertes et dépendantes ; ce lot ne les fusionne pas et ne déploie rien.
+Le site pilote retenu pour ce raccord est **Vues Imprenables**, pas Matercéleste. Vues Imprenables possède déjà ses comptes, son second facteur web par e-mail, ses codes d’association MMW à usage unique et sa liste d’appareils révocables.
 
-Avant une utilisation réelle, raccorder `AuthenticationService` dans `public/index.php` à une implémentation de `IdentityProvider` pour les comptes du site pilote. Choisir explicitement la source des comptes ; ne pas utiliser de compte de démonstration ni de jeton partagé. Le contrat `src/Api/IdentityProvider.php` et le protocole MMW v1 restent la référence. Valider le membre et son site, les tentatives limitées, les challenges courts à usage unique, la révocation et les refus inter-sites.
+Dendrila fournit donc un pont de migration `legacy_mmw_pairing` plutôt qu’un second système de comptes. En mode pilote :
 
-Ensuite seulement, valider sur o2switch PHP 8.5, MariaDB, GD/WebP, les limites d’envoi, les permissions du stockage privé, la maintenance et une sauvegarde/restauration cohérente. Tester une connexion réelle puis import, édition, conflit, rotation et suppression sur un site pilote privé. Ne pas publier Materceleste ni retirer ses outils existants pendant cette validation.
+- `site_admins` reste la source de l’acteur et du rôle ;
+- `mmw_pair_codes` reste la source des codes de 8 chiffres ;
+- `mmw_devices` reste la liste des appareils et la source de révocation ;
+- Dendrila synchronise uniquement la membership et le rôle explicitement mappé ;
+- `auth/start` et `auth/verify` restent refusés pour ce pont ;
+- le manifeste Vues Imprenables annonce déjà `pairing_code`, donc l’interface masque automatiquement le formulaire mot de passe et ne présente que l’association.
+
+La migration `009_auth_rate_limits.sql` borne les échecs d’association. Le pont conserve le HMAC historique du site pour que les codes et jetons restent compatibles avec le back-office existant. Voir [`PILOT-IDENTITY.md`](PILOT-IDENTITY.md) pour la configuration privée et le préflight.
+
+## Prochain point : validation sur l’hébergement
+
+Les PR #24 (socle) et #25 (interface) restent ouvertes et dépendantes ; ce lot d’identité doit également rester non déployé tant que la validation serveur n’a pas été faite.
+
+Sur l’hébergement, appliquer les migrations puis exécuter `php bin/identity-preflight.php`. Initialiser le site Dendrila avec l’`actor_id` propriétaire existant si nécessaire, puis définir les variables privées du pont. Tester ensuite : génération d’un code depuis le back-office Vues Imprenables, association dans la médiathèque Dendrila, accès média, révocation depuis Vues Imprenables et refus immédiat du jeton révoqué.
+
+Valider dans le même passage PHP 8.5, MariaDB, GD/WebP, limites d’envoi, permissions du stockage privé, maintenance et sauvegarde/restauration. Ne pas remplacer l’API MMW historique, le site public Vues Imprenables ni les autres outils en production pendant cette validation.

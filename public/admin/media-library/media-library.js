@@ -28,7 +28,8 @@
         uploadRequestId: null,
         editorBusy: false,
         uploadBusy: false,
-        listRequest: 0
+        listRequest: 0,
+        authMethods: []
     };
 
     function setMessage(element, message, tone) {
@@ -72,11 +73,45 @@
         client.setToken(payload.device_token);
     }
 
+    function applyAuthMethods(methods) {
+        state.authMethods = Array.isArray(methods) ? methods.slice() : [];
+        const passwordEnabled = state.authMethods.includes('password_totp');
+        const pairingEnabled = state.authMethods.includes('pairing_code');
+        $('password-panel').hidden = !passwordEnabled;
+        $('pair-panel').hidden = !pairingEnabled;
+        $('password-form').hidden = !passwordEnabled;
+        $('totp-form').hidden = true;
+        if (!passwordEnabled && !pairingEnabled) {
+            setMessage($('global-message'), 'Aucune méthode de connexion compatible n’est annoncée par ce site.', 'error');
+        }
+    }
+
+    function focusAuth() {
+        if (!$('pair-panel').hidden) {
+            $('pair-code').focus();
+            return;
+        }
+        if (!$('password-panel').hidden) {
+            $('username').focus();
+        }
+    }
+
+    async function loadAuthMethods() {
+        try {
+            const manifest = await client.discovery();
+            applyAuthMethods(manifest.auth_methods);
+            return manifest;
+        } catch (error) {
+            applyAuthMethods([]);
+            setMessage($('global-message'), formatError(error), 'error');
+            return null;
+        }
+    }
+
     function localLogout(message) {
         state.listRequest++;
         state.challengeId = null;
         $('totp-form').hidden = true;
-        $('password-form').hidden = false;
         sessionStorage.removeItem(tokenKey);
         client.setToken('');
         state.config = null;
@@ -85,7 +120,8 @@
         $('session-actions').hidden = true;
         $('auth-panel').hidden = false;
         if (message) setMessage($('global-message'), message, 'error');
-        $('username').focus();
+        applyAuthMethods(state.authMethods);
+        focusAuth();
     }
 
     async function loadSession() {
@@ -743,9 +779,17 @@
         submitUpload();
     });
 
-    $('device-name').value = 'Navigateur web';
-    $('pair-device-name').value = 'Navigateur web';
-    applyView(state.view);
-    if (client.token) loadSession();
-    else $('username').focus();
+    async function initialize() {
+        $('device-name').value = 'Navigateur web';
+        $('pair-device-name').value = 'Navigateur web';
+        applyView(state.view);
+        await loadAuthMethods();
+        if (client.token) {
+            await loadSession();
+            return;
+        }
+        focusAuth();
+    }
+
+    initialize();
 })();
