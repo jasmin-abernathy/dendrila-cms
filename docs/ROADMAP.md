@@ -29,7 +29,7 @@ Un prototype PHP interne est présent dans `src/`, avec migrations, commandes de
 
 - [x] Navigation / menus : stockage versionné, permissions, source publique et tests PDO.
 - [x] Blocs de contenu réutilisables (texte, image, CTA, cartes, FAQ, galerie, statistiques), déclaratifs et sans code.
-- [ ] Bibliothèque média complète : recherche, filtres, texte alternatif selon le contexte, variantes, réutilisation et suppression sûre.
+- [x] Bibliothèque média complète : recherche et filtres serveur, interface web accessible, texte alternatif contextuel, variantes, réutilisation, concurrence optimiste et suppression sûre.
 - [x] SEO essentiel : métadonnées versionnées, URLs canoniques, sitemap et partage social Open Graph.
 - [x] Premier adaptateur de référence (`PublicPageRenderer`) pour un front HTML/CSS léger.
 - [x] Site pilote générique réutilisant le CMS Core, générable localement depuis un design kit installé.

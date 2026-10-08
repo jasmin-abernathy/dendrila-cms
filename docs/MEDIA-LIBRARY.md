@@ -22,7 +22,7 @@ Les images gérées ici sont destinées au site : les dérivés sont partageable
 - Pour la bibliothèque de site, `item_id` est le contexte de bibliothèque : **l'identifiant du module** (`media_library` dans la définition fournie). L'upload n'attache pas implicitement l'image à un contenu et ne publie aucune page.
 - `GET /v1/snapshot` : `data[module_id].items`, avec `id`, `parent_id` égal au module, `title`, `subtitle`, `thumb`, `path` HTTPS et champs déclarés.
 - `POST /v1/changes` : `update_item`, `rotate_left`, `rotate_right`, `delete_item`. Le payload contient `item_id` (asset), `parent_id` (module), puis seulement les métadonnées déclarées pour `update_item`.
-- `GET /v1/media?module_id=media_library&query=arbre&mime=image/png&usage=unused&limit=100&offset=0` : recherche titre/nom/alt/crédit et filtres. `mime=image` accepte les formats image supportés. `usage` vaut `all`, `used` ou `unused`. Le snapshot est limité aux 100 premières images ; la route paginée permet de parcourir le reste.
+- `GET /v1/media?module_id=media_library&query=arbre&mime=image/png&usage=unused&limit=24&offset=0&sort=date&direction=desc` : recherche et pagination de la bibliothèque. La réponse contient `items`, `total`, `limit`, `offset`, `has_more`, `sort` et `direction`. `mime=image` accepte les formats image supportés ; `usage` vaut `all`, `used` ou `unused`. Les filtres additionnels sont `id` (asset exact), `created_from`, `created_to` au format `YYYY-MM-DD`, `min_bytes`, `max_bytes`, `alt=all|missing|present`, `sort=date|size|title` et `direction=asc|desc`. Le tri est effectué avant pagination sur l’ensemble du résultat. Le snapshot reste limité aux 100 premières images.
 
 Toutes ces routes exigent le jeton appareil et `X-Lepotager-Protocol: 1`. Les mutations ne sont jamais destinées à la file hors connexion. Le client MMW existant applique déjà `allowOffline=false` aux changements et aux uploads. Le serveur ne peut pas distinguer une requête retardée par un client non conforme d'une requête en ligne.
 
@@ -48,6 +48,6 @@ Les contrats images sont dans `tests/media-run.php`. `tests/media-pdo-run.php` c
 
 Le prochain relais humain reste la validation o2switch : extensions GD/WebP, limites PHP, permissions/racine privée, tâche de maintenance, sauvegarde **cohérente base + stockage**, puis restauration sur une copie. Suspendre les écritures pendant cette sauvegarde et restaurer les deux ensembles ensemble. Ne pas activer Materceleste publiquement et ne pas retirer ses anciens outils dans ce lot.
 
-## Modèle stabilisé et relais interface
+## Interface web
 
-Voir [le contrat des données](MEDIA-DATA-MODEL.md) puis [le relais interface pour GPT 5.4](RELAIS-MEDIATHEQUE-INTERFACE-GPT54.md). Le socle serveur ne constitue pas encore une médiathèque web complète.
+Voir [le contrat des données](MEDIA-DATA-MODEL.md) et [l’interface web de la médiathèque](MEDIA-WEB-INTERFACE.md). L’interface utilise les capacités serveur existantes, envoie systématiquement `expected_revision` et ne contourne jamais l’authentification du site.

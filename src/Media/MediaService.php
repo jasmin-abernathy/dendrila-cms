@@ -116,52 +116,188 @@ final readonly class MediaService
     /** Returns only asset metadata to media.read, never private content usages. */
     public function items(ActorContext $actor, array $module, array $filters = []): array
     {
+        return $this->search($actor, $module, $filters)['items'];
+    }
+
+    /**
+     * Paginated media search for administration interfaces.
+     *
+     * @return array{
+     *   items:list<array<string,mixed>>,
+     *   total:int,
+     *   limit:int,
+     *   offset:int,
+     *   has_more:bool,
+     *   sort:string,
+     *   direction:string
+     * }
+     */
+    public function search(ActorContext $actor, array $module, array $filters = []): array
+    {
         $this->authorization->require($actor, 'media.read');
+
         $query = $filters['query'] ?? '';
         $mime = $filters['mime'] ?? '';
         $usage = $filters['usage'] ?? 'all';
         $limit = $filters['limit'] ?? 100;
         $offset = $filters['offset'] ?? 0;
+        $mediaId = $filters['id'] ?? '';
+        $createdFrom = $filters['created_from'] ?? '';
+        $createdTo = $filters['created_to'] ?? '';
+        $minBytes = $filters['min_bytes'] ?? null;
+        $maxBytes = $filters['max_bytes'] ?? null;
+        $alt = $filters['alt'] ?? 'all';
+        $sort = $filters['sort'] ?? 'date';
+        $direction = strtolower((string) ($filters['direction'] ?? 'desc'));
+
         if (!is_string($query) || mb_strlen($query) > 200 || !is_string($mime)
-            || !in_array($mime, ['', 'image', ...ImageStorage::MIMES], true) || !in_array($usage, ['all', 'used', 'unused'], true)
-            || !is_int($limit) || $limit < 1 || $limit > 100 || !is_int($offset) || $offset < 0) throw new \InvalidArgumentException('Invalid media filters.');
-        // Usage filtering reveals the existence of private references; reserve it to draft readers.
-        if ($usage !== 'all') $this->authorization->require($actor, 'content.read_draft');
-        $q = $this->pdo->prepare("SELECT * FROM media_assets WHERE site_id = ? AND state = 'ready' ORDER BY created_at DESC, media_id");
-        $q->execute([$actor->siteId]);
-        $items = [];
-        $matched = 0;
-        foreach ($q as $asset) {
-            if ($mime !== '' && $mime !== 'image' && $asset['mime'] !== $mime) continue;
-            $meta = json_decode($asset['metadata_json'], true, 32, JSON_THROW_ON_ERROR);
-            if ($query !== '' && mb_stripos(implode(' ', [$asset['filename'], $meta['title'], $meta['alt'], $meta['credit']]), $query) === false) continue;
-            if ($usage !== 'all' && MediaReferences::used($this->pdo, $actor->siteId, $asset['media_id']) !== ($usage === 'used')) continue;
-            if ($matched++ < $offset) continue;
-            $item = [
-                'id' => $asset['media_id'], 'parent_id' => $module['id'],
-                'title' => $meta['title'], 'subtitle' => $asset['mime'],
-                'filename' => $asset['filename'], 'mime' => $asset['mime'], 'bytes' => (int) $asset['bytes'],
-                'original_width' => (int) $asset['width'], 'original_height' => (int) $asset['height'],
-                'version' => (int) $asset['version'], 'revision' => (int) $asset['revision'],
-                'rotation' => (int) $asset['rotation'], 'state' => $asset['state'],
-                'created_at' => str_replace(' ', 'T', $asset['created_at']) . 'Z',
-                'updated_at' => str_replace(' ', 'T', $asset['updated_at']) . 'Z',
-                'variants' => [],
-            ];
-            foreach ($module['fields'] ?? [] as $field) if (array_key_exists($field['id'], $meta)) $item[$field['id']] = $meta[$field['id']];
-            foreach ($this->variantRows($actor->siteId, $asset['media_id'], (int) $asset['version']) as $variant) {
-                $url = $this->url($actor->siteId, $variant['public_token']);
-                $item[$variant['kind'] === 'thumb' ? 'thumb' : 'path'] = $url;
-                $item['variants'][$variant['kind']] = [
-                    'url' => $url, 'mime' => 'image/webp',
-                    'width' => (int) $variant['width'], 'height' => (int) $variant['height'],
-                    'bytes' => (int) $variant['bytes'],
-                ];
-            }
-            $items[] = $item;
-            if (count($items) >= $limit) break;
+            || !in_array($mime, ['', 'image', ...ImageStorage::MIMES], true)
+            || !is_string($usage) || !in_array($usage, ['all', 'used', 'unused'], true)
+            || !is_int($limit) || $limit < 1 || $limit > 100
+            || !is_int($offset) || $offset < 0
+            || !is_string($mediaId) || ($mediaId !== '' && preg_match('/^m_[a-f0-9]{32}$/D', $mediaId) !== 1)
+            || !is_string($createdFrom) || !is_string($createdTo)
+            || ($minBytes !== null && (!is_int($minBytes) || $minBytes < 0))
+            || ($maxBytes !== null && (!is_int($maxBytes) || $maxBytes < 0))
+            || ($minBytes !== null && $maxBytes !== null && $minBytes > $maxBytes)
+            || !is_string($alt) || !in_array($alt, ['all', 'missing', 'present'], true)
+            || !is_string($sort) || !in_array($sort, ['date', 'size', 'title'], true)
+            || !in_array($direction, ['asc', 'desc'], true)) {
+            throw new \InvalidArgumentException('Invalid media filters.');
         }
-        return $items;
+        if ($usage !== 'all') {
+            $this->authorization->require($actor, 'content.read_draft');
+        }
+
+        $from = self::dateBoundary($createdFrom, false);
+        $to = self::dateBoundary($createdTo, true);
+        if ($from !== null && $to !== null && $from >= $to) {
+            throw new \InvalidArgumentException('Invalid media date range.');
+        }
+
+        $where = ["site_id = ?", "state = 'ready'"];
+        $parameters = [$actor->siteId];
+        if ($mediaId !== '') {
+            $where[] = 'media_id = ?';
+            $parameters[] = $mediaId;
+        }
+        if ($mime !== '' && $mime !== 'image') {
+            $where[] = 'mime = ?';
+            $parameters[] = $mime;
+        }
+        if ($from !== null) {
+            $where[] = 'created_at >= ?';
+            $parameters[] = $from;
+        }
+        if ($to !== null) {
+            $where[] = 'created_at < ?';
+            $parameters[] = $to;
+        }
+        if ($minBytes !== null) {
+            $where[] = 'bytes >= ?';
+            $parameters[] = $minBytes;
+        }
+        if ($maxBytes !== null) {
+            $where[] = 'bytes <= ?';
+            $parameters[] = $maxBytes;
+        }
+
+        $orderBy = match ($sort) {
+            'size' => 'bytes',
+            'title' => "LOWER(COALESCE(JSON_UNQUOTE(JSON_EXTRACT(metadata_json, '$.title')), filename))",
+            default => 'created_at',
+        };
+        $sql = 'SELECT * FROM media_assets WHERE ' . implode(' AND ', $where)
+            . ' ORDER BY ' . $orderBy . ' ' . strtoupper($direction) . ', media_id ASC';
+        $statement = $this->pdo->prepare($sql);
+        $statement->execute($parameters);
+
+        $items = [];
+        $total = 0;
+        foreach ($statement as $asset) {
+            $metadata = json_decode($asset['metadata_json'], true, 32, JSON_THROW_ON_ERROR);
+            if (!is_array($metadata)) {
+                throw new \RuntimeException('Stored media metadata must be an object.');
+            }
+            $altValue = is_string($metadata['alt'] ?? null) ? trim($metadata['alt']) : '';
+            if (($alt === 'missing' && $altValue !== '') || ($alt === 'present' && $altValue === '')) {
+                continue;
+            }
+            if ($query !== '' && mb_stripos(implode(' ', [
+                (string) $asset['filename'],
+                (string) ($metadata['title'] ?? ''),
+                (string) ($metadata['alt'] ?? ''),
+                (string) ($metadata['credit'] ?? ''),
+            ]), $query) === false) {
+                continue;
+            }
+            if ($usage !== 'all'
+                && MediaReferences::used($this->pdo, $actor->siteId, $asset['media_id']) !== ($usage === 'used')) {
+                continue;
+            }
+
+            if ($total >= $offset && count($items) < $limit) {
+                $items[] = $this->projectItem($actor->siteId, $module, $asset, $metadata);
+            }
+            $total++;
+        }
+
+        return [
+            'items' => $items,
+            'total' => $total,
+            'limit' => $limit,
+            'offset' => $offset,
+            'has_more' => $offset + count($items) < $total,
+            'sort' => $sort,
+            'direction' => $direction,
+        ];
+    }
+
+    private function projectItem(string $siteId, array $module, array $asset, array $metadata): array
+    {
+        $item = [
+            'id' => $asset['media_id'], 'parent_id' => $module['id'],
+            'title' => $metadata['title'], 'subtitle' => $asset['mime'],
+            'filename' => $asset['filename'], 'mime' => $asset['mime'], 'bytes' => (int) $asset['bytes'],
+            'original_width' => (int) $asset['width'], 'original_height' => (int) $asset['height'],
+            'version' => (int) $asset['version'], 'revision' => (int) $asset['revision'],
+            'rotation' => (int) $asset['rotation'], 'state' => $asset['state'],
+            'created_at' => str_replace(' ', 'T', $asset['created_at']) . 'Z',
+            'updated_at' => str_replace(' ', 'T', $asset['updated_at']) . 'Z',
+            'variants' => [],
+        ];
+        foreach ($module['fields'] ?? [] as $field) {
+            if (array_key_exists($field['id'], $metadata)) {
+                $item[$field['id']] = $metadata[$field['id']];
+            }
+        }
+        foreach ($this->variantRows($siteId, $asset['media_id'], (int) $asset['version']) as $variant) {
+            $url = $this->url($siteId, $variant['public_token']);
+            $item[$variant['kind'] === 'thumb' ? 'thumb' : 'path'] = $url;
+            $item['variants'][$variant['kind']] = [
+                'url' => $url, 'mime' => 'image/webp',
+                'width' => (int) $variant['width'], 'height' => (int) $variant['height'],
+                'bytes' => (int) $variant['bytes'],
+            ];
+        }
+        return $item;
+    }
+
+    private static function dateBoundary(string $value, bool $exclusiveEnd): ?string
+    {
+        if ($value === '') {
+            return null;
+        }
+        $date = \DateTimeImmutable::createFromFormat('!Y-m-d', $value, new \DateTimeZone('UTC'));
+        $errors = \DateTimeImmutable::getLastErrors();
+        if ($date === false || ($errors !== false && ($errors['warning_count'] > 0 || $errors['error_count'] > 0))
+            || $date->format('Y-m-d') !== $value) {
+            throw new \InvalidArgumentException('Invalid media date filter.');
+        }
+        if ($exclusiveEnd) {
+            $date = $date->modify('+1 day');
+        }
+        return $date->format('Y-m-d H:i:s');
     }
 
     /** Public projection deliberately contains URLs only, no original keys or metadata. */

@@ -57,6 +57,7 @@ final readonly class PdoSiteReadModel implements SiteReadModel
                 $upload = $this->store->actorHasPermission($actor->siteId, $actor->actorId, 'media.upload');
                 $writable = ($module['writable'] ?? false) === true;
                 $module['writable'] = $writable && ($update || $delete || $upload);
+                $module['options']['allow_update'] = $writable && $update;
                 $module['options']['allow_rotate'] = $writable && $update && ($module['options']['allow_rotate'] ?? false);
                 $module['options']['allow_delete'] = $writable && $delete && ($module['options']['allow_delete'] ?? false);
                 if (is_array($module['media'] ?? null)) $module['media']['upload_enabled'] = $writable && $upload && ($module['media']['upload_enabled'] ?? false);
