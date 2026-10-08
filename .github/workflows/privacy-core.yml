@@ -12,9 +12,11 @@ on:
       - 'src/Storage/PdoCmsStore.php'
       - 'public/media.php'
       - 'public/index.php'
+      - 'public/admin/media-library/**'
       - 'database/migrations/007_media.sql'
       - 'database/migrations/008_media_revision.sql'
       - 'tests/media*'
+      - 'tests/media-web-ui.js'
       - 'bin/*media*.php'
       - 'src/Navigation/**'
       - 'src/Front/PdoPublicNavigationSource.php'
@@ -104,6 +106,11 @@ jobs:
         run: php tests/privacy-wordpress-import-pdo-run.php
       - name: Media PDO and multipart contracts
         run: php tests/media-pdo-run.php
+      - name: Media web interface contracts
+        run: |
+          node --check public/admin/media-library/media-library-core.js
+          node --check public/admin/media-library/media-library.js
+          node tests/media-web-ui.js
       - name: Verify migrations are idempotent
         run: php bin/migrate.php
 

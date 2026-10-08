@@ -1,0 +1,64 @@
+# Interface web de la médiathèque
+
+## Accès
+
+L’interface légère est servie depuis `public/admin/media-library/`. Elle utilise exclusivement l’API MMW v1 du même déploiement et n’embarque aucun compte, mot de passe ou jeton partagé.
+
+Le navigateur essaie d’abord un jeton appareil conservé uniquement dans `sessionStorage`. Sans session valide, il propose les méthodes déjà prévues par le protocole : identifiant/mot de passe avec TOTP, ou code d’association. Si le site n’a pas encore configuré son `IdentityProvider`, l’API répond 503 et l’interface reste fermée.
+
+Le mot de passe et le code TOTP ne sont jamais persistés. Le jeton appareil n’est jamais placé dans l’URL.
+
+## Bibliothèque
+
+L’écran propose deux présentations, grille et liste, utilisables au clavier. La recherche et les filtres sont appliqués par le serveur sur l’ensemble de la bibliothèque :
+
+- recherche dans titre, nom de fichier, description alternative et crédit ;
+- format JPEG, PNG ou WebP ;
+- usage `used` / `unused` lorsque l’acteur possède aussi `content.read_draft` ;
+- description alternative manquante ou présente ;
+- plage de dates UTC ;
+- taille minimale et maximale ;
+- tri global par date, taille ou titre, ascendant ou descendant ;
+- pagination avec total et indication `has_more`.
+
+`GET /v1/media` accepte en plus le filtre exact `id`, utilisé uniquement pour relire un asset après un conflit de révision. Le snapshot MMW reste inchangé et limité à ses 100 premiers éléments.
+
+## Édition
+
+Le panneau d’édition affiche les mesures techniques en lecture seule et ne rend modifiables que les champs déclarés dans `module.fields`. La configuration expose explicitement `options.allow_update`, `allow_rotate` et `allow_delete`; un bouton non autorisé n’est pas présenté.
+
+Chaque sauvegarde, rotation et suppression envoyée par cette interface contient `expected_revision`. Après HTTP 409 `conflict`, les champs saisis restent en place. L’interface relit la version serveur et demande explicitement de choisir entre :
+
+- adopter les valeurs du serveur ;
+- conserver les saisies locales sur la nouvelle révision puis enregistrer manuellement.
+
+Aucun retry automatique ne remplace la révision attendue. Une nouvelle décision utilisateur emploie un nouvel identifiant de requête. En cas de panne réseau où le résultat est inconnu, le même identifiant est conservé pour rendre le retry idempotent.
+
+`media_in_use` est présenté séparément d’un conflit de concurrence : le serveur ne divulgue toujours aucun titre ou identifiant de contenu privé.
+
+## Ajout d’image
+
+Le fichier est choisi avant l’affichage des métadonnées. L’interface applique les limites MIME/taille annoncées dans `module.media`, puis affiche uniquement les champs définis par `module.media.fields`.
+
+L’envoi utilise `POST /v1/media` en multipart avec progression visible. Les valeurs saisies et l’identifiant idempotent sont conservés après une panne réseau ou une erreur serveur indéterminée. Ils ne sont effacés qu’après réussite ou après une nouvelle décision de l’utilisateur.
+
+Les médias ne sont jamais mis en file hors connexion.
+
+## Accessibilité
+
+- structure HTML sémantique et lien d’évitement ;
+- focus visible ;
+- cartes actionnables par bouton natif ;
+- modales basées sur `<dialog>` avec fermeture clavier native et retour de focus explicite ;
+- messages d’état dans des régions `aria-live` ;
+- libellés associés aux champs ;
+- interface responsive téléphone/ordinateur ;
+- réduction des animations avec `prefers-reduced-motion`.
+
+Les vignettes de la bibliothèque sont décoratives dans leur carte, car le titre de l’asset est déjà annoncé par le bouton.
+
+## Vérifications automatiques
+
+`tests/media-web-ui.js` vérifie le client API et les transitions de conflit. La CI exécute également `node --check` sur les deux fichiers JavaScript. Les contrats MariaDB restent dans `tests/media-pdo-run.php`, y compris tri global, filtres, pagination, relecture exacte et capacité `allow_update`.
+
+Les tests automatisés ne remplacent pas la vérification finale sur l’hébergement réel : navigateur téléphone/ordinateur, clavier, focus de modale, PHP/GD/WebP, stockage privé et configuration d’identité.

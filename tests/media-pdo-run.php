@@ -149,7 +149,64 @@ try {
     $change = new Request('POST','/v1/changes',['x-lepotager-protocol'=>'1','content-type'=>'application/json'],json_encode(['module_id'=>'media_library','action'=>'rotate_left','client_request_id'=>'http-change-001','payload'=>['item_id'=>$pid,'parent_id'=>'media_library']]));
     mc($kernel->handle($change)->status === 200, 'HTTP changes route delegates.');
     $get = new Request('GET','/v1/media',['x-lepotager-protocol'=>'1'],'', query:['module_id'=>'media_library','query'=>'Jardin','limit'=>'1']);
-    mc(count($kernel->handle($get)->payload['items']) === 1, 'HTTP search route.');
+    $searchResponse = $kernel->handle($get);
+    mc(count($searchResponse->payload['items']) === 1 && $searchResponse->payload['total'] === 1
+        && $searchResponse->payload['has_more'] === false, 'HTTP search route exposes pagination metadata.');
+
+    $path2 = $root . '/input-large.png';
+    $im2 = imagecreatetruecolor(120, 80);
+    imagefilledrectangle($im2, 0, 0, 119, 79, imagecolorallocate($im2, 100, 40, 180));
+    imagepng($im2, $path2);
+    $file2 = new UploadedFile($path2, 'atelier.png');
+    $fields2 = ['module_id' => 'media_library', 'item_id' => 'media_library', 'client_request_id' => 'http-upload-002',
+        'metadata' => '{"alt":"","title":"Atelier","credit":""}'];
+    $second = $service->upload($actor, $fields2, $file2);
+    $secondId = $second['result']['id'];
+
+    $sorted = $kernel->handle(new Request('GET','/v1/media',['x-lepotager-protocol'=>'1'],'', query:[
+        'module_id'=>'media_library','sort'=>'title','direction'=>'asc','limit'=>'1','offset'=>'0'
+    ]));
+    mc($sorted->status === 200 && $sorted->payload['total'] === 2 && $sorted->payload['has_more'] === true
+        && $sorted->payload['items'][0]['title'] === 'Atelier', 'Server sorts the complete library before pagination.');
+    $nextPage = $kernel->handle(new Request('GET','/v1/media',['x-lepotager-protocol'=>'1'],'', query:[
+        'module_id'=>'media_library','sort'=>'title','direction'=>'asc','limit'=>'1','offset'=>'1'
+    ]));
+    mc($nextPage->payload['items'][0]['title'] === 'Jardin' && $nextPage->payload['has_more'] === false,
+        'Server pagination traverses the sorted result set.');
+
+    $missingAlt = $kernel->handle(new Request('GET','/v1/media',['x-lepotager-protocol'=>'1'],'', query:[
+        'module_id'=>'media_library','alt'=>'missing','limit'=>'100'
+    ]));
+    mc($missingAlt->payload['total'] === 1 && $missingAlt->payload['items'][0]['id'] === $secondId,
+        'Missing-alt filter is server-side.');
+
+    $exact = $kernel->handle(new Request('GET','/v1/media',['x-lepotager-protocol'=>'1'],'', query:[
+        'module_id'=>'media_library','id'=>$pid,'limit'=>'1'
+    ]));
+    mc($exact->payload['total'] === 1 && $exact->payload['items'][0]['id'] === $pid,
+        'Exact asset reload supports conflict resolution.');
+
+    $all = $service->search($actor, $module, ['sort'=>'size','direction'=>'asc','limit'=>100]);
+    $smallBytes = min(array_column($all['items'], 'bytes'));
+    $largeBytes = max(array_column($all['items'], 'bytes'));
+    $sizeFiltered = $service->search($actor, $module, ['min_bytes'=>$largeBytes, 'max_bytes'=>$largeBytes, 'limit'=>100]);
+    mc($sizeFiltered['total'] >= 1 && count(array_filter($sizeFiltered['items'], static fn (array $candidate): bool =>
+        $candidate['bytes'] !== $largeBytes)) === 0, 'Size filters are applied before pagination.');
+
+    $date = substr($all['items'][0]['created_at'], 0, 10);
+    mc($service->search($actor, $module, ['created_from'=>$date, 'created_to'=>$date, 'limit'=>100])['total'] === 2,
+        'Inclusive date filters cover the selected UTC day.');
+
+    $invalidSort = $kernel->handle(new Request('GET','/v1/media',['x-lepotager-protocol'=>'1'],'', query:[
+        'module_id'=>'media_library','sort'=>'filename'
+    ]));
+    mc($invalidSort->status === 422, 'Unknown media sort is rejected.');
+
+    $config = $read->configuration($actor);
+    $mediaConfig = array_values(array_filter($config['modules'], static fn (array $candidate): bool =>
+        $candidate['kind'] === 'media_library'))[0];
+    mc(($mediaConfig['options']['allow_update'] ?? null) === true, 'Web UI receives explicit media update capability.');
+
     echo "Media MariaDB lifecycle, isolation, permissions and HTTP contracts passed.\n";
 } finally {
     foreach (glob($root . '/*') ?: [] as $path) { if (is_file($path)) unlink($path); elseif (is_dir($path)) rmdir($path); }

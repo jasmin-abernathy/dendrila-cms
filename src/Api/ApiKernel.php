@@ -39,14 +39,16 @@ final class ApiKernel
             $id = $filters['module_id'] ?? '';
             if (!is_string($id)) throw new \InvalidArgumentException('Invalid module_id.');
             unset($filters['module_id']);
-            if (array_diff(array_keys($filters), ['query', 'mime', 'usage', 'limit', 'offset']) !== []) throw new \InvalidArgumentException('Invalid filters.');
-            foreach (['limit', 'offset'] as $key) {
+            $allowed = ['id', 'query', 'mime', 'usage', 'limit', 'offset', 'created_from', 'created_to',
+                'min_bytes', 'max_bytes', 'alt', 'sort', 'direction'];
+            if (array_diff(array_keys($filters), $allowed) !== []) throw new \InvalidArgumentException('Invalid filters.');
+            foreach (['limit', 'offset', 'min_bytes', 'max_bytes'] as $key) {
                 if (isset($filters[$key])) {
-                    if (!is_string($filters[$key]) || !ctype_digit($filters[$key])) throw new \InvalidArgumentException('Invalid pagination.');
+                    if (!is_string($filters[$key]) || !ctype_digit($filters[$key])) throw new \InvalidArgumentException('Invalid numeric filter.');
                     $filters[$key] = (int) $filters[$key];
                 }
             }
-            return Response::json(['items' => $this->media->items($actor, $this->media->module($actor, $id), $filters)]);
+            return Response::json($this->media->search($actor, $this->media->module($actor, $id), $filters));
         });
         $this->router->add('GET', '/v1/config', fn (Request $request): Response =>
             Response::json($this->readModel->configuration($this->authenticator->authenticate($request))));
