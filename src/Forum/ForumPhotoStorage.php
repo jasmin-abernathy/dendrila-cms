@@ -17,7 +17,8 @@ final readonly class ForumPhotoStorage
         }
         $real = realpath($directory);
         if ($real === false) { throw new \RuntimeException('Dossier photo inaccessible.'); }
-        $docRoot = realpath((string) ($_SERVER['DOCUMENT_ROOT'] ?? ''));
+        $configuredRoot = (string) ($_SERVER['DOCUMENT_ROOT'] ?? '');
+        $docRoot = $configuredRoot !== '' ? realpath($configuredRoot) : false;
         if ($docRoot !== false && ($real === $docRoot || str_starts_with($real, $docRoot . '/'))) {
             throw new \InvalidArgumentException('Le dossier photo ne peut pas être dans le webroot.');
         }

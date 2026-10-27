@@ -58,7 +58,7 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.5'
-          extensions: mbstring, pdo_mysql
+          extensions: mbstring, pdo_mysql, gd
           tools: composer:v2
           coverage: none
           ini-values: error_reporting=E_ALL, display_errors=On
@@ -84,6 +84,8 @@ jobs:
         run: php tests/navigation-pdo-run.php
       - name: SEO PDO contract
         run: php tests/seo-pdo-run.php
+      - name: Forum PDO and photo checks
+        run: php tests/forum-pdo-run.php
       - name: Bootstrap WordPress import test site
         run: php bin/bootstrap-site.php site-import "Imported Privacy" owner-import false
       - name: Import WordPress Dendrila Privacy twice
