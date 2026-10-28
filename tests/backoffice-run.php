@@ -176,6 +176,15 @@ backofficeCheck($extended->handle('GET',['section'=>'utilisateurs'])->status===2
     && !str_contains($extended->handle('GET',['section'=>'utilisateurs'])->body,'Envoyer l’invitation'),
     'Read-only actors cannot create users.');
 $identity->actor=$owner;
+$textFields=(new CoreData($store,$navigation))->textFields($owner);
+backofficeCheck(!in_array('slug',array_column($textFields,'id'),true),
+    'Technical URL and slug fields must stay outside the ordinary text editor.');
+$unsafePathEdit=$controller->handle('POST',[],[
+    'action'=>'save_page','csrf'=>$csrfToken,'page_id'=>$id,'version'=>'2',
+    'fields'=>['slug'=>'broken-link'],
+]);
+backofficeCheck($unsafePathEdit->status===422,
+    'A forged form cannot mutate technical page URLs.');
 $otherConfig=new Config(siteId:$site,siteName:'BMH Rénovation',
     basePath:'/espace-client/',assetsPath:'/espace-client/assets',
     primaryColor:'#e2741f',iconUrl:'/assets/icons/apple-touch-icon.png',
