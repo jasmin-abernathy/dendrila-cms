@@ -73,6 +73,7 @@ final readonly class CoreData
             if(!in_array($field['type']??'',['text','multiline','rich_text'],true))continue;
             // Pas de saisie de code ou de champs système depuis cette interface.
             if (!preg_match('/^[a-z][a-z0-9_]*$/D',(string)($field['id']??'')))continue;
+            if (in_array($field['id'], ['slug','url','path'], true)) continue;
             $fields[]=['id'=>$field['id'],'label'=>(string)($field['label']??$field['id']),
                 'type'=>$field['type'],'required'=>(bool)($field['required']??false)];
         }
