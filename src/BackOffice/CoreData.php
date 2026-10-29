@@ -130,6 +130,22 @@ final readonly class CoreData
         return (string)$created['content']['id'];
     }
 
+    /** @param list<string> $ids */
+    public function saveGalleryPhotos(ActorContext $actor,string $id,int $version,array $ids): void
+    {
+        $page=$this->page($actor,$id);
+        $blocks=$page['values']['blocks']??null;
+        if(!is_array($blocks) || ($blocks[0]['type']??null)!=='gallery')
+            throw new \DomainException('Cette page n’est pas une galerie.');
+        if(count($ids)>60 || count(array_unique($ids))!==count($ids) ||
+            count(array_filter($ids,static fn(mixed $v):bool=>
+                is_string($v)&&preg_match('/^[A-Za-z0-9_-]{1,128}$/D',$v)===1))!==count($ids))
+            throw new \InvalidArgumentException('Liste de photographies invalide.');
+        $values=$page['values'];
+        $values['blocks'][0]['media_ids']=$ids;
+        $this->content->updateDraft($actor,$id,$version,$values,bin2hex(random_bytes(16)));
+    }
+
     /** @return list<array<string,mixed>> */
     public function menus(ActorContext $actor): array
     {
