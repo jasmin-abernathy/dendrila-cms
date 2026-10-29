@@ -97,3 +97,19 @@ du module sur un domaine client. Ces fonctions sont prévues derrière des
 
 **Aucune bascule de domaine, aucune mutation des bases clients n'est lancée
 par cette branche.**
+
+## Créer une page et choisir son modèle
+
+L'onglet **Textes** propose **Nouvelle page** aux comptes qui possèdent
+`content.create`. Trois modèles de départ sont proposés : présentation classique,
+galerie photographique (bloc natif `gallery`) et page libre. Le titre et
+l'adresse courte sont demandés ; la page est créée en **brouillon** via
+`ContentService::createDraft`, sans publication ni création automatique
+ d'un lien de menu. Les modifications et publications existantes gardent
+leurs permissions, leur CSRF et leurs versions.
+
+Pour une galerie, lorsque le site fournit un `MediaPort`, le back-office
+permet de sélectionner ses photos existantes et enregistre leurs identifiants
+dans le bloc `gallery`. Sans port média, aucune association fictive n'est
+proposée : la page reste en brouillon jusqu'au raccordement du site.
+Le rendu public reste du ressort du front Dendrila déjà installé.
