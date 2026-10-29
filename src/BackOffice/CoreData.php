@@ -96,6 +96,40 @@ final readonly class CoreData
         $this->content->transition($actor,$id,'published',$version,bin2hex(random_bytes(16)));
     }
 
+    /**
+     * Crée une page éditoriale, avec un modèle de départ adapté.
+     * Les métadonnées sont validées par ContentService et son schéma de site.
+     * @return string Identifiant interne du brouillon.
+     */
+    public function createPage(ActorContext $actor,string $template,string $title,string $slug): string
+    {
+        $this->authorization->require($actor,'content.create');
+        if(!in_array($template,['presentation','gallery','free'],true))
+            throw new \InvalidArgumentException('Type de page non reconnu.');
+        $title=trim($title);
+        $slug=trim($slug);
+        if($title==='' || mb_strlen($title)>240 ||
+           !preg_match('/^[a-z0-9](?:[a-z0-9-]{0,78}[a-z0-9])?$/D',$slug) ||
+           in_array($slug,['admin','api','assets','forum','galeries','pages','actualites'],true))
+            throw new \InvalidArgumentException('Titre ou adresse invalide.');
+        if($this->store->findContentType($actor->siteId,'page')===null)
+            throw new \DomainException('Ce site ne propose pas de pages.');
+        // Ne pas écraser une page existante, publiée ou en brouillon.
+        foreach($this->content->list($actor,['type'=>'page','limit'=>100]) as $existing) {
+            if(($existing['slug']??null)===$slug)
+                throw new \DomainException('Cette adresse est déjà utilisée.');
+        }
+        $blocks=match($template) {
+            'presentation'=>[['type'=>'text','text'=>'']],
+            'gallery'=>[['type'=>'gallery','media_ids'=>[]]],
+            'free'=>[],
+        };
+        $created=$this->content->createDraft($actor,'page',[
+            'title'=>$title,'slug'=>$slug,'blocks'=>$blocks,
+        ],bin2hex(random_bytes(16)));
+        return (string)$created['content']['id'];
+    }
+
     /** @return list<array<string,mixed>> */
     public function menus(ActorContext $actor): array
     {
