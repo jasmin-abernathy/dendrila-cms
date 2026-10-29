@@ -103,6 +103,35 @@ $unknown=$controller->handle('POST',[],[
     'action'=>'save_page','csrf'=>$csrfToken,'page_id'=>$id,'version'=>'2','fields'=>['unknown'=>'x'],
 ]);
 backofficeCheck($unknown->status===422,'Undeclared CMS fields must be rejected.');
+$createScreen=$controller->handle('GET',['section'=>'textes']);
+backofficeCheck(str_contains($createScreen->body,'Nouvelle page') &&
+    str_contains($createScreen->body,'value="gallery"') &&
+    str_contains($createScreen->body,'value="free"'),
+    'Page creation offers classic, gallery, and free templates.');
+$createGallery=$controller->handle('POST',[],[
+    'action'=>'create_page','csrf'=>$csrfToken,'template'=>'gallery',
+    'title'=>'Nos nouvelles photographies','slug'=>'nouvelles-photographies',
+]);
+backofficeCheck($createGallery->status===303 &&
+    str_contains($createGallery->headers['Location']??'','created=1'),
+    'Creating a gallery draft redirects to the editor.');
+$createdGalleryId=(string)($store->contents[$site] ? array_key_last($store->contents[$site]) : '');
+$galleryItems=$contents->list($owner,['type'=>'page']);
+$gallery=array_values(array_filter($galleryItems,static fn(array $p):bool=>
+    ($p['slug']??null)==='nouvelles-photographies'));
+backofficeCheck(count($gallery)===1 && $gallery[0]['status']==='draft' &&
+    ($gallery[0]['values']['blocks'][0]['type']??'')==='gallery',
+    'Gallery template must create a private page with a native gallery block.');
+$dupGallery=$controller->handle('POST',[],[
+    'action'=>'create_page','csrf'=>$csrfToken,'template'=>'gallery',
+    'title'=>'Doublon','slug'=>'nouvelles-photographies',
+]);
+backofficeCheck($dupGallery->status===422,'Duplicate slugs must be rejected.');
+$unknownType=$controller->handle('POST',[],[
+    'action'=>'create_page','csrf'=>$csrfToken,'template'=>'external',
+    'title'=>'Invalide','slug'=>'invalide',
+]);
+backofficeCheck($unknownType->status===422,'Unknown types must be rejected.');
 $menu=$controller->handle('GET',['section'=>'menu']);
 backofficeCheck($menu->status===200 && str_contains($menu->body,'data-sortable')
     && !str_contains($menu->body,'Position 10'),'Menu must be a draggable list without numeric positions.');
