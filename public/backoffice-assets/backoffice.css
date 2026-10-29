@@ -45,3 +45,6 @@ small,.field small{color:var(--muted);font-size:.8rem}.chooser{display:grid;gap:
 .metric-grid .metric:last-child{grid-column:1/-1}.media-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.panel{padding:1rem}
 .action-grid{grid-template-columns:1fr}.back-link{font-size:.8rem}}
 @media(max-width:400px){.media-grid{grid-template-columns:1fr}.site-name{font-size:1.1rem}.sort-line{gap:.4rem}}
+
+.new-page-summary{cursor:pointer;font-weight:700;color:var(--admin-accent);padding:.5rem 0;min-height:44px;display:list-item}
+.new-page-summary:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
