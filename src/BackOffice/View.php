@@ -212,6 +212,44 @@ final readonly class View
     <?php if(count($fields)===0): ?><p class="quiet">Cette page possède des champs structurés qui nécessitent un éditeur de blocs.</p><?php endif ?>
     <?php if($canEdit && $fields!==[]): ?><button class="button" type="submit">Enregistrer le brouillon</button><?php endif ?>
    </form>
+   <?php if(($page['values']['blocks'][0]['type']??null)==='gallery'): ?>
+     <div class="editor-divider"></div>
+     <h2>Photographies de cette galerie</h2>
+     <?php if($this->media && $this->core->can($actor,'media.read')): ?>
+       <?php $availablePhotos=$this->media->list($actor); ?>
+       <?php if($availablePhotos===[]): ?>
+        <p class="quiet">La photothèque est vide. Ajoutez d’abord des photographies dans l’onglet Photos.</p>
+       <?php else: ?>
+        <form method="post" action="<?=self::h($this->config->basePath)?>">
+         <input type="hidden" name="csrf" value="<?=self::h($this->csrf)?>">
+         <input type="hidden" name="action" value="save_gallery_photos">
+         <input type="hidden" name="page_id" value="<?=self::h($page['content_id'])?>">
+         <input type="hidden" name="version" value="<?=self::h($page['version'])?>">
+         <p class="quiet">Choisissez les images qui doivent apparaître dans cette galerie. Elles doivent déjà être dans la photothèque.</p>
+         <div class="gallery-photo-choices">
+         <?php foreach($availablePhotos as $photo):
+           $mediaId=(string)($photo['id']??'');
+           if($mediaId==='')continue;
+         ?>
+          <label class="gallery-photo-choice">
+           <input type="checkbox" name="media_ids[]" value="<?=self::h($mediaId)?>"
+             <?=in_array($mediaId,$page['values']['blocks'][0]['media_ids']??[],true)?'checked':''?>
+             <?=!$canEdit?'disabled':''?>>
+           <?php if(is_string($photo['preview_url']??null) &&
+             (str_starts_with($photo['preview_url'],'/') || str_starts_with($photo['preview_url'],'https://'))): ?>
+             <img loading="lazy" src="<?=self::h($photo['preview_url'])?>" alt="<?=self::h($photo['alt']??'')?>">
+           <?php endif ?>
+           <span><?=self::h($photo['title']??'Photographie')?></span>
+          </label>
+         <?php endforeach ?>
+         </div>
+         <?php if($canEdit): ?><button type="submit" class="button">Enregistrer la sélection des photos</button><?php endif ?>
+        </form>
+       <?php endif ?>
+     <?php else: ?>
+       <p class="quiet">Cette galerie attend le raccordement de la photothèque du site.</p>
+     <?php endif ?>
+   <?php endif ?>
    <?php if($this->core->can($actor,'content.publish') && $page['status']==='draft'): ?>
     <form method="post" action="<?=self::h($this->config->basePath)?>" class="publish-form" data-publish-form>
      <input type="hidden" name="csrf" value="<?=self::h($this->csrf)?>">
