@@ -147,6 +147,32 @@ final readonly class View
         ob_start();?>
  <p class="eyebrow">Édition</p><h1>Modifier les textes</h1>
  <p class="intro">Choisissez une page : son éditeur s’ouvre automatiquement.</p>
+ <?php if($this->core->can($actor,'content.create')): ?>
+ <details class="panel" data-create-page>
+  <summary class="new-page-summary">+ Nouvelle page</summary>
+  <form method="post" action="<?=self::h($this->config->basePath)?>">
+   <input type="hidden" name="csrf" value="<?=self::h($this->csrf)?>">
+   <input type="hidden" name="action" value="create_page">
+   <div class="field"><label for="create-template">Type de page</label>
+    <select id="create-template" name="template" required>
+     <option value="presentation">Présentation classique</option>
+     <option value="gallery">Galerie photos</option>
+     <option value="free">Autre : page libre</option>
+    </select>
+   </div>
+   <div class="field"><label for="create-title">Titre</label>
+    <input id="create-title" name="title" maxlength="240" required>
+   </div>
+   <div class="field"><label for="create-slug">Adresse courte</label>
+    <input id="create-slug" name="slug" maxlength="80" pattern="[a-z0-9]+(-[a-z0-9]+)*" placeholder="exemple-de-page" required>
+    <small>Minuscules, chiffres et tirets uniquement. L’adresse ne doit pas être déjà utilisée.</small>
+   </div>
+   <button class="button" type="submit">Créer le brouillon</button>
+   <p class="quiet">La page reste privée jusqu’à sa publication. La galerie sera remplie depuis la photothèque du site.</p>
+  </form>
+ </details>
+ <?php endif ?>
+ <?php if(($query['created']??null)==='1'): ?><p class="notice" role="status">Nouvelle page créée en brouillon. Vous pouvez maintenant la modifier.</p><?php endif ?>
  <div class="panel">
   <form class="chooser" method="get" action="<?=self::h($this->config->basePath)?>" data-page-chooser>
    <input type="hidden" name="section" value="textes">
