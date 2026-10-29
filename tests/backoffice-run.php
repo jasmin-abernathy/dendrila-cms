@@ -186,6 +186,25 @@ backofficeCheck($mediaPage->status===200
     && str_contains($mediaPage->body,'Photo &amp; rénovation')
     && !str_contains($mediaPage->body,'Adresse de l’image'),
     'Optional photo port displays a usable library without technical URLs.');
+$galleryId=$gallery[0]['content_id'];
+$galleryView=$extended->handle('GET',['section'=>'textes','page'=>$galleryId]);
+backofficeCheck(str_contains($galleryView->body,'Enregistrer la sélection des photos') &&
+    str_contains($galleryView->body,'photo-1'),
+    'A gallery can select photos from a connected native media port.');
+$gallerySave=$extended->handle('POST',[],[
+    'action'=>'save_gallery_photos','csrf'=>$csrfToken,'page_id'=>$galleryId,
+    'version'=>'1','media_ids'=>['photo-1'],
+]);
+backofficeCheck($gallerySave->status===303 &&
+    $contents->get($owner,$galleryId)['values']['blocks'][0]['media_ids']===['photo-1'],
+    'Selected photos are persisted in the native gallery block.');
+$badPhoto=$extended->handle('POST',[],[
+    'action'=>'save_gallery_photos','csrf'=>$csrfToken,'page_id'=>$galleryId,
+    'version'=>'2','media_ids'=>['foreign-photo'],
+]);
+backofficeCheck($badPhoto->status===422 &&
+    $contents->get($owner,$galleryId)['version']===2,
+    'Unknown photos cannot be linked to a gallery.');
 $usersPage=$extended->handle('GET',['section'=>'utilisateurs']);
 backofficeCheck($usersPage->status===200 && str_contains($usersPage->body,'Envoyer l’invitation'),
     'Optional user port can display invitation flow.');
