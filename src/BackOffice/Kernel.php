@@ -122,6 +122,13 @@ final readonly class Kernel
             }
             return ['section'=>'textes','params'=>['page'=>$id,'saved'=>'1']];
         }
+        if($action==='create_page') {
+            $template=self::scalar($post,'template',30);
+            $title=self::scalar($post,'title',240);
+            $slug=self::scalar($post,'slug',80);
+            $id=$this->core->createPage($actor,$template,$title,$slug);
+            return ['section'=>'textes','params'=>['page'=>$id,'created'=>'1']];
+        }
         if($action==='save_menu') {
             $id=self::scalar($post,'menu_id',64);
             $version=self::positiveInt($post,'version');
