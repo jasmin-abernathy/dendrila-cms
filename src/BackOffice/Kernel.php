@@ -129,6 +129,20 @@ final readonly class Kernel
             $id=$this->core->createPage($actor,$template,$title,$slug);
             return ['section'=>'textes','params'=>['page'=>$id,'created'=>'1']];
         }
+        if($action==='save_gallery_photos') {
+            if(!$this->media || !$this->core->can($actor,'media.read'))throw new AccessDenied();
+            $id=self::scalar($post,'page_id',128);
+            $version=self::positiveInt($post,'version');
+            $selected=$post['media_ids']??[];
+            if(!is_array($selected) || !array_is_list($selected) ||
+                count($selected)>60 || count(array_filter($selected,'is_string'))!==count($selected))
+                throw new \InvalidArgumentException('Sélection de médias invalide.');
+            $valid=array_column($this->media->list($actor),'id');
+            if(array_diff($selected,$valid)!==[])
+                throw new \InvalidArgumentException('Une photographie n’appartient pas à cette photothèque.');
+            $this->core->saveGalleryPhotos($actor,$id,$version,$selected);
+            return ['section'=>'textes','params'=>['page'=>$id,'saved'=>'1']];
+        }
         if($action==='save_menu') {
             $id=self::scalar($post,'menu_id',64);
             $version=self::positiveInt($post,'version');
