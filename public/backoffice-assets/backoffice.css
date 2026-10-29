@@ -48,3 +48,8 @@ small,.field small{color:var(--muted);font-size:.8rem}.chooser{display:grid;gap:
 
 .new-page-summary{cursor:pointer;font-weight:700;color:var(--admin-accent);padding:.5rem 0;min-height:44px;display:list-item}
 .new-page-summary:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+
+.gallery-photo-choices{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,180px),1fr));gap:.8rem;margin:1rem 0}
+.gallery-photo-choice{display:grid;align-content:start;gap:.5rem;padding:.75rem;border:1px solid var(--line);border-radius:9px;cursor:pointer}
+.gallery-photo-choice input{width:auto;min-height:24px;justify-self:start}
+.gallery-photo-choice img{width:100%;height:auto;max-height:160px;object-fit:contain}
