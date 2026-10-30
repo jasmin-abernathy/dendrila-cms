@@ -72,17 +72,30 @@ def run(archive: Path):
             # Validate the actual installation wizard, not only the preview endpoints.
             assert body.count('name="theme"') == 6, "Six selectable themes in the installer"
             assert body.count('class="theme-card__actions"') == 6, "Six theme cards offer links to full HTML previews"
-            assert body.count('mode=empty') == 12, "Six empty thumbnails and six full-size empty views"
-            assert body.count('mode=demo') == 6, "Six richer HTML demo links"
+            assert body.count('mode=empty') == 6, "Six blank-site links only (not thumbnail default)"
+            assert body.count('mode=demo') == 12, "Six rich photo thumbnails plus six full-page demo links"
             for style in ("simple-illustrated", "quiet-elegant", "image-forward",
                           "ultra-minimal", "graphic-rhythm", "editorial"):
                 for mode in ("empty", "demo"):
                     status, html = get(opener, "/theme-preview.php?theme=" + style + "&mode=" + mode)
                     assert status == 200, (style, mode, status)
                     assert "data-dendrila-theme=" in html
-                    assert "Bienvenu" in html if mode == "empty" else "Des idées qui prennent vie" in html, (style, mode)
+                    assert ("Bienvenue sur notre site." in html if mode == "empty" else "Des idées qui prennent vie" in html), (style, mode)
                     if mode == "empty":
                         assert 'class="d-gallery"' not in html and 'class="d-card-grid"' not in html
+                        assert "/assets/install-demo/" not in html
+                    else:
+                        assert "Lorem ipsum" in html and 'class="d-card-grid"' in html
+                        assert html.count("/assets/install-demo/") >= 7, "Preview must show photos in hero, cards and gallery"
+            # Same-domain images must be present in the extracted installation ZIP:
+            # no Wikimedia/browser tracking, no network dependency during previews.
+            for name in ("mountains", "forest", "architecture", "flowers"):
+                image_path = root / "public" / "assets" / "install-demo" / (name + ".webp")
+                assert image_path.is_file() and image_path.stat().st_size > 1024
+                with opener.open(BASE + "/assets/install-demo/" + name + ".webp", timeout=5) as response:
+                    body_bytes = response.read()
+                    assert response.status == 200 and body_bytes[:4] == b"RIFF"
+                    assert body_bytes[8:12] == b"WEBP"
             try:
                 get(opener, "/theme-preview.php?theme=editorial&mode=unknown")
             except HTTPError as e:
