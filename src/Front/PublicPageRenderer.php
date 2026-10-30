@@ -121,6 +121,7 @@ final readonly class PublicPageRenderer
             . '<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
             . $this->seoHead->render($site, $page, $seo)
             . '<link rel="stylesheet" href="' . self::escape($themeCssUrl) . '">'
+            . (isset($presentation['support_css_url']) ? '<link rel="stylesheet" href="'.self::escape(self::safeAssetUrl($presentation['support_css_url'])).'">' : '')
             . '<style data-dendrila-presentation>' . $compiledCss . '</style>'
             . '</head><body ' . $attributes . '>'
             . '<a class="d-skip-link" href="#contenu">' . ($language === 'en' ? 'Skip to content' : 'Aller au contenu') . '</a>'

@@ -20,6 +20,7 @@ final class Installer
     public static function dsn(array $db):string{return 'mysql:host='.$db['host'].';port='.$db['port'].';dbname='.$db['name'].';charset=utf8mb4';}
     public static function install(array $state,array $account,string $directory):void {
         if(!isset(Catalog::themes()[$state['theme']??'']))throw new \InvalidArgumentException('Thème inconnu.');
+        \Dendrila\Cms\Runtime\Presentation::forTheme($state['theme']);
         $addons=Catalog::selection($state['addons']??[]);
         foreach(Catalog::requirements($addons)['extensions'] as $ext)if(!extension_loaded($ext))throw new \RuntimeException('Extension PHP manquante : '.$ext);
         $name=trim($account['name']??'');$email=strtolower(trim($account['email']??''));$password=$account['password']??'';

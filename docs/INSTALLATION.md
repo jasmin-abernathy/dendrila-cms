@@ -98,3 +98,5 @@ Les galeries ne sont proposées que si la médiathèque est raccordée. Dans une
 5. Vérifier accueil, pages publiées, invisibilité des brouillons, images, TOTP et comptes désactivés avant toute bascule. Ne pas lancer l’assistant d’installation sur cette restauration.
 
 La CI exécute un dump MariaDB et une archive des fichiers privés de test, les restaure dans une autre base et un autre répertoire, puis vérifie ces propriétés. Les archives privées de test ne sont pas publiées comme artifacts.
+
+Les six thèmes exécutables et leurs ressources locales sont inclus dans le dépôt : aucun second checkout n’est nécessaire sur l’hébergement. Les aperçus d’installation et les pages publiques utilisent le même thème. Voir `docs/DESIGN-STYLES.md` pour les correspondances, l’identité de marque et la mise à jour versionnée des thèmes.

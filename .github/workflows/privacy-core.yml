@@ -16,6 +16,8 @@ on:
       - 'database/migrations/**'
       - 'tests/install*'
       - 'tests/restore*'
+      - 'tests/themes*'
+      - 'bin/sync-design-kits.py'
       - 'src/Media/**'
       - 'src/Http/**'
       - 'src/Api/**'

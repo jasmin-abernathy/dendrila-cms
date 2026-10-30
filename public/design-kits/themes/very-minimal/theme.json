@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "id": "very-minimal",
+  "design_style_id": "ultra-minimal",
+  "label": "Très minimal",
+  "version": "0.1.1",
+  "description": "Thème radicalement sobre : hiérarchie typographique forte, lignes fines, très peu de décor et aucune carte superflue.",
+  "entrypoint": "theme.css",
+  "preview": "preview/index.html",
+  "components": [
+    "header",
+    "hero",
+    "section",
+    "card-grid",
+    "media",
+    "gallery",
+    "statistics",
+    "key-values",
+    "faq",
+    "embed",
+    "cta-band",
+    "footer"
+  ],
+  "media_shapes": [
+    "auto",
+    "rounded",
+    "circle",
+    "none"
+  ],
+  "brand_tokens": [
+    "--dendrila-color-bg",
+    "--dendrila-color-surface",
+    "--dendrila-color-text",
+    "--dendrila-color-muted",
+    "--dendrila-color-primary",
+    "--dendrila-color-primary-strong",
+    "--dendrila-color-accent-soft",
+    "--dendrila-color-border",
+    "--dendrila-font-heading",
+    "--dendrila-font-body"
+  ],
+  "accessibility": {
+    "focus_visible": true,
+    "reduced_motion": true,
+    "no_autoplay_media": true
+  },
+  "required_style_tokens": [
+    "--dendrila-content-max",
+    "--dendrila-section-gap",
+    "--dendrila-text-max",
+    "--dendrila-radius",
+    "--dendrila-border-width",
+    "--dendrila-shadow",
+    "--dendrila-heading-scale",
+    "--dendrila-media-emphasis",
+    "--dendrila-accent-strength",
+    "--dendrila-motion-duration"
+  ],
+  "decorative_system": {
+    "no_upload_required": true,
+    "motifs": [
+      "none",
+      "hairline"
+    ],
+    "default_motif": "none",
+    "image_shapes": [
+      "auto",
+      "rounded",
+      "circle",
+      "none"
+    ],
+    "implementation": "theme-owned-css-svg"
+  }
+}

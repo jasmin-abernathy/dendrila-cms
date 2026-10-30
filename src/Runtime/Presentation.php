@@ -1,14 +1,31 @@
 <?php
 declare(strict_types=1);
 namespace Dendrila\Cms\Runtime;
-use Dendrila\Cms\Installation\Catalog;
-use Dendrila\Cms\Design\{DesignStyleDefinition,CssTokenCompiler};
+use Dendrila\Cms\Design\{DesignKitCatalog,PresentationResolver,SiteCompositionDefinition};
 final class Presentation
 {
-    public static function forTheme(string $id):array {
-        $data=Catalog::themes()[$id]??throw new \InvalidArgumentException('Unknown theme.');$style=new DesignStyleDefinition($data);
-        return ['design_kit'=>['id'=>$id],'compiled_css'=>(new CssTokenCompiler())->compile($style),
-            'structure'=>['hero'=>$style->token('layout.hero'),'alignment'=>$style->token('layout.alignment'),'gallery'=>$style->token('media.gallery'),'media_crop'=>$style->token('media.crop'),'full_bleed'=>$style->token('media.full_bleed'),'accent_backgrounds'=>$style->token('accent.backgrounds'),'illustration_frequency'=>$style->token('illustration.frequency'),'illustration_style'=>$style->token('illustration.style'),'heading_style'=>$style->token('typography.heading_style'),'body_style'=>$style->token('typography.body_style')]];
+    /** Resolve the same bundled theme for installation previews, drafts and public pages. */
+    public static function forTheme(string $id, ?array $brand = null): array
+    {
+        $root = dirname(__DIR__, 2);
+        if ($brand === null) {
+            $raw = getenv('DENDRILA_BRAND_JSON') ?: '{}';
+            $brand = json_decode($raw, true, 32, JSON_THROW_ON_ERROR);
+            if (!is_array($brand)) throw new \InvalidArgumentException('Brand must be an object.');
+        }
+        $composition = new SiteCompositionDefinition([
+            'schema_version'=>1, 'functional_kit'=>'native', 'design_style'=>$id,
+            'brand_overrides'=>$brand,
+        ]);
+        if (!is_file($root.'/design-styles/'.$id.'/style.json')) throw new \InvalidArgumentException('Unknown theme.');
+        $presentation = (new PresentationResolver(
+            $root.'/design-styles', new DesignKitCatalog($root.'/public/design-kits/catalog.json')
+        ))->resolve($composition);
+        $theme = $presentation['design_kit'];
+        $presentation['css_url'] = '/design-kits/themes/'.$theme['id'].'/'.$theme['entrypoint']
+            .'?v='.substr(hash_file('sha256', $theme['entrypoint_path']), 0, 16);
+        $presentation['support_css_url'] = '/assets/theme-runtime.css';
+        return $presentation;
     }
     public static function consentFor(array $page):string {
         $providers=[];

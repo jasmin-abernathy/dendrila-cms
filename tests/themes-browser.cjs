@@ -1,0 +1,43 @@
+const fs=require('fs');
+const cp=require('child_process');
+const assert=require('assert');
+module.exports=async function reviewThemes(browser,php){
+ const original=fs.readFileSync('config/local.php');
+ const styles={'simple-illustrated':'simple-illustrated','quiet-elegant':'quiet-elegant','image-forward':'image-centered','ultra-minimal':'very-minimal','graphic-rhythm':'dynamic-graphic',editorial:'editorial'};
+ const page=await browser.newPage();const errors=[];const signatures=new Set();
+ page.on('pageerror',e=>errors.push(e.message));
+ page.on('response',r=>{if(r.status()>=400)errors.push(`${r.status()} ${r.url()}`)});
+ await page.route('https://www.youtube-nocookie.com/**',route=>route.fulfill({body:'Test embed',contentType:'text/html'}));
+ const config=(style,brand={})=>cp.execFileSync(php,['-r',`$c=require 'config/local.php';$c['DENDRILA_THEME']=$argv[1];$c['DENDRILA_BRAND_JSON']=$argv[2];file_put_contents('config/local.php',"<?php\\nreturn ".var_export($c,true).";\\n");`,style,JSON.stringify(brand)]);
+ try{
+  for(const [style,theme] of Object.entries(styles)){
+   config(style);
+   for(const width of [1280,390]){
+    await page.setViewportSize({width,height:900});
+    await page.goto('http://127.0.0.1:8080/theme-preview.php?theme='+style);
+    assert.equal(await page.locator('body').getAttribute('data-dendrila-theme'),theme);
+    const css=await page.locator('link[rel=stylesheet]').first().getAttribute('href');assert(css.startsWith('/design-kits/themes/'+theme+'/theme.css?v='));
+    assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`Theme ${style} fits ${width}px`);
+    for(const img of await page.locator('img').all())await img.scrollIntoViewIfNeeded();
+    await page.locator('img').evaluateAll(images=>Promise.all(images.map(img=>img.decode())));
+    await page.evaluate(()=>scrollTo(0,0));
+    assert(await page.locator('img').evaluateAll(images=>images.every(i=>i.complete&&i.naturalWidth>0)),`Theme ${style} images loaded`);
+    if(width===1280)signatures.add(await page.evaluate(()=>[getComputedStyle(document.body).backgroundColor,getComputedStyle(document.querySelector('h1')).fontFamily,getComputedStyle(document.querySelector('h1')).fontSize].join('|')));
+    await page.screenshot({path:`build/test-artifacts/theme-${style}-${width}.png`,fullPage:true});
+    await page.goto('http://127.0.0.1:8080/');
+    assert.equal(await page.locator('body').getAttribute('data-dendrila-theme'),theme,'Installed site uses the same theme');
+    assert.equal(await page.locator('link[rel=stylesheet]').first().getAttribute('href'),css,'Preview and installed CSS match');
+    await page.emulateMedia({reducedMotion:'reduce'});
+    assert(await page.evaluate(()=>matchMedia('(prefers-reduced-motion: reduce)').matches));
+   }
+  }
+  assert(signatures.size>=5,'Themes have distinct computed visual signatures');
+  config('editorial',{primary:'#204060',body_font:'neutral-sans',logo_url:'https://brand.example/logo.svg'});
+  await page.route('https://brand.example/logo.svg',route=>route.fulfill({body:fs.readFileSync('public/assets/preview.svg'),contentType:'image/svg+xml'}));
+  await page.goto('http://127.0.0.1:8080/theme-preview.php?theme=editorial');
+  assert.equal((await page.evaluate(()=>getComputedStyle(document.body).getPropertyValue('--dendrila-color-primary'))).trim(),'#204060');
+  assert.equal(await page.locator('.d-brand img').getAttribute('src'),'https://brand.example/logo.svg');
+  assert.deepEqual(errors,[]);
+  console.log('Themes browser: six real styles at 1280/390px, local assets, preview/site parity and brand overrides passed.');
+ }finally{fs.writeFileSync('config/local.php',original);await page.close();}
+};

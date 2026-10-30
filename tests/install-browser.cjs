@@ -50,6 +50,7 @@ const php=process.env.PHP_BINARY||'php';
   assert.equal(await guest.locator('iframe').getAttribute('src'),'https://www.youtube-nocookie.com/embed/example');
   assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Collections do not overflow mobile');
   await page.screenshot({path:'build/test-artifacts/admin-mobile.png',fullPage:true});
+  await require('./themes-browser.cjs')(browser,php);
   await page.goto('http://127.0.0.1:8080/forum/');await page.getByLabel('Titre',{exact:true}).fill('Discussion de test');await page.getByLabel('Message',{exact:true}).fill('Message soumis à modération.');await page.getByRole('button',{name:'Envoyer pour validation'}).click();
   await guest.goto('http://127.0.0.1:8080/forum/');assert(!(await guest.textContent('body')).includes('Discussion de test'));
   await page.getByRole('button',{name:'Publier',exact:true}).click();await guest.reload();assert((await guest.textContent('body')).includes('Discussion de test'));

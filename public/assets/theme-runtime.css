@@ -1,0 +1,9 @@
+/* Native renderer integration only; the selected design kit owns the visual design. */
+body[data-dendrila-theme]{margin:0}
+[data-dendrila-theme] .d-header__inner>*{min-width:0}
+[data-dendrila-theme] .d-brand{overflow-wrap:anywhere}
+[data-dendrila-theme] .d-brand img{width:40px;height:40px;object-fit:contain;flex-shrink:0}
+[data-dendrila-theme] .d-nav{flex-wrap:wrap}
+[data-dendrila-theme] .d-hero__grid:not(:has(>.d-hero__media)){grid-template-columns:minmax(0,1fr);min-height:0}
+[data-dendrila-theme] .d-media__image{max-width:100%}
+@media(max-width:38rem){[data-dendrila-theme] .d-header__inner{flex-wrap:wrap}[data-dendrila-theme] .d-nav{max-width:100%}}

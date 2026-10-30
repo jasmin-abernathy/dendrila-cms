@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "repository": "jasmin-abernathy/dendrila-design-kits",
+  "revision": "9f3ddcf5c8ca15cf3a6855807b9138acb01747cd",
+  "files": {
+    "catalog.json": "40987f36235363450ea72b14e846607181d58564257d3b8799591b8bdc6efe35",
+    "themes/dynamic-graphic/assets/motifs/diagonal-grid.svg": "8ec6ceba7a17f2ec509dc30771c8f36534e573ef0a38540437985720babb3955",
+    "themes/dynamic-graphic/theme.css": "04425c603a92c96aef88cb765ea1efc6b1b462d9976c3a94bf59ef78ed28f049",
+    "themes/dynamic-graphic/theme.json": "42cf5d3b078a612fce875c2b7eda5244c575abe5b6ac6ed0b9004faeb1c09e11",
+    "themes/editorial/theme.css": "e62f8c5a7323e5bef81236abd6d3a1600c58b97515e19c77ae3a3491b2bc5a49",
+    "themes/editorial/theme.json": "eecb7d52007b374669069e7b7e720282928a0a1f3d3ab85c599deb87dd0b0418",
+    "themes/image-centered/assets/motifs/frame-lines.svg": "773baa7fa00f59aad2c060de168e7f3108e46ba0e080edc3e9d4a9e44b026e5a",
+    "themes/image-centered/theme.css": "b9e4aa72b3d30faaf1bb6a520dfb3b5119d4375a7dae96003e6d1284d290513b",
+    "themes/image-centered/theme.json": "c23b20d880ff222ec4e40ef4e5924e2184454b3d6261e2727b443939ea131f49",
+    "themes/quiet-elegant/assets/masks/organic-soft.svg": "9048aabefe3f9ab2249ad53cec3a060fe65d739949d6c20c3ad8bd71d260f4a8",
+    "themes/quiet-elegant/assets/motifs/botanical-line.svg": "5ccc913189716685826ebff6d911f292b0df8211dc78d897c773b5d524dc713d",
+    "themes/quiet-elegant/theme.css": "702929965b7c8ebd568aa3f79b755062720a8de3f3edd90e9e107cc87ad76eb4",
+    "themes/quiet-elegant/theme.json": "12ff42f92cc810eaef3028fc066fc6a0862bdb80a45708de80c0e7e319e80e93",
+    "themes/simple-illustrated/assets/masks/arch.svg": "045ac50b407b814e2051bb8993bcc81f8377df1496c1edbe79de4df55a78be34",
+    "themes/simple-illustrated/assets/masks/organic-soft.svg": "ac237821144a0f7cd10c888faf7dfb99ae81febe920dd6b174b3d8be05a9eb3c",
+    "themes/simple-illustrated/assets/masks/organic-tall.svg": "5690ddfb622326ec634a368e08f88a4932cb19f27268f62621abda6e117cbcac",
+    "themes/simple-illustrated/assets/motifs/organic-line.svg": "a7ba859cb68dac10febf98d6711b27e2d2f0eed774b4759a76f970ef790618a6",
+    "themes/simple-illustrated/theme.css": "b8df60c8355d3d60fe225d03bf62ca02bdcc3938760e480620b89e8f47824598",
+    "themes/simple-illustrated/theme.json": "750be2679f74b5ccdf1ca691b07121ccf204426992db90110821f0fd0f7f7f63",
+    "themes/very-minimal/theme.css": "7320364a2322b31d2e5259855c3a3f59a690101986e43198dee33bfc0e11ec71",
+    "themes/very-minimal/theme.json": "d4e0d21bead9ffecdfcb9d9523a7655365ec67767bab4e75200d727c74a403aa"
+  }
+}

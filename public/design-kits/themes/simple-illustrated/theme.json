@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "id": "simple-illustrated",
+  "design_style_id": "simple-illustrated",
+  "label": "Simple avec quelques illustrations",
+  "version": "0.3.1",
+  "description": "Thème de base clair et respirant, avec illustrations ponctuelles, cartes sobres et médias façonnés sans modifier les fichiers source.",
+  "entrypoint": "theme.css",
+  "preview": "preview/index.html",
+  "components": [
+    "header",
+    "hero-split",
+    "section",
+    "card-grid",
+    "split-content",
+    "media",
+    "faq",
+    "cta-band",
+    "footer",
+    "gallery",
+    "key-values",
+    "embed",
+    "statistics"
+  ],
+  "media_shapes": [
+    "auto",
+    "organic-soft",
+    "organic-tall",
+    "arch",
+    "circle",
+    "rounded",
+    "none"
+  ],
+  "brand_tokens": [
+    "--dendrila-color-bg",
+    "--dendrila-color-surface",
+    "--dendrila-color-text",
+    "--dendrila-color-muted",
+    "--dendrila-color-primary",
+    "--dendrila-color-primary-strong",
+    "--dendrila-color-accent-soft",
+    "--dendrila-color-border",
+    "--dendrila-font-heading",
+    "--dendrila-font-body"
+  ],
+  "accessibility": {
+    "focus_visible": true,
+    "reduced_motion": true,
+    "no_autoplay_media": true
+  },
+  "required_style_tokens": [
+    "--dendrila-content-max",
+    "--dendrila-section-gap",
+    "--dendrila-text-max",
+    "--dendrila-radius",
+    "--dendrila-border-width",
+    "--dendrila-shadow",
+    "--dendrila-heading-scale",
+    "--dendrila-media-emphasis",
+    "--dendrila-accent-strength",
+    "--dendrila-motion-duration"
+  ],
+  "decorative_system": {
+    "no_upload_required": true,
+    "motifs": [
+      "none",
+      "line",
+      "organic-line"
+    ],
+    "default_motif": "line",
+    "image_shapes": [
+      "auto",
+      "organic-soft",
+      "organic-tall",
+      "arch",
+      "circle",
+      "rounded",
+      "none"
+    ],
+    "implementation": "theme-owned-css-svg"
+  }
+}
