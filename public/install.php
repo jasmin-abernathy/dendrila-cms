@@ -78,19 +78,19 @@ case 0:
     $body.='<h2>Autre méthode : clé de préparation</h2><label class="field">Clé d’installation créée en ligne de commande (facultatif)<input name="token" type="password" autocomplete="off"></label>';
     break;
 case 1:
-    $body.='<h2>Quelle ambiance pour votre site ?</h2><p>Comparez les six thèmes avec le même contenu. La miniature représente un <strong>site vierge</strong>, sans module ni contenu supplémentaire. Pour découvrir les mises en page possibles, ouvrez aussi l’exemple complet. Aucun aperçu ne modifie votre sélection.</p><div class="theme-grid">';
+    $body.='<h2>Quelle ambiance pour votre site ?</h2><p>Comparez les six thèmes avec <strong>la même page de démonstration</strong> : textes de remplissage, photographies CC0, cartes, chiffres et galerie. Les images sont fournies avec Dendrila, sans connexion à un service externe. Ces exemples ne sont <strong>pas ajoutés à votre site</strong> : après installation, vous partez d’une page vierge. Aucun aperçu ne modifie votre sélection.</p><div class="theme-grid">';
     foreach(Catalog::themes() as $id=>$theme){
         $label=App::h($theme['label']);
         $preview='/theme-preview.php?theme='.rawurlencode($id);
         $body.='<article class="theme-card">'
             .'<label class="theme-option"><span class="theme-preview">'
-            .'<iframe title="Site vierge : '.$label.'" src="'.$preview.'&amp;mode=empty" tabindex="-1" loading="lazy" sandbox></iframe></span>'
+            .'<iframe title="Démonstration complète : '.$label.'" src="'.$preview.'&amp;mode=demo" tabindex="-1" loading="lazy" sandbox></iframe></span>'
             .'<span class="theme-choice"><input required type="radio" name="theme" value="'.App::h($id).'"'
             .(($state['theme']??'')===$id?' checked':'').'> <strong>'.$label.'</strong></span>'
             .'<p>'.App::h($theme['description']).'</p></label>'
             .'<div class="theme-card__actions">'
-            .'<a href="'.$preview.'&amp;mode=empty" target="_blank" rel="noopener noreferrer" aria-label="Ouvrir le site vierge, thème '.$label.'">Voir le site vierge <span aria-hidden="true">↗</span></a>'
-            .'<a href="'.$preview.'&amp;mode=demo" target="_blank" rel="noopener noreferrer" aria-label="Ouvrir l’exemple complet, thème '.$label.'">Exemple complet <span aria-hidden="true">↗</span></a>'
+            .'<a href="'.$preview.'&amp;mode=demo" target="_blank" rel="noopener noreferrer" aria-label="Ouvrir la démonstration complète, thème '.$label.'">Voir la démonstration <span aria-hidden="true">↗</span></a>'
+            .'<a href="'.$preview.'&amp;mode=empty" target="_blank" rel="noopener noreferrer" aria-label="Ouvrir le site vierge, thème '.$label.'">Site vierge <span aria-hidden="true">↗</span></a>'
             .'</div></article>';
     }
     $body.='</div>';break;
