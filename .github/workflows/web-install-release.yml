@@ -1,0 +1,51 @@
+name: Build installable Dendrila ZIP
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'bin/build-web-release.py'
+      - 'public/install.php'
+      - 'public/index.php'
+      - 'public/preflight.php'
+      - 'src/Installation/WebOwnerProof.php'
+      - 'tests/web-owner-proof-run.php'
+      - 'tests/web-release-smoke.py'
+      - '.github/workflows/web-install-release.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dendrila-web-package-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  package-and-test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: mbstring, pdo_mysql, gd, fileinfo, sodium, ctype
+          tools: composer:v2
+          coverage: none
+      - name: Install production dependencies for distribution
+        run: composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
+      - name: Verify secure ownership proof
+        run: php tests/web-owner-proof-run.php
+      - name: Build release archive
+        run: python3 bin/build-web-release.py build/dendrila-cms-web-install.zip
+      - name: Test real extracted package without Composer or CLI initialization
+        run: python3 tests/web-release-smoke.py build/dendrila-cms-web-install.zip
+      - name: Upload tested hosting package
+        uses: actions/upload-artifact@v4
+        with:
+          name: dendrila-cms-web-install
+          path: build/dendrila-cms-web-install.zip
+          if-no-files-found: error
+          retention-days: 14
