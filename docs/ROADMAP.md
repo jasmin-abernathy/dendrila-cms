@@ -12,6 +12,14 @@
 
 Référence : [`P0-CORE-CONTRACT.md`](P0-CORE-CONTRACT.md). Ces cases valident la spécification initiale, pas une implémentation stable.
 
+## Situation de la version installable (30 octobre 2026)
+
+- **Disponible pour tests :** ZIP d'installation, diagnostic des prérequis, vérification de propriété sans SSH, six thèmes, sélection médiathèque/forum, connexion à une base MariaDB vide, propriétaire/TOTP, administration des pages, contenus, médias et menus, brouillons et publication.
+- **À terminer avant d'annoncer une version générique prête à installer partout :** stabiliser toute la CI, puis installer depuis le ZIP sur un domaine pilote HTTPS avec MariaDB réelle ; vérifier l'installateur, les comptes, les mises à jour, sauvegardes/restaurations, les permissions et l'affichage mobile.
+- **À tester séparément avant migration d'un client existant :** conservation de son design, de ses identifiants et de ses contenus, mise à jour GitHub autonome, adaptateurs métiers spécifiques et restauration du site antérieur.
+- **Intégrations encore incomplètes :** appairage réel Mon Manager Web, installation de Dendrila Bookings comme module, récupération d'accès/codes de secours, forum avec publication de photographies par l'interface utilisateur.
+- **Diffusion :** la PR #29 est encore ouverte ; aucune bascule de domaine client ne doit résulter de sa fusion ou de l'installation d'essai.
+
 ## P0-B — Implémentation et validation locale
 
 - [x] Choisir le runtime serveur de référence (PHP 8.5+) et le moteur initial (MariaDB via PDO).
@@ -23,7 +31,7 @@ Référence : [`P0-CORE-CONTRACT.md`](P0-CORE-CONTRACT.md). Ces cases valident l
 - [ ] Vérifier tous les accès inter-sites et mutations par des tests de refus.
 - [x] Documenter `media_library` dans le contrat MMW v1 et aligner le CMS sur ce contrat.
 
-Un prototype PHP interne est présent dans `src/`, avec migrations, commandes de bootstrap, tests du domaine, une couche HTTP privée (`GET /v1/config`, `GET /v1/snapshot`, `POST /v1/changes`) et la projection bornée de contenus configurés via `ContentService`. Les routes d'authentification MMW v1 exigent encore un adaptateur `IdentityProvider` spécifique au site. Les mutations des formulaires et galeries sont raccordées aux contenus du CMS ; `item_action` attend les connecteurs métier propres à chaque site. Le manifeste de découverte, l'administration de configuration et la couche média restent à construire avant tout déploiement.
+**État vérifié au 30 octobre 2026 :** le noyau comporte désormais un installateur graphique (six thèmes, modules, MariaDB, compte propriétaire TOTP), un ZIP de distribution sans Composer sur l'hébergement, un back-office natif, la médiathèque, le forum modéré, la gestion des pages, des blocs, des brouillons et des menus. Les tests PHP/PDO et la restauration de bases passent dans la CI ; le test navigateur du dernier commit doit encore être confirmé. Il ne s'agit pas d'une validation d'une installation générique sur deux sites clients réels. L'association MMW v1 dépend encore de l'adaptateur d'identité, et les actions métier comme `item_action` exigent leurs connecteurs dédiés. Les kits fonctionnels et le catalogue d'extensions serveur ne constituent pas encore un parcours public d'installation.
 
 ## P1 — Fonctions éditoriales indispensables
 
