@@ -7,7 +7,7 @@ use Dendrila\Cms\Runtime\Presentation;
 use Dendrila\Cms\Front\PublicPageRenderer;
 
 $id=is_string($_GET['theme']??null)?$_GET['theme']:'';
-$mode=is_string($_GET['mode']??null)?$_GET['mode']:'empty';
+$mode=is_string($_GET['mode']??null)?$_GET['mode']:'demo';
 if(!in_array($mode,['empty','demo'],true)){http_response_code(404);exit('Aperçu inconnu.');}
 try {
     // Both previews use the actual theme resolver and public HTML renderer.
@@ -28,5 +28,5 @@ try {
 header('Content-Type: text/html; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
 header('X-Robots-Tag: noindex, nofollow');
-header("Content-Security-Policy: default-src 'none'; style-src 'self' 'unsafe-inline'; img-src 'self' https:; frame-ancestors 'self'; base-uri 'none'; form-action 'none'");
+header("Content-Security-Policy: default-src 'none'; style-src 'self' 'unsafe-inline'; img-src 'self'; frame-ancestors 'self'; base-uri 'none'; form-action 'none'");
 echo $html;
