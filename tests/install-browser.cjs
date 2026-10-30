@@ -12,6 +12,31 @@ const php=process.env.PHP_BINARY||'php';
   const bypass=await page.request.post('http://127.0.0.1:8080/install.php',{form:{csrf,back:'1'}});assert.equal(bypass.status(),422);
   await page.getByLabel('Clé d’installation').fill(token);await page.getByRole('button',{name:'Continuer'}).click();
   assert.equal(await page.locator('input[name=theme]').count(),6);
+  // This is the real first-installation wizard, not a separate gallery.
+  const themeCards=page.locator('.theme-card');
+  assert.equal(await themeCards.count(),6,'Six theme cards are available before addons/database');
+  assert((await page.locator('.setup-steps [aria-current=step]').textContent()).includes('Thème'),'Theme selection precedes addons');
+  assert.equal(await page.locator('.theme-preview iframe').count(),6,'Each theme has an HTML iframe');
+  assert.equal(await page.locator('.theme-card__actions a').count(),12,'Each theme exposes empty/full HTML preview');
+  for(const card of await themeCards.all()){
+    const frameUrl=await card.locator('iframe').getAttribute('src');
+    assert(frameUrl.includes('&mode=empty') || frameUrl.includes('&amp;mode=empty'));
+    const emptyLink=await card.getByRole('link',{name:/Voir le site vierge/}).getAttribute('href');
+    const demoLink=await card.getByRole('link',{name:/Exemple complet/}).getAttribute('href');
+    assert(emptyLink.endsWith('mode=empty')&&demoLink.endsWith('mode=demo'));
+    assert.equal(await card.getByRole('link',{name:/Voir le site vierge/}).getAttribute('target'),'_blank');
+    assert.equal(await card.getByRole('link',{name:/Exemple complet/}).getAttribute('target'),'_blank');
+    const empty=await page.request.get('http://127.0.0.1:8080'+emptyLink);
+    const demo=await page.request.get('http://127.0.0.1:8080'+demoLink);
+    assert.equal(empty.status(),200);assert.equal(demo.status(),200);
+    assert((await empty.text()).includes('Bienvenue sur notre site.'),'Empty preview is the actual starter page');
+    assert((await demo.text()).includes('Des idées qui prennent vie'),'Full preview shows richer page layout');
+  }
+  await page.locator('input[value="editorial"]').check();
+  const selectedBefore=await page.locator('input[name=theme]:checked').inputValue();
+  await page.locator('.theme-card__actions a').first().evaluate(a=>a.focus());
+  assert.equal(await page.locator('input[name=theme]:checked').inputValue(),selectedBefore,'Preview links never alter theme selection');
+
   await page.screenshot({path:'build/test-artifacts/install-themes-desktop.png',fullPage:true});
   await page.setViewportSize({width:390,height:844});
   assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'No mobile overflow');
