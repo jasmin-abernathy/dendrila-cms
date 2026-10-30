@@ -1,6 +1,6 @@
 # Dendrila CMS
 
-Installation autonome : voir [le guide d’installation et d’utilisation](docs/INSTALLATION.md) pour le parcours thèmes → modules → base → compte protégé.
+**Installation depuis un hébergement sans terminal :** le workflow GitHub Actions **Build installable Dendrila ZIP** prépare une archive avec les dépendances PHP de production. Après extraction dans un dossier privé et configuration du domaine vers le sous-dossier `public/`, l'utilisateur ouvre `/preflight.php`, puis `/install.php`. Il prouve qu'il possède les fichiers grâce au gestionnaire de fichiers (sans SSH), sélectionne parmi six thèmes, choisit médiathèque/forum, relie une base MariaDB vide et crée son compte TOTP. La base et le DocumentRoot restent à préparer dans l'interface de l'hébergeur. Voir [le guide d’installation et d’utilisation](docs/INSTALLATION.md).
 
 Noyau CMS modulaire, pilotable par **Mon Manager Web (MMW)** et réutilisable par plusieurs sites.
 
