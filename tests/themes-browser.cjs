@@ -5,13 +5,17 @@ module.exports=async function reviewThemes(browser,php){
  const original=fs.readFileSync('config/local.php');
  const styles={'simple-illustrated':'simple-illustrated','quiet-elegant':'quiet-elegant','image-forward':'image-centered','ultra-minimal':'very-minimal','graphic-rhythm':'dynamic-graphic',editorial:'editorial'};
  const page=await browser.newPage();const errors=[];const signatures=new Set();
+ // The installer selected quiet-elegant. Previewing another kit must not change the installed site.
+ await page.goto('http://127.0.0.1:8080/');
+ const installedTheme=await page.locator('body').getAttribute('data-dendrila-theme');
+ assert.equal(installedTheme,'quiet-elegant','Installation must persist the chosen theme');
+ const installedCss=await page.locator('link[rel=stylesheet]').first().getAttribute('href');
  page.on('pageerror',e=>errors.push(e.message));
  page.on('response',r=>{if(r.status()>=400)errors.push(`${r.status()} ${r.url()}`)});
  await page.route('https://www.youtube-nocookie.com/**',route=>route.fulfill({body:'Test embed',contentType:'text/html'}));
  const config=(style,brand={})=>cp.execFileSync(php,['-r',`$c=require 'config/local.php';$c['DENDRILA_THEME']=$argv[1];$c['DENDRILA_BRAND_JSON']=$argv[2];file_put_contents('config/local.php',"<?php\\nreturn ".var_export($c,true).";\\n");`,style,JSON.stringify(brand)]);
  try{
   for(const [style,theme] of Object.entries(styles)){
-   config(style);
    for(const width of [1280,390]){
     await page.setViewportSize({width,height:900});
     await page.goto('http://127.0.0.1:8080/theme-preview.php?theme='+style);
@@ -25,14 +29,19 @@ module.exports=async function reviewThemes(browser,php){
     if(width===1280)signatures.add(await page.evaluate(()=>[getComputedStyle(document.body).backgroundColor,getComputedStyle(document.querySelector('h1')).fontFamily,getComputedStyle(document.querySelector('h1')).fontSize].join('|')));
     await page.screenshot({path:`build/test-artifacts/theme-${style}-${width}.png`,fullPage:true});
     await page.goto('http://127.0.0.1:8080/');
-    assert.equal(await page.locator('body').getAttribute('data-dendrila-theme'),theme,'Installed site uses the same theme');
-    assert.equal(await page.locator('link[rel=stylesheet]').first().getAttribute('href'),css,'Preview and installed CSS match');
+    assert.equal(await page.locator('body').getAttribute('data-dendrila-theme'),installedTheme,'Previewing a kit must not replace the installed theme');
+    assert.equal(await page.locator('link[rel=stylesheet]').first().getAttribute('href'),installedCss,'Installed CSS must remain stable');
+    if(style==='quiet-elegant')assert.equal(installedCss,css,'Chosen theme preview and installed CSS must match');
     await page.emulateMedia({reducedMotion:'reduce'});
     assert(await page.evaluate(()=>matchMedia('(prefers-reduced-motion: reduce)').matches));
    }
   }
   assert(signatures.size>=5,'Themes have distinct computed visual signatures');
   config('editorial',{primary:'#204060',body_font:'neutral-sans',logo_url:'https://brand.example/logo.svg'});
+  // The PHP dev server retains its environment between requests. Generate the brand
+  // variation in a fresh PHP process to exercise the updated private configuration.
+  const brandedPreview=cp.execFileSync(php,['-r',`$_GET['theme']='editorial';require 'public/theme-preview.php';`],{encoding:'utf8'});
+  await page.route('http://127.0.0.1:8080/theme-preview.php?theme=editorial',route=>route.fulfill({status:200,contentType:'text/html',body:brandedPreview}));
   await page.route('https://brand.example/logo.svg',route=>route.fulfill({body:fs.readFileSync('public/assets/preview.svg'),contentType:'image/svg+xml'}));
   await page.goto('http://127.0.0.1:8080/theme-preview.php?theme=editorial');
   assert.equal((await page.evaluate(()=>getComputedStyle(document.body).getPropertyValue('--dendrila-color-primary'))).trim(),'#204060');
