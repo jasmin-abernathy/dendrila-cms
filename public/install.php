@@ -8,6 +8,10 @@ use Dendrila\Cms\Auth\Totp;
 $directory=dirname(__DIR__).'/config';
 if(is_file($directory.'/local.php')||getenv('DENDRILA_SITE_ID')){http_response_code(410);exit('Installation terminée.');}
 App::session();
+if(realpath((string)($_SERVER['DOCUMENT_ROOT']??''))!==realpath(__DIR__)){
+    http_response_code(503);
+    exit(App::page('Racine du site incorrecte','<p>Pour protéger les données privées, le domaine doit pointer uniquement vers le sous-dossier <code>public/</code> de Dendrila. Corrigez ce réglage dans votre hébergement avant de commencer.</p>'));
+}
 header("Content-Security-Policy: default-src 'none'; style-src 'self'; img-src 'self'; frame-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'");
 $csrf=new SessionCsrf();$error='';$steps=['Accès','Thème','Modules','Base de données','Administrateur'];
 $state=$_SESSION['install']??['step'=>0];
