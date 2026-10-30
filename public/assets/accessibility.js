@@ -31,6 +31,14 @@
  opener.addEventListener('click',()=>dialog.showModal());
  area.querySelector('#d-reading-close').addEventListener('click',()=>dialog.close());
  dialog.addEventListener('close',()=>opener.focus());
+ // Keep sequential keyboard navigation within the modal, including backwards.
+ dialog.addEventListener('keydown',event=>{
+  if(event.key!=='Tab')return;
+  const controls=[...dialog.querySelectorAll('button,select,input')].filter(el=>!el.disabled);
+  const first=controls[0],last=controls[controls.length-1];
+  if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}
+  else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
+ });
  size.addEventListener('change',()=>{prefs.size=size.value;save();});
  area.querySelectorAll('[data-reading]').forEach(input=>input.addEventListener('change',()=>{prefs[input.dataset.reading]=input.checked;save();}));
  area.querySelector('#d-reading-reset').addEventListener('click',()=>{prefs={...defaults};apply();try{localStorage.removeItem(key);status.textContent=t('Réglages réinitialisés.','Preferences reset.');}catch(_){status.textContent=t('Réglages réinitialisés pour cette page.','Preferences reset for this page.');}});
