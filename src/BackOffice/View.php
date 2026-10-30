@@ -83,6 +83,7 @@ final readonly class View
   <a class="back-link" href="/">Voir le site</a>
   <?php if(getenv('DENDRILA_SITE_ID')===$actor->siteId): ?>
   <a href="/admin/accounts.php">Comptes</a>
+  <a href="/admin/appearance.php">Apparence</a>
   <?php if(in_array('forum',explode(',',getenv('DENDRILA_ADDONS')?:''),true)): ?><a href="/forum/">Forum</a><?php endif ?>
   <form method="post" action="/admin/logout.php"><input type="hidden" name="csrf" value="<?=self::h($this->csrf)?>"><button class="button secondary">Déconnexion</button></form>
   <?php endif ?>
@@ -138,6 +139,7 @@ final readonly class View
     <?php if($this->core->can($actor,'content.read')): ?><a class="action-tile" href="<?=$this->link('textes')?>"><strong>Textes</strong><span>Pages et contenus éditoriaux</span></a><?php endif ?>
     <?php if($this->core->can($actor,'navigation.read')): ?><a class="action-tile" href="<?=$this->link('menu')?>"><strong>Menu</strong><span>Ordre et visibilité</span></a><?php endif ?>
     <?php if($this->media && $this->core->can($actor,'media.read')): ?><a class="action-tile" href="<?=$this->link('medias')?>"><strong>Photos</strong><span>Photothèque du site</span></a><?php endif ?>
+    <?php if($this->core->can($actor,'users.manage')): ?><a class="action-tile" href="/admin/appearance.php"><strong>Apparence</strong><span>Thèmes, couleurs, polices et logo</span></a><?php endif ?>
     <a class="action-tile" href="<?=$this->link('appli')?>"><strong>Appli</strong><span>Android et iPhone</span></a>
    </div>
   </div>
