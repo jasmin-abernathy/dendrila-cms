@@ -55,7 +55,7 @@ def run(archive: Path):
                     time.sleep(0.1)
             else:
                 raise AssertionError("PHP server failed to start")
-            assert status == 200 and "Prérequis locaux sont satisfaits" in body, "Preflight failed"
+            assert status == 200 and "Les prérequis locaux sont satisfaits" in body, "Preflight failed"
             status, body = get(opener, "/")
             assert status == 200 and "ownership-challenge" in body, "First visit should open installer"
             csrf = re.search(r'name="csrf" value="([a-f0-9]{64})"', body)
