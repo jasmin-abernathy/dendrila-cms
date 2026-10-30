@@ -10,7 +10,7 @@ const php=process.env.PHP_BINARY||'php';
   await page.goto('http://127.0.0.1:8080/install.php');
   const csrf=await page.locator('input[name=csrf]').inputValue();
   const bypass=await page.request.post('http://127.0.0.1:8080/install.php',{form:{csrf,back:'1'}});assert.equal(bypass.status(),422);
-  await page.getByLabel('Clé d’installation').fill(token);await page.getByRole('button',{name:'Continuer'}).click();
+  await page.getByLabel('Clé d’installation').fill(token);await page.getByRole('button',{name:'Utiliser la clé',exact:true}).click();
   assert.equal(await page.locator('input[name=theme]').count(),6);
   // This is the real first-installation wizard, not a separate gallery.
   const themeCards=page.locator('.theme-card');
