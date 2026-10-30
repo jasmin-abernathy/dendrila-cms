@@ -18,7 +18,12 @@ module.exports=async function reviewThemes(browser,php){
   for(const [style,theme] of Object.entries(styles)){
    for(const width of [1280,390]){
     await page.setViewportSize({width,height:900});
-    await page.goto('http://127.0.0.1:8080/theme-preview.php?theme='+style);
+    const empty=await page.request.get('http://127.0.0.1:8080/theme-preview.php?theme='+style+'&mode=empty');
+    assert.equal(empty.status(),200,'Empty preview must work before database installation');
+    const emptyHtml=await empty.text();
+    assert(emptyHtml.includes('Bienvenue sur notre site.'),'Empty preview mirrors the installed starter text');
+    assert(!emptyHtml.includes('class="d-gallery"')&&!emptyHtml.includes('class="d-card-grid"'),'Empty mode does not preview optional content');
+    await page.goto('http://127.0.0.1:8080/theme-preview.php?theme='+style+'&mode=demo');
     assert.equal(await page.locator('body').getAttribute('data-dendrila-theme'),theme);
     const css=await page.locator('link[rel=stylesheet]').first().getAttribute('href');assert(css.startsWith('/design-kits/themes/'+theme+'/theme.css?v='));
     assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`Theme ${style} fits ${width}px`);
@@ -54,6 +59,6 @@ module.exports=async function reviewThemes(browser,php){
   assert.equal((await page.evaluate(()=>getComputedStyle(document.body).getPropertyValue('--dendrila-color-primary'))).trim(),'#204060');
   assert.equal(await page.locator('.d-brand img').getAttribute('src'),'https://brand.example/logo.svg');
   assert.deepEqual(errors,[]);
-  console.log('Themes browser: six real styles at 1280/390px, local assets, preview/site parity and brand overrides passed.');
+  console.log('Themes browser: six HTML empty and demo previews at 1280/390px, local assets, preview/site parity and brand overrides passed.');
  }finally{fs.writeFileSync('config/local.php',original);await page.close();}
 };
