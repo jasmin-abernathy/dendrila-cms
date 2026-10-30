@@ -22,6 +22,36 @@ $pdo=new PDO($settings['DB_DSN'],$settings['DB_USERNAME'],$settings['DB_PASSWORD
 verifyInstall((new Migrator($pdo))->run()===[],'Migrations repeat safely');
 try{Installer::connect($db);throw new RuntimeException('Nonempty DB accepted');}catch(DomainException){}
 verifyInstall(str_contains((new PublicSite($pdo))->render('/'),'Bienvenue sur notre site.'),'Fresh site serves a published homepage');
+
+$appearance=\Dendrila\Cms\Runtime\AppearanceSettings::read($pdo,'default');
+verifyInstall($appearance['theme']==='quiet-elegant'&&$appearance['brand']===[],'Initial appearance follows installed theme');
+$initialVersion=(int)$pdo->query("SELECT config_version FROM sites WHERE site_id='default'")->fetchColumn();
+$brand=['primary'=>'#9d2941','text'=>'#191718','background'=>'#ffffff','logo_url'=>'https://example.test/assets/logo.svg','heading_font'=>'editorial-serif'];
+\Dendrila\Cms\Runtime\AppearanceSettings::save($pdo,'default',hash('sha256',$appearance['raw']),'editorial',$brand);
+$changed=\Dendrila\Cms\Runtime\AppearanceSettings::read($pdo,'default');
+verifyInstall($changed['theme']==='editorial'&&$changed['brand']===$brand,'Saved site appearance survives DB read');
+verifyInstall((int)$pdo->query("SELECT config_version FROM sites WHERE site_id='default'")->fetchColumn()===$initialVersion+1,'Appearance update invalidates client configuration');
+$html=(new PublicSite($pdo))->render('/');
+verifyInstall(str_contains($html,'data-dendrila-theme="editorial"')&&str_contains($html,'#9d2941'),'Published page uses saved design kit and colors');
+try{
+    \Dendrila\Cms\Runtime\AppearanceSettings::save($pdo,'default',hash('sha256',$appearance['raw']),'quiet-elegant',[]);
+    throw new RuntimeException('Stale appearance form accepted');
+}catch(DomainException){}
+try{
+    \Dendrila\Cms\Runtime\AppearanceSettings::validate('editorial',['text'=>'#ffffff','background'=>'#ffffff']);
+    throw new RuntimeException('Unsafe low contrast accepted');
+}catch(InvalidArgumentException){}
+try{
+    \Dendrila\Cms\Runtime\AppearanceSettings::validate('editorial',['logo_url'=>'http://insecure.test/logo.svg']);
+    throw new RuntimeException('Insecure logo accepted');
+}catch(InvalidArgumentException){}
+try{
+    \Dendrila\Cms\Runtime\AppearanceSettings::validate('editorial',['primary'=>'red; } body{display:none']);
+    throw new RuntimeException('CSS injection accepted');
+}catch(InvalidArgumentException){}
+\Dendrila\Cms\Runtime\AppearanceSettings::save($pdo,'default',hash('sha256',$changed['raw']),'quiet-elegant',[]);
+verifyInstall(str_contains((new PublicSite($pdo))->render('/'),'data-dendrila-theme="quiet-elegant"'),'Appearance can revert without changing content');
+
 $actor=new ActorContext('default','owner');$store=new PdoCmsStore($pdo);$authz=new AuthorizationService($store);$content=new ContentService($store,$authz);
 $core=new CoreData($store,new NavigationService(new PdoNavigationRepository($pdo),$store,$authz));
 $id=$core->createPage($actor,'presentation','Présentation','presentation');
