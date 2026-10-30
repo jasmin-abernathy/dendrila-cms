@@ -15,3 +15,16 @@
 .theme-card__actions a:focus-visible{outline:3px solid #285daa;outline-offset:4px;border-radius:.1rem}
 .theme-card:has(input:checked) .theme-card__actions{border-top-color:#9db79c}
 @media (prefers-reduced-motion: reduce){.theme-card *{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+
+/* Show actual page photography, content blocks and hierarchy in the chooser.
+   Same HTML/CSS as the published site, not an invented static screenshot. */
+.theme-preview{height:248px;position:relative;margin-bottom:0;isolation:isolate}
+.theme-preview iframe{width:1000px;height:1250px;transform:scale(.31);transform-origin:top left}
+.theme-preview::after{content:"Exemple de mise en page";position:absolute;inset:auto .7rem .7rem auto;padding:.32rem .55rem;border-radius:.4rem;background:#20372de8;color:#fff;font-size:.72rem;line-height:1.2;pointer-events:none}
+@media(max-width:500px){
+  .theme-preview{height:260px}
+  .theme-preview iframe{transform:scale(.33)}
+}
+@media(max-width:360px){
+  .theme-preview iframe{transform:scale(.28)}
+}
