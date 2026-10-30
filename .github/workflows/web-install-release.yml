@@ -11,10 +11,7 @@ on:
       - 'design-styles/**'
       - 'composer.*'
       - 'examples/content-types/page.json'
-      - 'tests/web-owner-proof-run.php'
-      - 'tests/web-release-smoke.py'
-      - 'tests/install-browser.cjs'
-      - 'tests/themes-browser.cjs'
+      - 'tests/**'
       - '.github/workflows/web-install-release.yml'
 
 permissions:

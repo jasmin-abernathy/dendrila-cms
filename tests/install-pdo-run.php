@@ -16,7 +16,8 @@ session_start();
 $base=sys_get_temp_dir().'/dendrila-install-'.bin2hex(random_bytes(6));mkdir($base.'/config',0700,true);
 $db=['host'=>getenv('INSTALL_DB_HOST')?:'127.0.0.1','port'=>getenv('INSTALL_DB_PORT')?:'3306','name'=>getenv('INSTALL_DB_NAME'),'user'=>getenv('DB_USERNAME'),'password'=>getenv('DB_PASSWORD')?:''];
 $secret=Totp::secret();$password='Test-only-password-2026!';
-Installer::install(['theme'=>'quiet-elegant','addons'=>['media','forum'],'secret'=>$secret,'db'=>$db],['name'=>'Installation Test','email'=>'owner@example.test','password'=>$password,'url'=>'https://example.test','code'=>Totp::code($secret,intdiv(time(),30))],$base.'/config');
+$setupCode=Totp::code($secret,intdiv(time(),30));
+Installer::install(['theme'=>'quiet-elegant','addons'=>['media','forum'],'secret'=>$secret,'db'=>$db],['name'=>'Installation Test','email'=>'owner@example.test','password'=>$password,'url'=>'https://example.test','code'=>$setupCode],$base.'/config');
 $settings=require $base.'/config/local.php';foreach($settings as $k=>$v)putenv($k.'='.$v);
 $pdo=new PDO($settings['DB_DSN'],$settings['DB_USERNAME'],$settings['DB_PASSWORD'],[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC,PDO::ATTR_EMULATE_PREPARES=>false]);
 verifyInstall((new Migrator($pdo))->run()===[],'Migrations repeat safely');
@@ -65,7 +66,7 @@ $core->addPageToMenu($actor,$id,'main',1);
 verifyInstall(str_contains((new PublicSite($pdo))->render('/'),'href="/presentation/"'),'Page added to public menu');
 try{$core->saveBlocks(new ActorContext('default','unknown'),$id,4,[0=>['text'=>'intrusion']],[]);throw new RuntimeException('Unauthorized mutation');}catch(AccessDenied){}
 $identity=new NativeIdentity($pdo,'default',$settings['DENDRILA_AUTH_KEY']);
-verifyInstall(!$identity->login('owner@example.test',$password,Totp::code($secret,intdiv(time(),30)),'127.0.0.1'),'Setup TOTP cannot replay');
+verifyInstall(!$identity->login('owner@example.test',$password,$setupCode,'127.0.0.1'),'Setup TOTP cannot replay');
 $future=Totp::code($secret,intdiv(time(),30)+1);
 verifyInstall(!$identity->login('owner@example.test','wrong',$future,'127.0.0.1'),'Wrong password rejected');
 verifyInstall($identity->login('owner@example.test',$password,$future,'127.0.0.1'),'Two factors authenticate');
@@ -83,7 +84,8 @@ $upload=$media->upload($actor,['module_id'=>'media_library','item_id'=>'media_li
 $gallery=$core->createPage($actor,'gallery','Galerie','galerie');$mediaId=$upload['result']['id']??$upload['id']??null;
 if(!$mediaId){$items=$media->items($actor,$media->module($actor,'media_library'));$mediaId=$items[0]['id'];}
 $core->saveBlocks($actor,$gallery,1,[0=>['media_ids'=>[$mediaId]]],[$mediaId]);$core->publishPage($actor,$gallery,2);
-verifyInstall(str_contains((new PublicSite($pdo))->render('/galerie/'),'media.php'),'Uploaded gallery renders');
+$galleryHtml=(new PublicSite($pdo))->render('/galerie/');
+verifyInstall(str_contains($galleryHtml,'media.php')&&str_contains($galleryHtml,'alt="Description"'),'Uploaded gallery preserves its media alternative');
 // The SQL uniqueness constraint protects even slugs beyond the first UI batch.
 for($i=0;$i<105;$i++)$core->createPage($actor,'free','Volume '.$i,'volume-'.$i);
 verifyInstall(count($core->pages($actor))===108,'Editor includes pages beyond the first 100');
