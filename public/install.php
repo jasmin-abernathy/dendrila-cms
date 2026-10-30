@@ -78,7 +78,7 @@ case 0:
     $body.='<h2>Autre méthode : clé de préparation</h2><label class="field">Clé d’installation créée en ligne de commande (facultatif)<input name="token" type="password" autocomplete="off"></label>';
     break;
 case 1:
-    $body.='<h2>Quelle ambiance pour votre site ?</h2><p>Comparez les six thèmes avec <strong>la même page de démonstration</strong> : textes de remplissage, photographies CC0, cartes, chiffres et galerie. Les images sont fournies avec Dendrila, sans connexion à un service externe. Ces exemples ne sont <strong>pas ajoutés à votre site</strong> : après installation, vous partez d’une page vierge. Aucun aperçu ne modifie votre sélection.</p><div class="theme-grid">';
+    $body.='<h2>Quelle ambiance pour votre site ?</h2><p>Découvrez <strong>six compositions différentes</strong> : services, maison d’hôtes, portfolio photo, studio minimal, événement et présentation institutionnelle. Aucun thème n’impose un blog. Les images sont fournies avec Dendrila, sans connexion à un service externe. Ces exemples ne sont <strong>pas ajoutés à votre site</strong> : après installation, vous partez d’une page vierge. Aucun aperçu ne modifie votre sélection.</p><div class="theme-grid">';
     foreach(Catalog::themes() as $id=>$theme){
         $label=App::h($theme['label']);
         $preview='/theme-preview.php?theme='.rawurlencode($id);
