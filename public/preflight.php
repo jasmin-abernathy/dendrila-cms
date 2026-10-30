@@ -22,7 +22,7 @@ foreach(['json','mbstring','pdo','pdo_mysql','gd','fileinfo','sodium','ctype'] a
     $items['Extension PHP : '.$ext]=extension_loaded($ext);
 }
 $ok=!in_array(false,$items,true);
-$esc=static fn(string $value):string=>htmlspecialchars($value,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');
+$esc=static function($value) { return htmlspecialchars((string)$value, ENT_QUOTES|ENT_SUBSTITUTE, 'UTF-8'); };
 echo '<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Prérequis — Dendrila CMS</title><style>body{background:#fafaf8;color:#191718;max-width:52rem;margin:3rem auto;padding:0 1rem;font:1rem/1.65 system-ui,sans-serif}h1{font-size:clamp(1.7rem,4vw,2.4rem)}li{padding:.45rem 0}strong{font-weight:750}.ok{color:#206345}.bad{color:#a12634}a{color:#6f2943}a:focus-visible{outline:3px solid #202060;outline-offset:4px}</style></head><body>';
 echo '<h1>Vérification avant installation</h1><p>Ces vérifications concernent le serveur PHP. Aucune base de données n’est créée ni modifiée.</p><ul>';
 foreach($items as $name=>$pass){
