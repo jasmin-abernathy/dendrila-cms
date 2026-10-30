@@ -105,10 +105,17 @@ $unknown=$controller->handle('POST',[],[
 backofficeCheck($unknown->status===422,'Undeclared CMS fields must be rejected.');
 $createScreen=$controller->handle('GET',['section'=>'textes']);
 backofficeCheck(str_contains($createScreen->body,'Nouvelle page') &&
-    str_contains($createScreen->body,'value="gallery"') &&
+    !str_contains($createScreen->body,'value="gallery"') &&
     str_contains($createScreen->body,'value="free"'),
-    'Page creation offers classic, gallery, and free templates.');
-$createGallery=$controller->handle('POST',[],[
+    'Without media, page creation offers only classic and free templates.');
+$withoutMedia=$controller->handle('POST',[],['action'=>'create_page','csrf'=>$csrfToken,'template'=>'gallery','title'=>'No media','slug'=>'no-media']);
+backofficeCheck($withoutMedia->status===422,'Gallery creation requires media on the server.');
+$emptyMedia=new class implements \Dendrila\Cms\BackOffice\MediaPort {
+    public function list(ActorContext $actor):array{return [];}
+    public function upload(ActorContext $actor,array $file,string $title,string $alt):void{}
+};
+$galleryController=new Kernel($config,$identity,$csrf,new CoreData($store,$navigation),$emptyMedia);
+$createGallery=$galleryController->handle('POST',[],[
     'action'=>'create_page','csrf'=>$csrfToken,'template'=>'gallery',
     'title'=>'Nos nouvelles photographies','slug'=>'nouvelles-photographies',
 ]);
@@ -122,7 +129,7 @@ $gallery=array_values(array_filter($galleryItems,static fn(array $p):bool=>
 backofficeCheck(count($gallery)===1 && $gallery[0]['status']==='draft' &&
     ($gallery[0]['values']['blocks'][0]['type']??'')==='gallery',
     'Gallery template must create a private page with a native gallery block.');
-$dupGallery=$controller->handle('POST',[],[
+$dupGallery=$galleryController->handle('POST',[],[
     'action'=>'create_page','csrf'=>$csrfToken,'template'=>'gallery',
     'title'=>'Doublon','slug'=>'nouvelles-photographies',
 ]);

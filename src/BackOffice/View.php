@@ -162,7 +162,7 @@ final readonly class View
    <div class="field"><label for="create-template">Type de page</label>
     <select id="create-template" name="template" required>
      <option value="presentation">Présentation classique</option>
-     <option value="gallery">Galerie photos</option>
+     <?php if($this->media): ?><option value="gallery">Galerie photos</option><?php endif ?>
      <option value="free">Autre : page libre</option>
     </select>
    </div>
@@ -235,17 +235,18 @@ final readonly class View
 
     private function blocks(ActorContext $actor,array $page):string
     {
-        $can=$this->core->can($actor,'content.update')||($this->core->can($actor,'content.update_own')&&($page['created_by_id']??null)===$actor->actorId);
+        $can=($page['status']??'')!=='archived'&&($this->core->can($actor,'content.update')||($this->core->can($actor,'content.update_own')&&($page['created_by_id']??null)===$actor->actorId));
         $media=$this->media&&$this->core->can($actor,'media.read')?$this->media->list($actor):[];
         $hidden='<input type="hidden" name="csrf" value="'.self::h($this->csrf).'"><input type="hidden" name="page_id" value="'.self::h($page['content_id']).'"><input type="hidden" name="version" value="'.self::h($page['version']).'">';
-        $html='<h2>Contenu de la page</h2><p>Enregistrez les blocs avant de les déplacer. La publication reste une action séparée.</p>';
+        $html=(!$this->media?'<p class="notice">La médiathèque est désactivée sur ce site : les pages et blocs galerie ne sont pas disponibles.</p>':'').'<h2>Contenu de la page</h2><p>Enregistrez les blocs avant de les déplacer. La publication reste une action séparée.</p>';
         foreach($page['values']['blocks']??[] as $i=>$block){
             $type=$block['type'];$html.='<section class="block-editor"><h3>Bloc '.($i+1).' — '.self::h(['text'=>'Texte','rich_text'=>'Texte','image'=>'Photo','gallery'=>'Galerie','cta'=>'Bouton','faq'=>'Questions et réponses','cards'=>'Cartes','key_values'=>'Informations','statistics'=>'Chiffres','embed_safe'=>'Contenu externe'][$type]??$type).'</h3>';
             $html.='<form method="post" action="'.self::h($this->config->basePath).'">'.$hidden.'<input type="hidden" name="action" value="save_blocks"><fieldset'.(!$can?' disabled':'').'>';
             foreach(BlockEditor::FIELDS[$type]??[] as $key=>$label){
                 $name='blocks['.$i.']['.$key.']';$value=$block[$key]??'';
                 $html.='<label>'.self::h($label);
-                if($key==='media_id'){$html.='<select name="'.$name.'">';foreach($media as $photo)$html.='<option value="'.self::h($photo['id']).'"'.($value===$photo['id']?' selected':'').'>'.self::h($photo['title']).'</option>';$html.='</select>';}
+                if($key==='provider'){$html.='<select name="'.$name.'">';foreach(['youtube-nocookie'=>'YouTube sans cookies','vimeo'=>'Vimeo','openstreetmap'=>'OpenStreetMap'] as $provider=>$caption)$html.='<option value="'.$provider.'"'.($value===$provider?' selected':'').'>'.$caption.'</option>';$html.='</select><small>Adresse d’intégration HTTPS du fournisseur choisi. Chargement après consentement.</small>';}
+                elseif($key==='media_id'){$html.='<select name="'.$name.'">';foreach($media as $photo)$html.='<option value="'.self::h($photo['id']).'"'.($value===$photo['id']?' selected':'').'>'.self::h($photo['title']).'</option>';$html.='</select>';}
                 else $html.='<textarea name="'.$name.'" rows="'.($key==='text'?7:2).'">'.self::h($value).'</textarea>';
                 $html.='</label>';
             }
@@ -257,6 +258,12 @@ final readonly class View
             foreach($block['items']??[] as $j=>$item){$html.='<fieldset><legend>Élément '.($j+1).'</legend>';foreach(BlockEditor::ITEMS[$type]??[] as $key=>$label)$html.='<label>'.self::h($label).'<textarea name="blocks['.$i.'][items]['.$j.']['.$key.']">'.self::h($item[$key]??'').'</textarea></label>';$html.='</fieldset>';}
             if($can)$html.='<button class="button">Enregistrer ce bloc</button>';
             $html.='</fieldset></form>';
+            if($can)foreach($block['items']??[] as $j=>$item){
+                $html.='<form method="post" action="'.self::h($this->config->basePath).'" class="block-actions">'.$hidden.'<input type="hidden" name="action" value="change_block"><input type="hidden" name="index" value="'.$i.'"><input type="hidden" name="item_index" value="'.$j.'"><span>Élément '.($j+1).'</span>';
+                if($j>0)$html.='<button class="button secondary" name="operation" value="item_up">Monter l’élément</button>';
+                if($j<count($block['items'])-1)$html.='<button class="button secondary" name="operation" value="item_down">Descendre l’élément</button>';
+                $html.='<button class="button secondary" name="operation" value="remove_item">Retirer l’élément '.($j+1).'</button></form>';
+            }
             if($can){$html.='<form method="post" action="'.self::h($this->config->basePath).'" class="block-actions">'.$hidden.'<input type="hidden" name="action" value="change_block"><input type="hidden" name="index" value="'.$i.'">';
                 if($i>0)$html.='<button class="button secondary" name="operation" value="up">Monter</button>';
                 if($i<count($page['values']['blocks'])-1)$html.='<button class="button secondary" name="operation" value="down">Descendre</button>';
@@ -266,7 +273,8 @@ final readonly class View
             $html.='</section>';
         }
         if($can){$html.='<form method="post" action="'.self::h($this->config->basePath).'">'.$hidden.'<input type="hidden" name="action" value="change_block"><input type="hidden" name="operation" value="add"><label>Ajouter un bloc<select name="type">';
-            foreach(['text'=>'Texte','cta'=>'Bouton','gallery'=>'Galerie','cards'=>'Cartes','faq'=>'Questions et réponses','key_values'=>'Informations','statistics'=>'Chiffres'] as $key=>$label)$html.='<option value="'.$key.'">'.$label.'</option>';
+            foreach(['text'=>'Texte','rich_text'=>'Texte avec retours à la ligne','embed_safe'=>'Contenu externe avec consentement','cta'=>'Bouton','cards'=>'Cartes','faq'=>'Questions et réponses','key_values'=>'Informations','statistics'=>'Chiffres'] as $key=>$label)$html.='<option value="'.$key.'">'.$label.'</option>';
+            if($this->media)$html.='<option value="gallery">Galerie</option>';
             if($media!==[])$html.='<option value="image">Photo</option>';
             $html.='</select></label>';if($media!==[]){$html.='<label>Photo (pour un bloc photo)<select name="media_id">';foreach($media as $photo)$html.='<option value="'.self::h($photo['id']).'">'.self::h($photo['title']).'</option>';$html.='</select></label>';}
             $html.='<button class="button secondary">Ajouter le bloc</button></form>';

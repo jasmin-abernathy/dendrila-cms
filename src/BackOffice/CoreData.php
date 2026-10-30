@@ -30,7 +30,13 @@ final readonly class CoreData
     public function pages(ActorContext $actor): array
     {
         if (!$this->can($actor,'content.read')) return [];
-        $pages=$this->content->list($actor,['type'=>'page','limit'=>100]);
+        // Fetch every permitted page rather than silently hiding those after the first batch.
+        $pages=[];
+        for($offset=0;$offset<=100000;$offset+=100){
+            $batch=$this->content->list($actor,['type'=>'page','limit'=>100,'offset'=>$offset]);
+            array_push($pages,...$batch);
+            if(count($batch)<100)break;
+        }
         $order=[];
         if ($this->can($actor,'navigation.read')) {
             foreach ($this->navigation->list($actor) as $menu) {
@@ -127,9 +133,12 @@ final readonly class CoreData
             'gallery'=>[['type'=>'gallery','media_ids'=>[]]],
             'free'=>[],
         };
-        $created=$this->content->createDraft($actor,'page',[
+        try{$created=$this->content->createDraft($actor,'page',[
             'title'=>$title,'slug'=>$slug,'blocks'=>$blocks,
-        ],bin2hex(random_bytes(16)));
+        ],bin2hex(random_bytes(16)));}catch(\PDOException $e){
+            if(($e->errorInfo[1]??null)===1062)throw new \DomainException('Cette adresse est déjà utilisée.');
+            throw $e;
+        }
         return (string)$created['content']['id'];
     }
 
@@ -155,7 +164,7 @@ final readonly class CoreData
         $values['blocks']=BlockEditor::update($values['blocks']??[],$edits,$mediaIds);
         $this->content->updateDraft($actor,$id,$version,$values,bin2hex(random_bytes(16)));
     }
-    public function changeBlock(ActorContext $actor,string $id,int $version,string $operation,int $index,string $type='text',string $mediaId=''):void
+    public function changeBlock(ActorContext $actor,string $id,int $version,string $operation,int $index,string $type='text',string $mediaId='',int $itemIndex=0):void
     {
         $page=$this->page($actor,$id);$values=$page['values'];$blocks=$values['blocks']??[];
         if($operation==='add') {
@@ -165,8 +174,8 @@ final readonly class CoreData
             if($operation==='remove')array_splice($blocks,$index,1);
             elseif($operation==='up'&&$index>0)[$blocks[$index-1],$blocks[$index]]=[$blocks[$index],$blocks[$index-1]];
             elseif($operation==='down'&&$index<count($blocks)-1)[$blocks[$index+1],$blocks[$index]]=[$blocks[$index],$blocks[$index+1]];
-            elseif($operation==='add_item'&&isset(BlockEditor::ITEMS[$blocks[$index]['type']])) {
-                $item=array_fill_keys(array_keys(BlockEditor::ITEMS[$blocks[$index]['type']]),'');unset($item['media_id'],$item['url']);$blocks[$index]['items'][]=$item;
+            elseif(in_array($operation,['add_item','remove_item','item_up','item_down'],true)) {
+                $blocks[$index]=BlockEditor::collection($blocks[$index],$operation,$itemIndex);
             } else throw new \InvalidArgumentException('Opération invalide.');
         }
         $values['blocks']=$blocks;

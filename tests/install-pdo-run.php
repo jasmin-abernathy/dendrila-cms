@@ -54,4 +54,28 @@ $gallery=$core->createPage($actor,'gallery','Galerie','galerie');$mediaId=$uploa
 if(!$mediaId){$items=$media->items($actor,$media->module($actor,'media_library'));$mediaId=$items[0]['id'];}
 $core->saveBlocks($actor,$gallery,1,[0=>['media_ids'=>[$mediaId]]],[$mediaId]);$core->publishPage($actor,$gallery,2);
 verifyInstall(str_contains((new PublicSite($pdo))->render('/galerie/'),'media.php'),'Uploaded gallery renders');
+// The SQL uniqueness constraint protects even slugs beyond the first UI batch.
+for($i=0;$i<105;$i++)$core->createPage($actor,'free','Volume '.$i,'volume-'.$i);
+verifyInstall(count($core->pages($actor))===108,'Editor includes pages beyond the first 100');
+try{$core->createPage($actor,'free','Duplicate','presentation');throw new RuntimeException('Duplicate after 100 accepted');}catch(DomainException){}
+// Server-side ownership, publication and account administration remain distinct.
+foreach(['editor','contributor','viewer'] as $role){
+    $q=$pdo->prepare('INSERT INTO memberships VALUES (?,?,?,UTC_TIMESTAMP(6))');$q->execute(['default','test-'.$role,$role]);
+}
+$contributor=new ActorContext('default','test-contributor');
+$own=$core->createPage($contributor,'presentation','Contribution','contribution');
+$core->saveBlocks($contributor,$own,1,[0=>['text'=>'Contribution privée']],[]);
+foreach([new ActorContext('default','test-viewer'),$contributor,new ActorContext('default',$member)] as $limited){
+    try{$core->saveBlocks($limited,$id,4,[0=>['text'=>'forbidden']],[]);throw new RuntimeException('Foreign page changed');}catch(AccessDenied|\Dendrila\Cms\Content\ContentNotFound){}
+    try{$accounts->invite($limited,'forbidden@example.test','member');throw new RuntimeException('Unauthorized invitation');}catch(AccessDenied){}
+}
+try{$core->publishPage($contributor,$own,2);throw new RuntimeException('Contributor published');}catch(AccessDenied){}
+$editor=new ActorContext('default','test-editor');$core->saveBlocks($editor,$own,2,[0=>['text'=>'Révision éditoriale']],[]);
+verifyInstall((fileperms($base.'/config/local.php')&0777)===0600,'Configuration is private');
+$lock=fopen($base.'/config/install.lock','c');flock($lock,LOCK_EX|LOCK_NB);
+try{Installer::install(['theme'=>'quiet-elegant','addons'=>[],'secret'=>$secret,'db'=>$db],['name'=>'Test','email'=>'test@example.test','password'=>$password,'url'=>'https://example.test','code'=>Totp::code($secret,intdiv(time(),30))],$base.'/config');throw new LogicException('Concurrent installer passed lock');}catch(RuntimeException $e){verifyInstall(str_contains($e->getMessage(),'en cours'),'Concurrent installer rejected before DB changes');}finally{flock($lock,LOCK_UN);fclose($lock);}
+if(getenv('INSTALL_BACKUP_MANIFEST')){
+    $manifest=getenv('INSTALL_BACKUP_MANIFEST');if(!is_dir(dirname($manifest)))mkdir(dirname($manifest),0700,true);
+    $old=umask(0077);file_put_contents($manifest,json_encode(['root'=>$base,'totp_hash'=>hash('sha256',$secret)],JSON_THROW_ON_ERROR));umask($old);
+}
 echo "Fresh installation, publication, blocks, navigation, 2FA/replay, invitations, roles, revocation and media PDO tests passed.\n";

@@ -124,6 +124,7 @@ final readonly class Kernel
         }
         if($action==='create_page') {
             $template=self::scalar($post,'template',30);
+            if($template==='gallery'&&!$this->media)throw new \InvalidArgumentException('Activez la médiathèque avant de créer une galerie.');
             $title=self::scalar($post,'title',240);
             $slug=self::scalar($post,'slug',80);
             $id=$this->core->createPage($actor,$template,$title,$slug);
@@ -153,8 +154,11 @@ final readonly class Kernel
                 $op=self::scalar($post,'operation',20);$index=filter_var($post['index']??0,FILTER_VALIDATE_INT,['options'=>['min_range'=>0]]);
                 if($index===false)throw new \InvalidArgumentException('Bloc invalide.');
                 $type=is_string($post['type']??null)?$post['type']:'text';$mediaId=is_string($post['media_id']??null)?$post['media_id']:'';
+                if($op==='add'&&$type==='gallery'&&!$this->media)throw new \InvalidArgumentException('La médiathèque est nécessaire pour ajouter une galerie.');
                 if($op==='add'&&$type==='image'&&(!$this->media||!in_array($mediaId,array_column($this->media->list($actor),'id'),true)))throw new \InvalidArgumentException('Choisissez une photo.');
-                $this->core->changeBlock($actor,$id,$version,$op,$index,$type,$mediaId);
+                $itemIndex=filter_var($post['item_index']??0,FILTER_VALIDATE_INT,['options'=>['min_range'=>0]]);
+                if($itemIndex===false)throw new \InvalidArgumentException('Élément invalide.');
+                $this->core->changeBlock($actor,$id,$version,$op,$index,$type,$mediaId,$itemIndex);
             }elseif($action==='transition_page') {
                 $this->core->transitionPage($actor,$id,$version,self::scalar($post,'target',20));
             }else $this->core->addPageToMenu($actor,$id,self::scalar($post,'menu_id',64),$version);

@@ -15,6 +15,7 @@ on:
       - 'bin/prepare-install.php'
       - 'database/migrations/**'
       - 'tests/install*'
+      - 'tests/restore*'
       - 'src/Media/**'
       - 'src/Http/**'
       - 'src/Api/**'
@@ -138,9 +139,27 @@ jobs:
       - name: Native installation, accounts and publication PDO tests
         env:
           DB_USERNAME: root
+          INSTALL_BACKUP_MANIFEST: build/test-private/backup.json
           INSTALL_DB_NAME: cms_install_test
           INSTALL_DB_PORT: '3306'
         run: php tests/install-pdo-run.php
+      - name: Restore database and private files into an isolated copy
+        env:
+          INSTALL_BACKUP_MANIFEST: build/test-private/backup.json
+          RESTORE_PRIVATE_ROOT: /tmp/dendrila-restored
+          RESTORE_DB_DSN: mysql:host=127.0.0.1;port=3306;dbname=cms_restore_test;charset=utf8mb4
+        run: |
+          set -euo pipefail
+          umask 077
+          private_root=$(php -r 'echo json_decode(file_get_contents(getenv("INSTALL_BACKUP_MANIFEST")),true)["root"];')
+          tar -czf /tmp/dendrila-private-test.tar.gz -C "$private_root" config storage
+          docker exec -e MYSQL_PWD="$DB_PASSWORD" ${{ job.services.mariadb.id }} mariadb-dump -uroot --single-transaction cms_install_test > /tmp/dendrila-db-test.sql
+          docker exec -e MYSQL_PWD="$DB_PASSWORD" ${{ job.services.mariadb.id }} mariadb -uroot -e 'CREATE DATABASE cms_restore_test CHARACTER SET utf8mb4'
+          docker exec -i -e MYSQL_PWD="$DB_PASSWORD" ${{ job.services.mariadb.id }} mariadb -uroot cms_restore_test < /tmp/dendrila-db-test.sql
+          mkdir -p "$RESTORE_PRIVATE_ROOT"
+          tar -xzf /tmp/dendrila-private-test.tar.gz -C "$RESTORE_PRIVATE_ROOT"
+          php tests/restore-pdo-run.php
+          rm -f /tmp/dendrila-private-test.tar.gz /tmp/dendrila-db-test.sql
       - name: Install browser for end-to-end checks
         run: |
           npm install --no-save --package-lock=false playwright@1.51.1

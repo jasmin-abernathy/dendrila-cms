@@ -82,3 +82,19 @@ Les contrats MMW v1 restent disponibles. L’association d’un client MMW et le
 ## Vérification
 
 `composer lint` et `composer test` exécutent les contrôles sans base. Les tests PDO exigent des bases de test dédiées ; ne jamais leur fournir une base de production. `tests/install-pdo-run.php` utilise `INSTALL_DB_NAME` et les accès DB. `tests/install-browser.cjs` attend une base vide `cms_browser_test`, PHP, Playwright et le serveur local sur le port 8080. Le workflow Native privacy core prépare ces conditions sous PHP 8.5 / MariaDB 11.4.
+
+## Périmètre de stockage de la V1
+
+Le choix retenu est un noyau MariaDB unique, même pour une vitrine : les transactions, les révisions publiées, les permissions et les révocations reposent sur ce stockage. Retirer seulement l’écran de connexion ne créerait pas un mode sans base fiable. Un stockage de fichiers ou SQLite demanderait un adaptateur, des migrations et les mêmes tests de concurrence et de restauration ; ce mode reste une évolution distincte, non disponible dans cette V1. L’installateur affiche donc toujours la base, avec les raisons correspondant aux modules cochés.
+
+Les galeries ne sont proposées que si la médiathèque est raccordée. Dans une collection (cartes, FAQ, informations, chiffres), enregistrer les champs avant d’ajouter, déplacer ou retirer un élément. Le maximum est de 50 éléments par collection. Les types texte et rich_text conservent les retours à la ligne mais échappent le HTML : il ne s’agit pas d’un éditeur HTML libre. Les contenus externes acceptent les adresses d’intégration HTTPS YouTube sans cookies, Vimeo et OpenStreetMap et restent bloqués avant consentement.
+
+## Restaurer sur un autre hébergement
+
+1. Sur une copie isolée, déployer la même version du code et installer ses dépendances.
+2. Créer une base dédiée vide, puis y importer le dump SQL complet avec le client MariaDB.
+3. Restaurer ensemble `config/local.php` et `storage/`, hors du répertoire public. Restreindre `local.php` à son propriétaire (0600).
+4. Adapter DB_DSN, DB_USERNAME, DB_PASSWORD, APP_BASE_URL, MEDIA_PRIVATE_ROOT, MEDIA_PUBLIC_ENDPOINT et FORUM_PRIVATE_ROOT aux nouveaux emplacements ; conserver DENDRILA_AUTH_KEY. Si des variables serveur existent, les adapter également.
+5. Vérifier accueil, pages publiées, invisibilité des brouillons, images, TOTP et comptes désactivés avant toute bascule. Ne pas lancer l’assistant d’installation sur cette restauration.
+
+La CI exécute un dump MariaDB et une archive des fichiers privés de test, les restaure dans une autre base et un autre répertoire, puis vérifie ces propriétés. Les archives privées de test ne sont pas publiées comme artifacts.

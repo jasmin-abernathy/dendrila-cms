@@ -50,7 +50,7 @@ switch($state['step']){
 case 0:$body.='<p>Bienvenue dans Dendrila. La clé préparée sur le serveur réserve cette installation à son propriétaire.</p>'.$input('Clé d’installation','token','password');break;
 case 1:
     $body.='<h2>Quelle ambiance pour votre site ?</h2><p>Le contenu est identique dans chaque aperçu pour comparer les présentations.</p><div class="theme-grid">';
-    foreach(Catalog::themes() as $id=>$theme){$body.='<label class="theme-card"><span class="theme-preview"><iframe title="Aperçu : '.App::h($theme['label']).'" src="/theme-preview.php?theme='.rawurlencode($id).'" tabindex="-1" loading="lazy" sandbox></iframe></span><span><input required type="radio" name="theme" value="'.App::h($id).'"'.(($state['theme']??'')===$id?' checked':'').'> <strong>'.App::h($theme['label']).'</strong></span><p>'.App::h($theme['description']).'</p></label>';}
+    foreach(Catalog::themes() as $id=>$theme){$body.='<label class="theme-card"><span class="theme-preview"><iframe title="Aperçu : '.App::h($theme['label']).'" src="/theme-preview.php?theme='.rawurlencode($id).'" tabindex="-1" loading="eager" sandbox></iframe></span><span><input required type="radio" name="theme" value="'.App::h($id).'"'.(($state['theme']??'')===$id?' checked':'').'> <strong>'.App::h($theme['label']).'</strong></span><p>'.App::h($theme['description']).'</p></label>';}
     $body.='</div>';break;
 case 2:
     $body.='<h2>De quoi avez-vous besoin ?</h2><p>Pages, menu et administration sont inclus. Cochez seulement les fonctions utiles.</p>';
