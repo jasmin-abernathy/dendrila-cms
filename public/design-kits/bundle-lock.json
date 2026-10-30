@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "repository": "jasmin-abernathy/dendrila-design-kits",
-  "revision": "5c0c4e4383507cfcae5b97f42deed58202895f92",
+  "revision": "fa43b787391415ce3ea61b81156921e87e38b9f1",
   "files": {
     "catalog.json": "40987f36235363450ea72b14e846607181d58564257d3b8799591b8bdc6efe35",
     "themes/dynamic-graphic/assets/motifs/diagonal-grid.svg": "8ec6ceba7a17f2ec509dc30771c8f36534e573ef0a38540437985720babb3955",
@@ -20,7 +20,7 @@
     "themes/simple-illustrated/assets/masks/organic-soft.svg": "ac237821144a0f7cd10c888faf7dfb99ae81febe920dd6b174b3d8be05a9eb3c",
     "themes/simple-illustrated/assets/masks/organic-tall.svg": "5690ddfb622326ec634a368e08f88a4932cb19f27268f62621abda6e117cbcac",
     "themes/simple-illustrated/assets/motifs/organic-line.svg": "a7ba859cb68dac10febf98d6711b27e2d2f0eed774b4759a76f970ef790618a6",
-    "themes/simple-illustrated/theme.css": "b8df60c8355d3d60fe225d03bf62ca02bdcc3938760e480620b89e8f47824598",
+    "themes/simple-illustrated/theme.css": "042171afd7e6c3b478fb37e1d0c2b6615d649bb15053c5a85b1e82d34c048925",
     "themes/simple-illustrated/theme.json": "750be2679f74b5ccdf1ca691b07121ccf204426992db90110821f0fd0f7f7f63",
     "themes/very-minimal/theme.css": "c65565819a868bd046584a2462634b593b07f4a373b70f4facb205fec2dbe4de",
     "themes/very-minimal/theme.json": "d4e0d21bead9ffecdfcb9d9523a7655365ec67767bab4e75200d727c74a403aa"

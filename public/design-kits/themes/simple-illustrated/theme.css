@@ -34,7 +34,7 @@
   height: auto;
 }
 
-[data-dendrila-theme="simple-illustrated"] a {
+:where([data-dendrila-theme="simple-illustrated"]) a {
   color: inherit;
 }
 
