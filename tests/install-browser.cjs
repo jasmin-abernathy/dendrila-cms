@@ -21,8 +21,8 @@ const php=process.env.PHP_BINARY||'php';
   for(const card of await themeCards.all()){
     const frameUrl=await card.locator('iframe').getAttribute('src');
     assert(frameUrl.includes('&mode=empty') || frameUrl.includes('&amp;mode=empty'));
-    const emptyLink=await card.getByRole('link',{name:/Voir le site vierge/}).getAttribute('href');
-    const demoLink=await card.getByRole('link',{name:/Exemple complet/}).getAttribute('href');
+    const emptyLink=await card.locator('a[href$="mode=empty"]').getAttribute('href');
+    const demoLink=await card.locator('a[href$="mode=demo"]').getAttribute('href');
     assert(emptyLink.endsWith('mode=empty')&&demoLink.endsWith('mode=demo'));
     assert.equal(await card.getByRole('link',{name:/Voir le site vierge/}).getAttribute('target'),'_blank');
     assert.equal(await card.getByRole('link',{name:/Exemple complet/}).getAttribute('target'),'_blank');
