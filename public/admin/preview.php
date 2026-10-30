@@ -9,7 +9,8 @@ try{
     $page=(new \Dendrila\Cms\Content\ContentService($store,new \Dendrila\Cms\Authorization\AuthorizationService($store)))->preview($actor,is_string($_GET['id']??null)?$_GET['id']:'');
     header('X-Robots-Tag: noindex, nofollow');header('Content-Type: text/html; charset=utf-8');
     $presentation=Presentation::forSite($pdo);
-    echo (new \Dendrila\Cms\Front\PublicPageRenderer())->render(['name'=>getenv('DENDRILA_SITE_NAME')?:'Dendrila'],$page['values']??$page,$presentation,$presentation['css_url'],\Dendrila\Cms\Media\MediaFactory::fromEnvironment($pdo)?->publicMap(App::site())??[],[],Presentation::consentFor($page['values']??$page));
+    $media = \Dendrila\Cms\Media\MediaFactory::fromEnvironment($pdo);
+    echo (new \Dendrila\Cms\Front\PublicPageRenderer())->render(['name'=>getenv('DENDRILA_SITE_NAME')?:'Dendrila'],$page['values']??$page,$presentation,$presentation['css_url'],$media?->publicMap(App::site())??[],[],Presentation::consentFor($page['values']??$page), mediaAlts: $media?->publicAltMap(App::site()) ?? []);
 }catch(\Dendrila\Cms\Authorization\AccessDenied){http_response_code(403);echo 'Aperçu interdit.';}
 catch(\Dendrila\Cms\Content\ContentNotFound){http_response_code(404);echo 'Page introuvable.';}
 catch(InvalidArgumentException){http_response_code(422);echo App::page('Aperçu incomplet','<p>Complétez les champs et les photographies des blocs avant publication.</p>');}

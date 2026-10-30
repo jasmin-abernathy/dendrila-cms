@@ -14,6 +14,7 @@ final readonly class PublicSite
         $q->execute([Application::site(),$slug]);$json=$q->fetchColumn();if(!is_string($json))return null;
         $page=json_decode($json,true,512,JSON_THROW_ON_ERROR);
         $presentation=Presentation::forSite($this->pdo);
-        return (new PublicPageRenderer())->render(['name'=>getenv('DENDRILA_SITE_NAME')?:'Dendrila','home_url'=>'/'], $page,$presentation,$presentation['css_url'],MediaFactory::fromEnvironment($this->pdo)?->publicMap(Application::site())??[],(new PdoPublicNavigationSource($this->pdo))->items(Application::site()),Presentation::consentFor($page));
+        $media = MediaFactory::fromEnvironment($this->pdo);
+        return (new PublicPageRenderer())->render(['name'=>getenv('DENDRILA_SITE_NAME')?:'Dendrila','home_url'=>'/'], $page,$presentation,$presentation['css_url'],$media?->publicMap(Application::site())??[],(new PdoPublicNavigationSource($this->pdo))->items(Application::site()),Presentation::consentFor($page), mediaAlts: $media?->publicAltMap(Application::site()) ?? []);
     }
 }

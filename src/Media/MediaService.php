@@ -312,6 +312,21 @@ final readonly class MediaService
         return $map;
     }
 
+    /** Public accessibility projection: no filenames, storage keys or other metadata. */
+    public function publicAltMap(string $siteId): array
+    {
+        $q = $this->pdo->prepare("SELECT a.media_id, a.metadata_json FROM media_assets a JOIN media_variants v
+            ON v.site_id = a.site_id AND v.media_id = a.media_id AND v.version = a.version
+            WHERE a.site_id = ? AND a.state = 'ready' AND v.kind = 'web'");
+        $q->execute([$siteId]);
+        $map = [];
+        foreach ($q as $row) {
+            $metadata = json_decode($row['metadata_json'], true, 32, JSON_THROW_ON_ERROR);
+            $map[$row['media_id']] = is_string($metadata['alt'] ?? null) ? $metadata['alt'] : '';
+        }
+        return $map;
+    }
+
     public function publicImage(string $siteId, string $token): string
     {
         if (!preg_match('/^[a-f0-9]{48}$/D', $token) || strlen($siteId) > 64) throw new ContentNotFound('Image not found.');

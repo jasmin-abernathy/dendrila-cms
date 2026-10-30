@@ -216,4 +216,25 @@ frontCheck(count($documents) === 1 && str_contains($documents[0]['content'], 'da
 $services = array_column((new PrivacyInspector())->inspect($documents), 'service_id');
 frontCheck(in_array('youtube', $services, true), 'Privacy inspection sees deferred external services in rendered HTML.');
 
+
+$galleryPage = ['title' => 'Accessible gallery', 'blocks' => [
+    ['type' => 'gallery', 'media_ids' => ['photo-a', 'photo-b'], 'alt' => 'Legacy group description'],
+]];
+$galleryHtml = $renderer->render(
+    $fixture['site'], $galleryPage, $presentation, $themeCssUrl,
+    ['photo-a' => '/a.webp', 'photo-b' => '/b.webp'],
+    mediaAlts: ['photo-a' => 'Mountain & lake', 'photo-b' => 'A "quoted" tree'],
+);
+frontCheck(str_contains($galleryHtml, 'alt="Mountain &amp; lake"')
+    && str_contains($galleryHtml, 'alt="A &quot;quoted&quot; tree"'),
+    'Gallery preserves and escapes each media alternative.');
+$decorativeHtml = $renderer->render(
+    $fixture['site'], $galleryPage, $presentation, $themeCssUrl,
+    ['photo-a' => '/a.webp', 'photo-b' => '/b.webp'],
+    mediaAlts: ['photo-a' => ''],
+);
+frontCheck(!str_contains($decorativeHtml, 'Legacy group description'),
+    'Explicit empty alternatives remain decorative.');
+
 echo "Public front renderer tests passed.\n";
+

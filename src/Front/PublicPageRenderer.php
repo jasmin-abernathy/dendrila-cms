@@ -33,6 +33,7 @@ final readonly class PublicPageRenderer
         array $navigation = [],
         string $privacyMarkup = '',
         array $seo = [],
+        array $mediaAlts = [],
     ): string {
         $siteName = self::shortText($site['name'] ?? null, 'site name', 190);
         $language = in_array($site['language'] ?? 'fr', ['fr', 'en'], true) ? (string) ($site['language'] ?? 'fr') : 'fr';
@@ -85,6 +86,7 @@ final readonly class PublicPageRenderer
             if (!is_array($block)) {
                 throw new InvalidArgumentException('Every page block must be an object.');
             }
+            if (($block['type'] ?? null) === 'gallery') $block['media_alts'] = $mediaAlts;
             $bodyMarkup .= $this->renderBlock(
                 $block,
                 (int) $index,
@@ -271,7 +273,7 @@ final readonly class PublicPageRenderer
         $items = [];
         foreach ($ids as $index => $mediaId) {
             $items[] = '<figure class="d-gallery__item">' . $this->renderMediaFrame([
-                'media_id' => $mediaId, 'alt' => $index === 0 ? $groupAlt : '', 'shape' => 'rounded', 'focal_x' => 50, 'focal_y' => 50,
+                'media_id' => $mediaId, 'alt' => $block['media_alts'][$mediaId] ?? ($index === 0 ? $groupAlt : ''), 'shape' => 'rounded', 'focal_x' => 50, 'focal_y' => 50,
             ], $mediaUrls, $supportedShapes) . '</figure>';
         }
         return '<div class="d-gallery">' . implode('', $items) . '</div>';

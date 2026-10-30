@@ -5,10 +5,11 @@ on:
   pull_request:
     paths:
       - 'bin/build-web-release.py'
-      - 'public/install.php'
-      - 'public/index.php'
-      - 'public/preflight.php'
-      - 'src/Installation/**'
+      - 'public/**'
+      - 'src/**'
+      - 'database/**'
+      - 'design-styles/**'
+      - 'composer.*'
       - 'examples/content-types/page.json'
       - 'tests/web-owner-proof-run.php'
       - 'tests/web-release-smoke.py'
