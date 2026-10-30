@@ -27,7 +27,7 @@
 [data-dendrila-theme="image-centered"] *::after { box-sizing: border-box; }
 
 [data-dendrila-theme="image-centered"] img { max-width: 100%; height: auto; }
-[data-dendrila-theme="image-centered"] a { color: inherit; }
+:where([data-dendrila-theme="image-centered"]) a { color: inherit; }
 [data-dendrila-theme="image-centered"] :focus-visible {
   outline: 3px solid var(--dendrila-color-primary);
   outline-offset: 3px;

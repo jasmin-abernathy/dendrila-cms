@@ -29,7 +29,7 @@
 [data-dendrila-theme="quiet-elegant"] *::after { box-sizing: border-box; }
 
 [data-dendrila-theme="quiet-elegant"] img { max-width: 100%; height: auto; }
-[data-dendrila-theme="quiet-elegant"] a { color: inherit; }
+:where([data-dendrila-theme="quiet-elegant"]) a { color: inherit; }
 [data-dendrila-theme="quiet-elegant"] :focus-visible {
   outline: 3px solid var(--dendrila-color-secondary);
   outline-offset: 3px;

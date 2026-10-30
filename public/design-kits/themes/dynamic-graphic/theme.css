@@ -28,7 +28,7 @@
 [data-dendrila-theme="dynamic-graphic"] *::after { box-sizing: border-box; }
 
 [data-dendrila-theme="dynamic-graphic"] img { max-width: 100%; height: auto; }
-[data-dendrila-theme="dynamic-graphic"] a { color: inherit; }
+:where([data-dendrila-theme="dynamic-graphic"]) a { color: inherit; }
 [data-dendrila-theme="dynamic-graphic"] :focus-visible {
   outline: 3px solid var(--dendrila-color-secondary);
   outline-offset: 3px;
@@ -503,3 +503,6 @@
 [data-dendrila-theme="dynamic-graphic"][data-dendrila-illustration-frequency="none"] .d-section--soft::after {
   display: none;
 }
+
+/* Keep the decorative disk away from narrow-screen reading content. */
+@media(max-width:38rem){[data-dendrila-theme="dynamic-graphic"] .d-hero::before{display:none}}

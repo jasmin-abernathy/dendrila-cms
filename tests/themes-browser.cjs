@@ -22,6 +22,13 @@ module.exports=async function reviewThemes(browser,php){
     assert.equal(await page.locator('body').getAttribute('data-dendrila-theme'),theme);
     const css=await page.locator('link[rel=stylesheet]').first().getAttribute('href');assert(css.startsWith('/design-kits/themes/'+theme+'/theme.css?v='));
     assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`Theme ${style} fits ${width}px`);
+    const buttonContrasts=await page.locator('.d-button').evaluateAll(buttons=>buttons.map(button=>{
+     const css=getComputedStyle(button);
+     const luminance=color=>{const rgb=color.match(/[\d.]+/g).slice(0,3).map(Number).map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4});return .2126*rgb[0]+.7152*rgb[1]+.0722*rgb[2]};
+     const a=luminance(css.color),b=luminance(css.backgroundColor);return (Math.max(a,b)+.05)/(Math.min(a,b)+.05);
+    }));
+    assert(buttonContrasts.every(ratio=>ratio>=4.5),`Theme ${style} button text meets AA: ${buttonContrasts}`);
+    if(style==='graphic-rhythm'&&width===390)assert.equal(await page.locator('.d-hero').evaluate(el=>getComputedStyle(el,'::before').display),'none','Mobile decoration stays away from title');
     for(const img of await page.locator('img').all())await img.scrollIntoViewIfNeeded();
     await page.locator('img').evaluateAll(images=>Promise.all(images.map(img=>img.decode())));
     await page.evaluate(()=>scrollTo(0,0));

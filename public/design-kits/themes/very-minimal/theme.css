@@ -26,7 +26,7 @@
 [data-dendrila-theme="very-minimal"] *::before,
 [data-dendrila-theme="very-minimal"] *::after { box-sizing: border-box; }
 
-[data-dendrila-theme="very-minimal"] a { color: inherit; }
+:where([data-dendrila-theme="very-minimal"]) a { color: inherit; }
 [data-dendrila-theme="very-minimal"] img { max-width: 100%; height: auto; }
 [data-dendrila-theme="very-minimal"] :focus-visible {
   outline: 3px solid var(--dendrila-color-primary);
