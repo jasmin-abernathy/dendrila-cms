@@ -23,7 +23,8 @@ final class Application
     public static function site(): string {return getenv('DENDRILA_SITE_ID')?:throw new \RuntimeException('Site is not installed.');}
     public static function addons(): array {return array_filter(explode(',',getenv('DENDRILA_ADDONS')?:''));}
     public static function page(string $title,string $body): string {
-        return '<!doctype html><html lang="fr"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'.self::h($title).' — Dendrila</title><link rel="stylesheet" href="/backoffice-assets/backoffice.css"><link rel="stylesheet" href="/assets/install.css"><body><main class="setup"><a href="/">Voir le site</a><h1>'.self::h($title).'</h1>'.$body.'</main></body></html>';
+        return '<!doctype html><html lang="fr"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'.self::h($title).' — Dendrila</title><link rel="stylesheet" href="/backoffice-assets/backoffice.css"><link rel="stylesheet" href="/assets/install.css"><link rel="stylesheet" href="/assets/accessibility.css?v=1"><script src="/assets/accessibility.js?v=1" defer></script><body><main class="setup"><a href="/">Voir le site</a><h1>'.self::h($title).'</h1>'.$body.'</main></body></html>';
     }
     public static function h(mixed $s):string{return htmlspecialchars((string)$s,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');}
 }
+

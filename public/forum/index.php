@@ -9,7 +9,7 @@ use Dendrila\Cms\Storage\PdoCmsStore;
 if(!in_array('forum',App::addons(),true)){http_response_code(404);exit('Module non activé.');}
 App::session();$pdo=App::database();$actor=App::identity($pdo)->currentActor();$store=new PdoCmsStore($pdo);
 $forum=new ForumService($pdo,new AuthorizationService($store),new ForumPhotoStorage(getenv('FORUM_PRIVATE_ROOT')?:''));$csrf=new SessionCsrf();
-header("Content-Security-Policy: default-src 'none'; style-src 'self'; img-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'");
+header("Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'");
 $moderator=$actor&&$store->actorHasPermission($actor->siteId,$actor->actorId,'forum.moderate');$canPost=$actor&&$store->actorHasPermission($actor->siteId,$actor->actorId,'forum.post');$error='';
 if($_SERVER['REQUEST_METHOD']==='POST')try{
     if(!$actor||!$csrf->verify(is_string($_POST['csrf']??null)?$_POST['csrf']:''))throw new AccessDenied();
@@ -48,3 +48,4 @@ if($id!==''&&preg_match('/^[a-f0-9]{32}$/D',$id)){
     elseif(!$actor)$body.='<p><a href="/admin/login.php">Connectez-vous</a> pour participer. Les comptes sont créés sur invitation.</p>';
 }
 echo App::page('Forum',$body);
+

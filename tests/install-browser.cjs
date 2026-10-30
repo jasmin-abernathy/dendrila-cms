@@ -8,6 +8,7 @@ const php=process.env.PHP_BINARY||'php';
  const page=await browser.newPage({viewport:{width:1280,height:900}});const errors=[];page.on('pageerror',e=>errors.push(e.message));
  try {
   await page.goto('http://127.0.0.1:8080/install.php');
+  await require('./accessibility-browser.cjs')(page);
   const csrf=await page.locator('input[name=csrf]').inputValue();
   const bypass=await page.request.post('http://127.0.0.1:8080/install.php',{form:{csrf,back:'1'}});assert.equal(bypass.status(),422);
   await page.getByLabel('Clé d’installation').fill(token);await page.getByRole('button',{name:'Utiliser la clé',exact:true}).click();
@@ -108,6 +109,7 @@ const php=process.env.PHP_BINARY||'php';
   await guest.locator('[data-dendrila-consent-action=reject-all]').click();await guest.getByRole('button',{name:'Autoriser ce contenu'}).click();
   assert.equal(await guest.locator('iframe').getAttribute('src'),'https://www.youtube-nocookie.com/embed/example');
   assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Collections do not overflow mobile');
+  await require('./accessibility-browser.cjs')(page);
   await page.screenshot({path:'build/test-artifacts/admin-mobile.png',fullPage:true});
   await require('./themes-browser.cjs')(browser,php);
   await page.goto('http://127.0.0.1:8080/forum/');await page.getByLabel('Titre',{exact:true}).fill('Discussion de test');await page.getByLabel('Message',{exact:true}).fill('Message soumis à modération.');await page.getByRole('button',{name:'Envoyer pour validation'}).click();
@@ -118,3 +120,4 @@ const php=process.env.PHP_BINARY||'php';
   assert.deepEqual(errors,[]);console.log('Browser: wizard, six previews, mobile layout, TOTP login, edit/publish, moderation, CSRF and install lock passed.');
  } finally {await browser.close();if(fs.existsSync('config/local.php'))fs.unlinkSync('config/local.php');}
 })().catch(e=>{console.error(e);process.exit(1)});
+

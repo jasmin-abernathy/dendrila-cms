@@ -25,6 +25,7 @@ module.exports=async function reviewThemes(browser,php){
     assert(!emptyHtml.includes('class="d-gallery"')&&!emptyHtml.includes('class="d-card-grid"'),'Empty mode does not preview optional content');
     await page.goto('http://127.0.0.1:8080/theme-preview.php?theme='+style+'&mode=demo');
     assert.equal(await page.locator('body').getAttribute('data-dendrila-theme'),theme);
+    await require('./accessibility-browser.cjs')(page);
     assert(!/blog|actualités|lorem ipsum/i.test(await page.locator('body').innerText()),'No blog feed imposed by a theme');
     if(width===1280)structures.add(await page.locator('main > section, .d-main-content > section').evaluateAll(sections=>sections.map(s=>s.className).join('|')));
     const css=await page.locator('link[rel=stylesheet]').first().getAttribute('href');assert(css.startsWith('/design-kits/themes/'+theme+'/theme.css?v='));
@@ -61,8 +62,19 @@ module.exports=async function reviewThemes(browser,php){
   await page.goto('http://127.0.0.1:8080/theme-preview.php?theme=editorial');
   assert.equal((await page.evaluate(()=>getComputedStyle(document.body).getPropertyValue('--dendrila-color-primary'))).trim(),'#204060');
   assert.equal(await page.locator('.d-brand img').getAttribute('src'),'https://brand.example/logo.svg');
+  // A blocked storage API must not disable the controls or throw a page error.
+  const blocked=await browser.newContext();
+  await blocked.addInitScript(()=>Object.defineProperty(window,'localStorage',{get(){throw new DOMException('Blocked','SecurityError')}}));
+  const noStorage=await blocked.newPage();noStorage.on('pageerror',e=>errors.push(e.message));
+  await noStorage.goto('http://127.0.0.1:8080/theme-preview.php?theme=editorial&mode=demo');
+  await noStorage.getByRole('button',{name:'Accessibilité',exact:true}).click();
+  await noStorage.getByLabel('Taille du texte').selectOption('150');
+  assert((await noStorage.locator('#d-reading-status').innerText()).includes('empêche'));
+  assert.equal(await noStorage.locator('html').getAttribute('data-reading-size'),'150');
+  await blocked.close();
   assert.deepEqual(errors,[]);
   console.log('Themes browser: six HTML empty and demo previews at 1280/390px, local assets, preview/site parity and brand overrides passed.');
  }finally{fs.writeFileSync('config/local.php',original);await page.close();}
 };
+
 

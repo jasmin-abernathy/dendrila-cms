@@ -8,7 +8,7 @@ use Dendrila\Cms\Storage\PdoCmsStore;
 App::session();$pdo=App::database();$actor=App::identity($pdo)->currentActor();
 if(!$actor){header('Location: /admin/login.php',true,303);exit;}
 $store=new PdoCmsStore($pdo);if(!$store->actorHasPermission($actor->siteId,$actor->actorId,'users.manage')){http_response_code(403);exit('Accès interdit.');}
-header("Content-Security-Policy: default-src 'none'; style-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'");
+header("Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'");
 $csrf=new SessionCsrf();$message='';$accounts=new Accounts($pdo,App::site(),getenv('DENDRILA_AUTH_KEY')?:'');
 if($_SERVER['REQUEST_METHOD']==='POST')try{
     if(!$csrf->verify(is_string($_POST['csrf']??null)?$_POST['csrf']:''))throw new InvalidArgumentException('Formulaire expiré.');
@@ -20,3 +20,4 @@ $hidden='<input type="hidden" name="csrf" value="'.App::h($csrf->token()).'">';$
 foreach($q as $row){$body.='<tr><td>'.App::h($row['email']).'</td><td>'.App::h($row['role_id']).'</td><td>'.($row['enabled']?'Actif':'Désactivé');if($row['enabled']&&!in_array($row['role_id'],['owner','admin'],true)&&$row['actor_id']!==$actor->actorId)$body.='<form method="post">'.$hidden.'<input type="hidden" name="action" value="disable"><input type="hidden" name="actor" value="'.App::h($row['actor_id']).'"><button>Désactiver</button></form>';$body.='</td></tr>';}
 $body.='</table><h2>Inviter une personne</h2><form method="post">'.$hidden.'<label class="field">E-mail<input type="email" required name="email"></label><label class="field">Rôle<select name="role"><option value="editor">Éditeur — pages et photos, avec validation</option><option value="contributor">Contributeur — ses propres brouillons</option><option value="viewer">Lecteur — consultation</option><option value="member">Membre — participation au forum</option></select></label><button class="button">Créer le lien d’invitation</button></form>';
 echo App::page('Comptes et invitations',$body);
+

@@ -125,6 +125,7 @@ final readonly class PublicPageRenderer
             . '<link rel="stylesheet" href="' . self::escape($themeCssUrl) . '">'
             . (isset($presentation['support_css_url']) ? '<link rel="stylesheet" href="'.self::escape(self::safeAssetUrl($presentation['support_css_url'])).'">' : '')
             . '<style data-dendrila-presentation>' . $compiledCss . '</style>'
+            . '<link rel="stylesheet" href="/assets/accessibility.css?v=1"><script src="/assets/accessibility.js?v=1" defer></script>'
             . '</head><body ' . $attributes . '>'
             . '<a class="d-skip-link" href="#contenu">' . ($language === 'en' ? 'Skip to content' : 'Aller au contenu') . '</a>'
             . '<header class="d-header"><div class="d-shell d-header__inner">'
@@ -436,3 +437,4 @@ final readonly class PublicPageRenderer
         return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
     }
 }
+

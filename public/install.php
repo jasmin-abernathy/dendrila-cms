@@ -12,7 +12,7 @@ if(realpath((string)($_SERVER['DOCUMENT_ROOT']??''))!==realpath(__DIR__)){
     http_response_code(503);
     exit(App::page('Racine du site incorrecte','<p>Pour protéger les données privées, le domaine doit pointer uniquement vers le sous-dossier <code>public/</code> de Dendrila. Corrigez ce réglage dans votre hébergement avant de commencer.</p>'));
 }
-header("Content-Security-Policy: default-src 'none'; style-src 'self'; img-src 'self'; frame-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'");
+header("Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; frame-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'");
 $csrf=new SessionCsrf();$error='';$steps=['Accès','Thème','Modules','Base de données','Administrateur'];
 $state=$_SESSION['install']??['step'=>0];
 if(($state['authorized_until']??PHP_INT_MAX)<time())$state=['step'=>0];
@@ -113,3 +113,4 @@ if($state['step']===0){
 }
 $body.='</div></form>';
 echo App::page('Installons votre site',$body);
+

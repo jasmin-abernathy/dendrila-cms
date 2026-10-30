@@ -30,13 +30,13 @@ final readonly class View
         $title=self::h($config->siteName);
         $login=self::h($config->loginUrl);
         return '<!doctype html><html lang="fr"><meta charset="utf-8"><meta name="robots" content="noindex"><title>Connexion</title>'
-            .'<body><main><h1>'.$title.'</h1><p>Connectez-vous à votre espace sécurisé pour accéder au site.</p>'
+            .'<link rel="stylesheet" href="/assets/accessibility.css?v=1"><script src="/assets/accessibility.js?v=1" defer></script><body><main><h1>'.$title.'</h1><p>Connectez-vous à votre espace sécurisé pour accéder au site.</p>'
             .'<p><a href="'.$login.'">Se connecter</a></p></main></body></html>';
     }
     public static function error(Config $config,string $message): string
     {
         return '<!doctype html><html lang="fr"><meta charset="utf-8"><meta name="robots" content="noindex"><title>Erreur</title>'
-            .'<body><main><p>'.self::h($message).'</p><p><a href="'.self::h($config->basePath).'">Retour à l’administration</a></p></main></body></html>';
+            .'<link rel="stylesheet" href="/assets/accessibility.css?v=1"><script src="/assets/accessibility.js?v=1" defer></script><body><main><p>'.self::h($message).'</p><p><a href="'.self::h($config->basePath).'">Retour à l’administration</a></p></main></body></html>';
     }
 
     /**
@@ -74,6 +74,7 @@ final readonly class View
  <link rel="stylesheet" href="<?= self::h($this->config->basePath) ?>?theme=1">
  <link rel="stylesheet" href="/assets/install.css">
  <title><?= self::h($title) ?> — <?= self::h($this->config->siteName) ?></title>
+<link rel="stylesheet" href="/assets/accessibility.css?v=1"><script src="/assets/accessibility.js?v=1" defer></script>
 </head>
 <body>
 <a class="skip" href="#main">Aller au contenu</a>
@@ -446,3 +447,4 @@ final readonly class View
 <?php return (string)ob_get_clean();
     }
 }
+
