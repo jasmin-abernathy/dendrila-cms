@@ -15,7 +15,7 @@ import zipfile
 ROOT = Path(__file__).resolve().parent.parent
 PACKAGE = "dendrila-cms"
 DIRECTORIES = ("bin", "database", "design-styles", "public", "src", "vendor")
-ROOT_FILES = ("bootstrap.php", "composer.json", "composer.lock", "LICENSE.md")
+ROOT_FILES = ("bootstrap.php", "composer.json", "composer.lock", "LICENSE.md", "examples/content-types/page.json")
 SKIPPED = {"__pycache__", ".git", ".github", ".DS_Store", "error_log", ".env", "local.php"}
 
 
@@ -98,6 +98,7 @@ def build(output: Path) -> int:
             raise SystemExit(f"ZIP failed integrity check: {bad}")
         members = set(z.namelist())
         assert f"{PACKAGE}/vendor/autoload.php" in members
+        assert f"{PACKAGE}/examples/content-types/page.json" in members
         assert f"{PACKAGE}/public/install.php" in members
         assert f"{PACKAGE}/public/preflight.php" in members
         assert f"{PACKAGE}/public/.htaccess" in members

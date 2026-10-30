@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 """End-to-end smoke of a real extracted ZIP, without Composer or CLI setup token."""
 import argparse
+import json
+import base64
+import hashlib
+import hmac
+import struct
 from http.cookiejar import CookieJar
 from pathlib import Path
 import os
@@ -113,6 +118,29 @@ def run(archive: Path):
                 body = denied.read().decode("utf-8")
             assert "PRIVATE_CONTENT_DO_NOT_EXPOSE" not in body, "Private file exposed by web router"
             private.unlink()
+            # Finish the wizard against MariaDB FROM THE EXTRACTED ZIP, not the checkout.
+            if not os.environ.get("PACKAGE_DB_NAME"):
+                raise AssertionError("PACKAGE_DB_NAME required for full package validation")
+            def submit(fields):
+                _, current = get(opener, "/install.php")
+                fields["csrf"] = re.search(r'name="csrf" value="([a-f0-9]{64})"', current).group(1)
+                with opener.open(BASE + "/install.php", data=urlencode(fields, doseq=True).encode(), timeout=20) as response:
+                    return response.read().decode()
+            submit({"theme": "editorial"})
+            submit({"addons[]": ["media", "forum"]})
+            account = submit({"host": "127.0.0.1", "port": "3306", "name": os.environ["PACKAGE_DB_NAME"], "user": os.environ["PACKAGE_DB_USER"], "password": os.environ["PACKAGE_DB_PASSWORD"]})
+            secret = re.search(r'<code class="secret">([^<]+)', account).group(1)
+            key = base64.b32decode(secret + "=" * ((8 - len(secret) % 8) % 8))
+            digest = hmac.new(key, struct.pack(">Q", int(time.time()) // 30), hashlib.sha1).digest()
+            offset = digest[-1] & 15
+            code = str((struct.unpack(">I", digest[offset:offset+4])[0] & 0x7fffffff) % 1000000).zfill(6)
+            completed = submit({"name": "Package test", "url": "https://package.example.test", "email": "package@example.test", "password": "Package-test-only-password", "code": code})
+            assert "Votre site est prêt" in completed
+            assert (root / "config/local.php").is_file()
+            status, homepage = get(opener, "/")
+            assert status == 200 and "Bienvenue sur notre site." in homepage
+            assert 'data-dendrila-theme="editorial"' in homepage
+            print("PASS: extracted package completes real MariaDB installation, account creation and publication")
             print("PASS: release ZIP, Composer autoload, first-visit redirect, preflight, file-manager proof and private directory isolation")
         finally:
             proc.terminate()

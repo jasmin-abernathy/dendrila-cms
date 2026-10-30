@@ -28,6 +28,15 @@ final class Installer
         $url=rtrim($account['url']??'','/');
         if(!filter_var($url,FILTER_VALIDATE_URL)||parse_url($url,PHP_URL_SCHEME)!=='https'||parse_url($url,PHP_URL_USER)!==null||parse_url($url,PHP_URL_QUERY)!==null||parse_url($url,PHP_URL_FRAGMENT)!==null||!in_array(parse_url($url,PHP_URL_PATH),[null,''],true))throw new \InvalidArgumentException('Indiquez l’origine HTTPS du site, sans chemin.');
         $step=Totp::verify($state['secret']??'',$account['code']??'');if($step===null)throw new \InvalidArgumentException('Le code de double authentification est incorrect.');
+        // Validate packaged seed resources before connecting or creating any tables.
+        $seedRoot=dirname(__DIR__,2);
+        foreach(['/database/seeders/default-roles.json','/examples/content-types/page.json'] as $resource){
+            if(!is_readable($seedRoot.$resource))throw new \RuntimeException('Required installation resource is missing.');
+        }
+        $roles=json_decode((string)file_get_contents($seedRoot.'/database/seeders/default-roles.json'),true,512,JSON_THROW_ON_ERROR);
+        $type=(string)file_get_contents($seedRoot.'/examples/content-types/page.json');
+        $typeData=json_decode($type,true,512,JSON_THROW_ON_ERROR);
+        if(!is_array($roles)||$roles===[]||!is_array($typeData)||($typeData['id']??null)!=='page')throw new \RuntimeException('Invalid installation resources.');
         $lock=fopen($directory.'/install.lock','c');if(!$lock||!flock($lock,LOCK_EX|LOCK_NB))throw new \RuntimeException('Installation déjà en cours.');
         try{
             if(is_file($directory.'/local.php'))throw new \DomainException('Le site est déjà installé.');
@@ -48,10 +57,8 @@ final class Installer
                 $pdo->exec("INSERT INTO sites VALUES ('default',".$pdo->quote($name).",1,1,'{\"review_before_publish\":true,\"allow_offline_queue\":false}',UTC_TIMESTAMP(6),UTC_TIMESTAMP(6))");
                 $modules=in_array('media',$addons,true)?[\Dendrila\Cms\Api\MediaLibraryModule::definition()]:[];
                 $q=$pdo->prepare("INSERT INTO site_api_settings (site_id,branding_json,modules_json,created_at,updated_at) VALUES ('default','{}',?,UTC_TIMESTAMP(6),UTC_TIMESTAMP(6))");$q->execute([json_encode($modules,JSON_THROW_ON_ERROR)]);
-                $roles=json_decode((string)file_get_contents(dirname(__DIR__,2).'/database/seeders/default-roles.json'),true,512,JSON_THROW_ON_ERROR);
                 foreach($roles as $role){$q=$pdo->prepare("INSERT INTO roles VALUES ('default',?,?)");$q->execute([$role['id'],$role['label']]);foreach($role['permissions'] as $permission){$q=$pdo->prepare("INSERT INTO role_permissions VALUES ('default',?,?)");$q->execute([$role['id'],$permission]);}}
                 $pdo->exec("INSERT INTO memberships VALUES ('default','owner','owner',UTC_TIMESTAMP(6))");
-                $type=(string)file_get_contents(dirname(__DIR__,2).'/examples/content-types/page.json');
                 $q=$pdo->prepare("INSERT INTO content_types VALUES ('default','page',?,1,UTC_TIMESTAMP(6),UTC_TIMESTAMP(6))");$q->execute([$type]);
                 $q=$pdo->prepare("INSERT INTO privacy_settings (site_id,settings_json,created_at,updated_at) VALUES ('default',?,UTC_TIMESTAMP(6),UTC_TIMESTAMP(6))");$q->execute([json_encode(\Dendrila\Cms\Privacy\PrivacyService::defaultSettings(),JSON_THROW_ON_ERROR)]);
                 $identity=new NativeIdentity($pdo,'default',$settings['DENDRILA_AUTH_KEY']);

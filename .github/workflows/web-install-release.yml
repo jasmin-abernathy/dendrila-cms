@@ -8,7 +8,8 @@ on:
       - 'public/install.php'
       - 'public/index.php'
       - 'public/preflight.php'
-      - 'src/Installation/WebOwnerProof.php'
+      - 'src/Installation/**'
+      - 'examples/content-types/page.json'
       - 'tests/web-owner-proof-run.php'
       - 'tests/web-release-smoke.py'
       - '.github/workflows/web-install-release.yml'
@@ -24,6 +25,21 @@ jobs:
   package-and-test:
     runs-on: ubuntu-24.04
     timeout-minutes: 8
+    services:
+      mariadb:
+        image: mariadb:11.4
+        env:
+          MARIADB_ROOT_PASSWORD: package-test-only
+          MARIADB_DATABASE: cms_package_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+    env:
+      PACKAGE_DB_NAME: cms_package_test
+      PACKAGE_DB_USER: root
+      PACKAGE_DB_PASSWORD: package-test-only
     steps:
       - uses: actions/checkout@v7.0.1
         with:
