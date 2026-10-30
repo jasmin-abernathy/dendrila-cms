@@ -25,6 +25,8 @@ try {
             if(!is_string($theme))throw new \InvalidArgumentException('Thème invalide.');
             $enabled=$_POST['enabled']??[];
             if(!is_array($enabled)||count($enabled)>count(AppearanceSettings::COLORS)
+              ||count(array_filter($enabled,'is_string'))!==count($enabled)
+              ||count(array_unique($enabled))!==count($enabled)
               ||array_diff($enabled,array_keys(AppearanceSettings::COLORS))!==[])
               throw new \InvalidArgumentException('Choix de couleurs invalide.');
             $brand=[];
