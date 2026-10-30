@@ -20,17 +20,19 @@ const php=process.env.PHP_BINARY||'php';
   assert.equal(await page.locator('.theme-card__actions a').count(),12,'Each theme exposes empty/full HTML preview');
   for(const card of await themeCards.all()){
     const frameUrl=await card.locator('iframe').getAttribute('src');
-    assert(frameUrl.includes('&mode=empty') || frameUrl.includes('&amp;mode=empty'));
+    assert(frameUrl.includes('&mode=demo') || frameUrl.includes('&amp;mode=demo'),'The thumbnail must show the rich version');
     const emptyLink=await card.locator('a[href$="mode=empty"]').getAttribute('href');
     const demoLink=await card.locator('a[href$="mode=demo"]').getAttribute('href');
     assert(emptyLink.endsWith('mode=empty')&&demoLink.endsWith('mode=demo'));
-    assert.equal(await card.getByRole('link',{name:/Voir le site vierge/}).getAttribute('target'),'_blank');
-    assert.equal(await card.getByRole('link',{name:/Exemple complet/}).getAttribute('target'),'_blank');
+    assert.equal(await card.locator('a[href$="mode=empty"]').getAttribute('target'),'_blank');
+    assert.equal(await card.locator('a[href$="mode=demo"]').getAttribute('target'),'_blank');
     const empty=await page.request.get('http://127.0.0.1:8080'+emptyLink);
     const demo=await page.request.get('http://127.0.0.1:8080'+demoLink);
     assert.equal(empty.status(),200);assert.equal(demo.status(),200);
     assert((await empty.text()).includes('Bienvenue sur notre site.'),'Empty preview is the actual starter page');
-    assert((await demo.text()).includes('Des idées qui prennent vie'),'Full preview shows richer page layout');
+    const demoHtml=await demo.text();
+    assert(demoHtml.includes('Des idées qui prennent vie')&&demoHtml.includes('Lorem ipsum')&&demoHtml.includes('class="d-card-grid"'),'Rich thumbnail uses lorem, cards and photographs');
+    assert(demoHtml.includes('/assets/install-demo/mountains.webp'),'Showcase must use a bundled CC0 photo');
   }
   await page.locator('input[value="editorial"]').check();
   const selectedBefore=await page.locator('input[name=theme]:checked').inputValue();
