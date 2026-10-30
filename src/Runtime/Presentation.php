@@ -27,6 +27,20 @@ final class Presentation
         $presentation['support_css_url'] = '/assets/theme-runtime.css';
         return $presentation;
     }
+    /** Site presentation resolves the published database brand for both previews and visitors. */
+    public static function forSite(\PDO $pdo): array
+    {
+        $state=AppearanceSettings::read($pdo,Application::site());
+        $brand=$state['brand'];
+        $raw=getenv('DENDRILA_BRAND_JSON');
+        if($raw!==false && $raw!==''){
+            $overrides=json_decode($raw,true,32,JSON_THROW_ON_ERROR);
+            if(!is_array($overrides)||($overrides!==[]&&array_is_list($overrides)))throw new \InvalidArgumentException('Brand environment must be an object.');
+            $brand=array_replace($brand,$overrides);
+        }
+        return self::forTheme($state['theme'],$brand);
+    }
+
     public static function consentFor(array $page):string {
         $providers=[];
         foreach($page['blocks']??[] as $block)if(($block['type']??'')==='embed_safe'){
