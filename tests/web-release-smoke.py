@@ -9,7 +9,7 @@ import subprocess
 import tempfile
 import time
 from urllib.parse import urlencode
-from urllib.error import URLError
+from urllib.error import URLError, HTTPError
 from urllib.request import build_opener, HTTPCookieProcessor
 from zipfile import ZipFile
 
@@ -72,7 +72,11 @@ def run(archive: Path):
             assert not (root / "config/install-token.json").exists(), "No CLI token should be needed"
             private = root / "config/private-health.txt"
             private.write_text("PRIVATE_CONTENT_DO_NOT_EXPOSE")
-            _, body = get(opener, "/config/private-health.txt")
+            try:
+                _, body = get(opener, "/config/private-health.txt")
+            except HTTPError as denied:
+                assert denied.code in (403, 404, 503), "Private path should not be served directly"
+                body = denied.read().decode("utf-8")
             assert "PRIVATE_CONTENT_DO_NOT_EXPOSE" not in body, "Private file exposed by web router"
             private.unlink()
             print("PASS: release ZIP, Composer autoload, first-visit redirect, preflight, file-manager proof and private directory isolation")
