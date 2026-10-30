@@ -68,6 +68,27 @@ def run(archive: Path):
             with opener.open(BASE + "/install.php", data=form, timeout=6) as response:
                 body = response.read().decode("utf-8")
                 assert response.status == 200 and 'name="theme"' in body, "Proof did not unlock theme chooser"
+
+            # Validate the actual installation wizard, not only the preview endpoints.
+            assert body.count('name="theme"') == 6, "Six selectable themes in the installer"
+            assert body.count('class="theme-card__actions"') == 6, "Six theme cards offer links to full HTML previews"
+            assert body.count('mode=empty') == 12, "Six empty thumbnails and six full-size empty views"
+            assert body.count('mode=demo') == 6, "Six richer HTML demo links"
+            for style in ("simple-illustrated", "quiet-elegant", "image-forward",
+                          "ultra-minimal", "graphic-rhythm", "editorial"):
+                for mode in ("empty", "demo"):
+                    status, html = get(opener, "/theme-preview.php?theme=" + style + "&mode=" + mode)
+                    assert status == 200, (style, mode, status)
+                    assert "data-dendrila-theme=" in html
+                    assert "Bienvenu" in html if mode == "empty" else "Des idées qui prennent vie" in html, (style, mode)
+                    if mode == "empty":
+                        assert 'class="d-gallery"' not in html and 'class="d-card-grid"' not in html
+            try:
+                get(opener, "/theme-preview.php?theme=editorial&mode=unknown")
+            except HTTPError as e:
+                assert e.code == 404
+            else:
+                raise AssertionError("Invalid preview mode must fail closed")
             assert not proof.exists(), "Ownership proof must be consumed after use"
             assert not (root / "config/install-token.json").exists(), "No CLI token should be needed"
             private = root / "config/private-health.txt"
