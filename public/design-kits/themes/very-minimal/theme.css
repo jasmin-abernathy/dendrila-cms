@@ -388,3 +388,24 @@
 [data-dendrila-theme="very-minimal"][data-dendrila-illustration-frequency="none"] .d-section__heading::before {
   display: none;
 }
+
+
+/* Independent studio: small type, generous whitespace, directory rather than feed. */
+[data-dendrila-theme="very-minimal"] .d-header{border:0}
+[data-dendrila-theme="very-minimal"] .d-header__inner{min-height:6rem}
+[data-dendrila-theme="very-minimal"] main{width:min(calc(100% - 3rem),74rem);margin-inline:auto;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6rem;padding-block:4rem}
+[data-dendrila-theme="very-minimal"] main>.d-hero{padding:0;border:0;min-width:0}
+[data-dendrila-theme="very-minimal"] .d-hero__grid{display:block;padding:0;width:100%}
+[data-dendrila-theme="very-minimal"] .d-main-content{min-width:0}
+[data-dendrila-theme="very-minimal"] .d-title{font-size:clamp(2rem,3vw,3.1rem);line-height:1.14;max-width:16ch;font-weight:500;letter-spacing:-.04em}
+[data-dendrila-theme="very-minimal"] .d-lead{font-size:1rem;max-width:32ch}
+[data-dendrila-theme="very-minimal"] .d-button{font-size:.9rem;padding:.6rem .9rem;min-height:2.6rem}
+[data-dendrila-theme="very-minimal"] .d-section{padding-block:0 3rem}
+[data-dendrila-theme="very-minimal"] .d-section>.d-shell{width:100%}
+[data-dendrila-theme="very-minimal"] .d-heading{font-size:.75rem;text-transform:uppercase;letter-spacing:.1em;font-weight:500;margin-bottom:1.5rem}
+[data-dendrila-theme="very-minimal"] .d-key-values{display:block;border-top:1px solid var(--dendrila-color-border)}
+[data-dendrila-theme="very-minimal"] .d-key-values__item{display:block;padding:1.3rem 0;border:0;border-bottom:1px solid var(--dendrila-color-border)}
+[data-dendrila-theme="very-minimal"] .d-key-values dt{font-size:1rem;text-transform:none;letter-spacing:0;color:var(--dendrila-color-text)}
+[data-dendrila-theme="very-minimal"] .d-key-values dd{font-size:.9rem;margin:.45rem 0 0;color:var(--dendrila-color-muted);font-weight:400}
+[data-dendrila-theme="very-minimal"] .d-footer{background:transparent;border-top:1px solid var(--dendrila-color-border);color:var(--dendrila-color-text)}
+@media(max-width:52rem){[data-dendrila-theme="very-minimal"] main{grid-template-columns:1fr;gap:3rem;padding-block:2rem}[data-dendrila-theme="very-minimal"] .d-title{max-width:22ch}}

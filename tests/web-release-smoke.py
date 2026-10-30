@@ -85,13 +85,13 @@ def run(archive: Path):
                     status, html = get(opener, "/theme-preview.php?theme=" + style + "&mode=" + mode)
                     assert status == 200, (style, mode, status)
                     assert "data-dendrila-theme=" in html
-                    assert ("Bienvenue sur notre site." in html if mode == "empty" else "Des idées qui prennent vie" in html), (style, mode)
+                    assert ("Bienvenue sur notre site." in html if mode == "empty" else "Démonstration" in html), (style, mode)
                     if mode == "empty":
                         assert 'class="d-gallery"' not in html and 'class="d-card-grid"' not in html
                         assert "/assets/install-demo/" not in html
                     else:
-                        assert "Lorem ipsum" in html and 'class="d-card-grid"' in html
-                        assert html.count("/assets/install-demo/") >= 7, "Preview must show photos in hero, cards and gallery"
+                        assert "Lorem ipsum" not in html and "Blog" not in html
+                        assert 'class="d-button"' in html, "Each preview offers a clear primary action"
             # Same-domain images must be present in the extracted installation ZIP:
             # no Wikimedia/browser tracking, no network dependency during previews.
             for name in ("mountains", "forest", "architecture", "flowers"):
@@ -152,3 +152,4 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("archive", type=Path)
     run(parser.parse_args().archive)
+

@@ -492,3 +492,25 @@
   .d-nav a::after,
   .d-button { transition: none; }
 }
+
+
+/* Hospitality: centered introduction followed by a calm panoramic opening. */
+[data-dendrila-theme="quiet-elegant"] .d-header{position:static}
+[data-dendrila-theme="quiet-elegant"] .d-header__inner{flex-direction:column;justify-content:center;padding-block:1.4rem;gap:1rem}
+[data-dendrila-theme="quiet-elegant"] .d-brand{font-size:1.15rem;letter-spacing:.2em;text-transform:uppercase}
+[data-dendrila-theme="quiet-elegant"] .d-hero__grid{display:flex;flex-direction:column;gap:2.5rem;padding-block:4rem 1rem}
+[data-dendrila-theme="quiet-elegant"] .d-hero__copy{text-align:center;max-width:47rem;margin:auto}
+[data-dendrila-theme="quiet-elegant"] .d-title{font-size:clamp(2.6rem,5vw,5rem);max-width:18ch;margin-inline:auto;font-weight:400}
+[data-dendrila-theme="quiet-elegant"] .d-lead{max-width:42rem;margin-inline:auto}
+[data-dendrila-theme="quiet-elegant"] .d-actions{justify-content:center}
+[data-dendrila-theme="quiet-elegant"] .d-hero__media{width:100%;max-width:64rem;transform:none}
+[data-dendrila-theme="quiet-elegant"] .d-hero__media .d-media{aspect-ratio:2.5;min-height:0;--d-media-mask:none;--d-media-fallback-radius:50% 50% 0 0 / 22% 22% 0 0}
+[data-dendrila-theme="quiet-elegant"] .d-hero__media .d-media__image{mask:none;-webkit-mask:none;border-radius:50% 50% 0 0 / 22% 22% 0 0}
+[data-dendrila-theme="quiet-elegant"] .d-hero__media .d-media:before{display:none}
+[data-dendrila-theme="quiet-elegant"] .d-section--block-text{text-align:center;padding-block:4rem}
+[data-dendrila-theme="quiet-elegant"] .d-section__heading{text-align:center;margin-inline:auto}
+[data-dendrila-theme="quiet-elegant"] .d-gallery{display:grid;grid-template-columns:1fr 1fr;gap:3rem;columns:unset}
+[data-dendrila-theme="quiet-elegant"] .d-gallery__item:first-child{grid-column:auto;grid-row:auto}
+[data-dendrila-theme="quiet-elegant"] .d-gallery__item:nth-child(even){padding-top:4rem}
+[data-dendrila-theme="quiet-elegant"] .d-key-values{max-width:42rem;margin-inline:auto}
+@media(max-width:38rem){[data-dendrila-theme="quiet-elegant"] .d-hero__grid{padding-top:2rem}[data-dendrila-theme="quiet-elegant"] .d-hero__media .d-media{aspect-ratio:1.5}[data-dendrila-theme="quiet-elegant"] .d-gallery{gap:1rem}[data-dendrila-theme="quiet-elegant"] .d-gallery__item:nth-child(even){padding-top:2rem}}

@@ -3,7 +3,7 @@
   "id": "editorial",
   "design_style_id": "editorial",
   "label": "Éditorial",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Une grammaire de presse inspirée de la composition de l’advarP : hiérarchie typographique, filets de séparation, une principale, lecture longue et colonnes secondaires. Aucune identité du média n'est incluse.",
   "entrypoint": "theme.css",
   "preview": "preview/index.html",

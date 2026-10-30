@@ -865,3 +865,21 @@
 [data-dendrila-theme="simple-illustrated"][data-dendrila-illustration-frequency="none"] .d-section--soft::after {
   display: none;
 }
+
+
+/* Service hub: compact navigation, practical cards and a square visual. */
+[data-dendrila-theme="simple-illustrated"]{--dendrila-font-heading:ui-sans-serif,system-ui,sans-serif}
+[data-dendrila-theme="simple-illustrated"] .d-header{position:static;border-bottom:3px solid var(--dendrila-color-primary)}
+[data-dendrila-theme="simple-illustrated"] .d-hero{background:var(--dendrila-color-accent-soft)}
+[data-dendrila-theme="simple-illustrated"] .d-hero__grid{grid-template-columns:minmax(0,1.4fr) minmax(0,.6fr);gap:3rem;padding-block:3.5rem;min-height:0}
+[data-dendrila-theme="simple-illustrated"] .d-title{font-size:clamp(2.4rem,4.6vw,4.3rem);max-width:17ch;font-family:var(--dendrila-font-heading)}
+[data-dendrila-theme="simple-illustrated"] .d-hero__media{width:100%;max-width:22rem}
+[data-dendrila-theme="simple-illustrated"] .d-hero__media .d-media{min-height:0;aspect-ratio:1;--d-media-mask:none;--d-media-fallback-radius:1rem}
+[data-dendrila-theme="simple-illustrated"] .d-hero__media .d-media__image{mask:none;-webkit-mask:none;border-radius:1rem}
+[data-dendrila-theme="simple-illustrated"] .d-hero__media .d-media:before{display:none}
+[data-dendrila-theme="simple-illustrated"] .d-card{border-top:4px solid var(--dendrila-color-primary);border-radius:0 0 .7rem .7rem;padding:1.5rem}
+[data-dendrila-theme="simple-illustrated"] .d-card__title{font-family:var(--dendrila-font-heading);font-size:1.3rem}
+[data-dendrila-theme="simple-illustrated"] .d-section{padding-block:2.75rem}
+[data-dendrila-theme="simple-illustrated"] .d-key-values{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:52rem){[data-dendrila-theme="simple-illustrated"] .d-hero__grid{grid-template-columns:1fr;gap:2rem}[data-dendrila-theme="simple-illustrated"] .d-hero__media{max-width:18rem;justify-self:start}}
+@media(max-width:38rem){[data-dendrila-theme="simple-illustrated"] .d-key-values{grid-template-columns:1fr}}

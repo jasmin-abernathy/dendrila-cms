@@ -3,7 +3,7 @@
   "id": "image-centered",
   "design_style_id": "image-forward",
   "label": "Centré sur les images",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Thème immersif où les photographies structurent la page : hero plein cadre, galeries fortes, textes courts et respirants.",
   "entrypoint": "theme.css",
   "preview": "preview/index.html",

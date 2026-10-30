@@ -14,12 +14,13 @@ try {
     // No database or installed site, admin session or optional module required.
     $presentation=Presentation::forTheme($id);
     $html=(new PublicPageRenderer())->render(
-        InstallThemePreview::site($mode),
-        InstallThemePreview::page($mode),
+        InstallThemePreview::site($mode,$id),
+        InstallThemePreview::page($mode,$id),
         $presentation,
         $presentation['css_url'],
         InstallThemePreview::media($mode),
-        InstallThemePreview::navigation($mode)
+        InstallThemePreview::navigation($mode,$id),
+        mediaAlts: InstallThemePreview::alternatives()
     );
 } catch (InvalidArgumentException) {
     http_response_code(404);

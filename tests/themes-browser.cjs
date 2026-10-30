@@ -4,7 +4,7 @@ const assert=require('assert');
 module.exports=async function reviewThemes(browser,php){
  const original=fs.readFileSync('config/local.php');
  const styles={'simple-illustrated':'simple-illustrated','quiet-elegant':'quiet-elegant','image-forward':'image-centered','ultra-minimal':'very-minimal','graphic-rhythm':'dynamic-graphic',editorial:'editorial'};
- const page=await browser.newPage();const errors=[];const signatures=new Set();
+ const page=await browser.newPage();const errors=[];const signatures=new Set();const structures=new Set();
  // The installer selected quiet-elegant. Previewing another kit must not change the installed site.
  await page.goto('http://127.0.0.1:8080/');
  const installedTheme=await page.locator('body').getAttribute('data-dendrila-theme');
@@ -25,6 +25,8 @@ module.exports=async function reviewThemes(browser,php){
     assert(!emptyHtml.includes('class="d-gallery"')&&!emptyHtml.includes('class="d-card-grid"'),'Empty mode does not preview optional content');
     await page.goto('http://127.0.0.1:8080/theme-preview.php?theme='+style+'&mode=demo');
     assert.equal(await page.locator('body').getAttribute('data-dendrila-theme'),theme);
+    assert(!/blog|actualités|lorem ipsum/i.test(await page.locator('body').innerText()),'No blog feed imposed by a theme');
+    if(width===1280)structures.add(await page.locator('main > section, .d-main-content > section').evaluateAll(sections=>sections.map(s=>s.className).join('|')));
     const css=await page.locator('link[rel=stylesheet]').first().getAttribute('href');assert(css.startsWith('/design-kits/themes/'+theme+'/theme.css?v='));
     assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`Theme ${style} fits ${width}px`);
     const buttonContrasts=await page.locator('.d-button').evaluateAll(buttons=>buttons.map(button=>{
@@ -48,6 +50,7 @@ module.exports=async function reviewThemes(browser,php){
     assert(await page.evaluate(()=>matchMedia('(prefers-reduced-motion: reduce)').matches));
    }
   }
+  assert(structures.size===6,'Six materially different demo structures');
   assert(signatures.size>=5,'Themes have distinct computed visual signatures');
   config('editorial',{primary:'#204060',body_font:'neutral-sans',logo_url:'https://brand.example/logo.svg'});
   // The PHP dev server retains its environment between requests. Generate the brand
@@ -62,3 +65,4 @@ module.exports=async function reviewThemes(browser,php){
   console.log('Themes browser: six HTML empty and demo previews at 1280/390px, local assets, preview/site parity and brand overrides passed.');
  }finally{fs.writeFileSync('config/local.php',original);await page.close();}
 };
+

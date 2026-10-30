@@ -3,7 +3,7 @@
   "id": "quiet-elegant",
   "design_style_id": "quiet-elegant",
   "label": "Sobre et élégant",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Thème aéré et éditorial : serif raffinée, grands blancs, détails fins, images naturelles et décor botanique optionnel fourni par le thème.",
   "entrypoint": "theme.css",
   "preview": "preview/index.html",

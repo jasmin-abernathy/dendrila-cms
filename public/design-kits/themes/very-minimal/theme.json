@@ -3,7 +3,7 @@
   "id": "very-minimal",
   "design_style_id": "ultra-minimal",
   "label": "Très minimal",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Thème radicalement sobre : hiérarchie typographique forte, lignes fines, très peu de décor et aucune carte superflue.",
   "entrypoint": "theme.css",
   "preview": "preview/index.html",

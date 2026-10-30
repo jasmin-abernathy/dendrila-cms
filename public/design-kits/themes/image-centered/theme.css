@@ -439,3 +439,20 @@
 [data-dendrila-theme="image-centered"][data-dendrila-illustration-frequency="none"] .d-section--soft::after {
   display: none;
 }
+
+
+/* Portfolio: image first, restrained labels and a full-width contact sheet. */
+[data-dendrila-theme="image-centered"]{--dendrila-color-bg:#101616;--dendrila-color-surface:#172020;--dendrila-color-text:#f4f5ef;--dendrila-color-muted:#c4ccc4;--dendrila-color-primary:#cee5be;--dendrila-color-primary-strong:#cee5be;--dendrila-color-border:#46534b}
+[data-dendrila-theme="image-centered"] .d-header{background:var(--dendrila-color-bg);color:var(--dendrila-color-text)}
+[data-dendrila-theme="image-centered"] .d-title{font-family:ui-sans-serif,system-ui,sans-serif;font-size:clamp(3rem,6vw,6rem);letter-spacing:-.06em}
+[data-dendrila-theme="image-centered"] .d-hero__copy{max-width:43rem}
+[data-dendrila-theme="image-centered"] .d-button{background:var(--dendrila-color-text);color:var(--dendrila-color-bg);border-color:var(--dendrila-color-text)}
+[data-dendrila-theme="image-centered"] .d-section--block-gallery{padding:2rem 0}
+[data-dendrila-theme="image-centered"] .d-section--block-gallery>.d-shell{width:calc(100% - 2rem);max-width:none}
+[data-dendrila-theme="image-centered"] .d-gallery{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));columns:unset;gap:.6rem}
+[data-dendrila-theme="image-centered"] .d-gallery__item:first-child{grid-column:span 2;grid-row:span 2}
+[data-dendrila-theme="image-centered"] .d-gallery__item .d-media{height:100%;min-height:0;aspect-ratio:1.25}
+[data-dendrila-theme="image-centered"] .d-gallery__item .d-media__image{height:100%;object-fit:cover}
+[data-dendrila-theme="image-centered"] .d-section--block-text{padding-block:3rem}
+[data-dendrila-theme="image-centered"] .d-footer{background:var(--dendrila-color-bg);color:var(--dendrila-color-text);border-top:1px solid var(--dendrila-color-border)}
+@media(max-width:38rem){[data-dendrila-theme="image-centered"] .d-gallery{grid-template-columns:1fr 1fr}[data-dendrila-theme="image-centered"] .d-gallery__item:first-child{grid-column:1/-1;grid-row:auto}}

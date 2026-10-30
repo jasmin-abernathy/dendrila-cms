@@ -506,3 +506,21 @@
 
 /* Keep the decorative disk away from narrow-screen reading content. */
 @media(max-width:38rem){[data-dendrila-theme="dynamic-graphic"] .d-hero::before{display:none}}
+
+
+/* Event poster: typographic stage and numbered programme, no article tiles. */
+[data-dendrila-theme="dynamic-graphic"]{--dendrila-color-bg:#fff6db;--dendrila-color-surface:#fff9e8;--dendrila-color-text:#211e57;--dendrila-color-muted:#514d69;--dendrila-color-primary:#3320a0;--dendrila-color-primary-strong:#241575;--dendrila-color-secondary:#edbd48;--dendrila-font-heading:ui-sans-serif,system-ui,sans-serif}
+[data-dendrila-theme="dynamic-graphic"] .d-header{background:var(--dendrila-color-bg);border-bottom:2px solid var(--dendrila-color-text)}
+[data-dendrila-theme="dynamic-graphic"] .d-hero{background:var(--dendrila-color-primary);color:var(--dendrila-color-surface)}
+[data-dendrila-theme="dynamic-graphic"] .d-hero:before{display:none}
+[data-dendrila-theme="dynamic-graphic"] .d-hero__grid{padding-block:4rem;grid-template-columns:1fr;min-height:0}
+[data-dendrila-theme="dynamic-graphic"] .d-hero__copy{max-width:70rem}
+[data-dendrila-theme="dynamic-graphic"] .d-title{font-family:var(--dendrila-font-heading);font-size:clamp(3.4rem,10vw,9rem);line-height:.95;max-width:13ch;font-weight:900;letter-spacing:-.06em}
+[data-dendrila-theme="dynamic-graphic"] .d-hero .d-eyebrow,[data-dendrila-theme="dynamic-graphic"] .d-hero .d-lead{color:var(--dendrila-color-surface)}
+[data-dendrila-theme="dynamic-graphic"] .d-hero .d-lead{max-width:40rem}
+[data-dendrila-theme="dynamic-graphic"] .d-hero .d-button{background:var(--dendrila-color-surface);color:var(--dendrila-color-primary-strong);border-radius:0;box-shadow:5px 5px 0 var(--dendrila-color-secondary)}
+[data-dendrila-theme="dynamic-graphic"] .d-card-grid{display:block;border-top:2px solid var(--dendrila-color-text)}
+[data-dendrila-theme="dynamic-graphic"] .d-card{display:grid;grid-template-columns:1fr 1fr;gap:2rem;align-items:center;padding:1.5rem 0;border:0;border-bottom:2px solid var(--dendrila-color-text);background:transparent;border-radius:0;box-shadow:none;transform:none}
+[data-dendrila-theme="dynamic-graphic"] .d-card__title{font-family:var(--dendrila-font-heading);font-size:clamp(1.6rem,3vw,2.8rem);margin:0;text-transform:uppercase}
+[data-dendrila-theme="dynamic-graphic"] .d-card p{color:var(--dendrila-color-text);margin:0}
+@media(max-width:38rem){[data-dendrila-theme="dynamic-graphic"] .d-hero__grid{padding-block:3rem}[data-dendrila-theme="dynamic-graphic"] .d-card{grid-template-columns:1fr;gap:.8rem}}
