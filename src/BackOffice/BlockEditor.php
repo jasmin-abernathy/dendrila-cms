@@ -60,7 +60,7 @@ final class BlockEditor
         throw new \InvalidArgumentException('Utilisez un lien HTTPS, une adresse du site ou une adresse e-mail.');
     }
     private static function embed(array $block):void {
-        $hosts=['youtube-nocookie'=>['www.youtube-nocookie.com','youtube-nocookie.com'],'vimeo'=>['player.vimeo.com'],'openstreetmap'=>['www.openstreetmap.org','openstreetmap.org']];
+        $hosts=['youtube-nocookie'=>['www.youtube-nocookie.com'],'vimeo'=>['player.vimeo.com'],'openstreetmap'=>['www.openstreetmap.org']];
         $url=$block['url'];
         if(parse_url($url,PHP_URL_SCHEME)!=='https'||!in_array(strtolower(parse_url($url,PHP_URL_HOST)??''),$hosts[$block['provider']]??[],true)||parse_url($url,PHP_URL_USER)!==null)
             throw new \InvalidArgumentException('Utilisez l’adresse HTTPS d’intégration du fournisseur choisi.');

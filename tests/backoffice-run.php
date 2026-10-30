@@ -193,6 +193,12 @@ backofficeCheck($mediaPage->status===200
     && str_contains($mediaPage->body,'Photo &amp; rénovation')
     && !str_contains($mediaPage->body,'Adresse de l’image'),
     'Optional photo port displays a usable library without technical URLs.');
+$cardsCore=new CoreData($store,$navigation);
+$cardsId=$cardsCore->createPage($owner,'free','Cartes','cartes-test');
+$cardsCore->changeBlock($owner,$cardsId,1,'add',0,'cards');
+$cardsCore->changeBlock($owner,$cardsId,2,'add_item',0);
+$cardsView=$extended->handle('GET',['section'=>'textes','page'=>$cardsId]);
+backofficeCheck(str_contains($cardsView->body,'<select name="blocks[0][items][0][media_id]">')&&str_contains($cardsView->body,'Aucune photo'),'Cards select images by label instead of requiring technical identifiers.');
 $galleryId=$gallery[0]['content_id'];
 $galleryView=$extended->handle('GET',['section'=>'textes','page'=>$galleryId]);
 backofficeCheck(str_contains($galleryView->body,'blocks[0][media_ids][]') &&

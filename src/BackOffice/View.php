@@ -255,7 +255,21 @@ final readonly class View
                 foreach($media as $photo)$html.='<label><input type="checkbox" name="blocks['.$i.'][media_ids][]" value="'.self::h($photo['id']).'"'.(in_array($photo['id'],$block['media_ids'],true)?' checked':'').'> '.self::h($photo['title']).'</label>';
                 if($media===[])$html.='<p>Ajoutez des photos à la photothèque pour remplir cette galerie.</p>';
             }
-            foreach($block['items']??[] as $j=>$item){$html.='<fieldset><legend>Élément '.($j+1).'</legend>';foreach(BlockEditor::ITEMS[$type]??[] as $key=>$label)$html.='<label>'.self::h($label).'<textarea name="blocks['.$i.'][items]['.$j.']['.$key.']">'.self::h($item[$key]??'').'</textarea></label>';$html.='</fieldset>';}
+            foreach($block['items']??[] as $j=>$item){
+                $html.='<fieldset><legend>Élément '.($j+1).'</legend>';
+                foreach(BlockEditor::ITEMS[$type]??[] as $key=>$label){
+                    if($key==='media_id'&&!$this->media)continue;
+                    $name='blocks['.$i.'][items]['.$j.']['.$key.']';$value=$item[$key]??'';
+                    $html.='<label>'.self::h($label);
+                    if($key==='media_id'){
+                        $html.='<select name="'.$name.'"><option value="">Aucune photo</option>';
+                        foreach($media as $photo)$html.='<option value="'.self::h($photo['id']).'"'.($value===$photo['id']?' selected':'').'>'.self::h($photo['title']).'</option>';
+                        $html.='</select>';
+                    }else $html.='<textarea name="'.$name.'">'.self::h($value).'</textarea>';
+                    $html.='</label>';
+                }
+                $html.='</fieldset>';
+            }
             if($can)$html.='<button class="button">Enregistrer ce bloc</button>';
             $html.='</fieldset></form>';
             if($can)foreach($block['items']??[] as $j=>$item){
@@ -277,6 +291,7 @@ final readonly class View
             if($this->media)$html.='<option value="gallery">Galerie</option>';
             if($media!==[])$html.='<option value="image">Photo</option>';
             $html.='</select></label>';if($media!==[]){$html.='<label>Photo (pour un bloc photo)<select name="media_id">';foreach($media as $photo)$html.='<option value="'.self::h($photo['id']).'">'.self::h($photo['title']).'</option>';$html.='</select></label>';}
+            $html.='<details><summary>Options du contenu externe</summary><label>Fournisseur<select name="initial[provider]"><option value="youtube-nocookie">YouTube sans cookies</option><option value="vimeo">Vimeo</option><option value="openstreetmap">OpenStreetMap</option></select></label><label>Adresse d’intégration HTTPS<input type="url" name="initial[url]" placeholder="https://www.youtube-nocookie.com/embed/…"></label><p>À renseigner pour ajouter un contenu externe ; le chargement attendra le consentement du visiteur.</p></details>';
             $html.='<button class="button secondary">Ajouter le bloc</button></form>';
         }
         if(getenv('DENDRILA_SITE_ID')===$actor->siteId&&$this->core->can($actor,'content.preview'))$html.='<p><a class="button secondary" href="/admin/preview.php?id='.rawurlencode($page['content_id']).'" target="_blank" rel="noopener">Prévisualiser le brouillon</a></p>';

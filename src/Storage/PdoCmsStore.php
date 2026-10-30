@@ -168,7 +168,7 @@ final readonly class PdoCmsStore implements CmsStore
                        published_slug, published_version, published_revision_id,
                        version, current_revision_id, publish_at, review_approved_at, published_at, created_at, updated_at
                 FROM contents WHERE ' . implode(' AND ', $where)
-            . ' ORDER BY updated_at DESC LIMIT ' . $limit . ' OFFSET ' . $offset;
+            . ' ORDER BY updated_at DESC, content_id DESC LIMIT ' . $limit . ' OFFSET ' . $offset;
         $statement = $this->pdo->prepare($sql);
         $statement->execute($parameters);
         return array_map(fn (array $row): array => $this->decodeContent($row), $statement->fetchAll());

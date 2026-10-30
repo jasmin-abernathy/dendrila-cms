@@ -158,7 +158,8 @@ final readonly class Kernel
                 if($op==='add'&&$type==='image'&&(!$this->media||!in_array($mediaId,array_column($this->media->list($actor),'id'),true)))throw new \InvalidArgumentException('Choisissez une photo.');
                 $itemIndex=filter_var($post['item_index']??0,FILTER_VALIDATE_INT,['options'=>['min_range'=>0]]);
                 if($itemIndex===false)throw new \InvalidArgumentException('Élément invalide.');
-                $this->core->changeBlock($actor,$id,$version,$op,$index,$type,$mediaId,$itemIndex);
+                $initial=$post['initial']??[];if(!is_array($initial))throw new \InvalidArgumentException('Options invalides.');
+                $this->core->changeBlock($actor,$id,$version,$op,$index,$type,$mediaId,$itemIndex,$initial);
             }elseif($action==='transition_page') {
                 $this->core->transitionPage($actor,$id,$version,self::scalar($post,'target',20));
             }else $this->core->addPageToMenu($actor,$id,self::scalar($post,'menu_id',64),$version);

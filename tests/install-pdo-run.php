@@ -74,6 +74,12 @@ $editor=new ActorContext('default','test-editor');$core->saveBlocks($editor,$own
 verifyInstall((fileperms($base.'/config/local.php')&0777)===0600,'Configuration is private');
 $lock=fopen($base.'/config/install.lock','c');flock($lock,LOCK_EX|LOCK_NB);
 try{Installer::install(['theme'=>'quiet-elegant','addons'=>[],'secret'=>$secret,'db'=>$db],['name'=>'Test','email'=>'test@example.test','password'=>$password,'url'=>'https://example.test','code'=>Totp::code($secret,intdiv(time(),30))],$base.'/config');throw new LogicException('Concurrent installer passed lock');}catch(RuntimeException $e){verifyInstall(str_contains($e->getMessage(),'en cours'),'Concurrent installer rejected before DB changes');}finally{flock($lock,LOCK_UN);fclose($lock);}
+$blockPage=$core->createPage($actor,'free','Tous les blocs','tous-les-blocs');$version=1;
+foreach(['text','rich_text','gallery','cta','cards','faq','key_values','statistics'] as $type){$core->changeBlock($actor,$blockPage,$version++,'add',0,$type);}
+$core->changeBlock($actor,$blockPage,$version++,'add',0,'embed_safe','',0,['provider'=>'youtube-nocookie','url'=>'https://www.youtube-nocookie.com/embed/example']);
+$core->publishPage($actor,$blockPage,$version);
+$html=(new PublicSite($pdo))->render('/tous-les-blocs/');
+verifyInstall(str_contains($html,'dendrila-privacy-consent-config')&&str_contains($html,'data-dendrila-src='),'Every offered block persists and publishes with working consent markup');
 if(getenv('INSTALL_BACKUP_MANIFEST')){
     $manifest=getenv('INSTALL_BACKUP_MANIFEST');if(!is_dir(dirname($manifest)))mkdir(dirname($manifest),0700,true);
     $old=umask(0077);file_put_contents($manifest,json_encode(['root'=>$base,'totp_hash'=>hash('sha256',$secret)],JSON_THROW_ON_ERROR));umask($old);

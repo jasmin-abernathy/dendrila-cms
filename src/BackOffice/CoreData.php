@@ -164,11 +164,14 @@ final readonly class CoreData
         $values['blocks']=BlockEditor::update($values['blocks']??[],$edits,$mediaIds);
         $this->content->updateDraft($actor,$id,$version,$values,bin2hex(random_bytes(16)));
     }
-    public function changeBlock(ActorContext $actor,string $id,int $version,string $operation,int $index,string $type='text',string $mediaId='',int $itemIndex=0):void
+    public function changeBlock(ActorContext $actor,string $id,int $version,string $operation,int $index,string $type='text',string $mediaId='',int $itemIndex=0,array $initial=[]):void
     {
         $page=$this->page($actor,$id);$values=$page['values'];$blocks=$values['blocks']??[];
         if($operation==='add') {
-            $blocks[]=$type==='image'?['type'=>'image','media_id'=>$mediaId,'alt'=>'']:BlockEditor::blank($type);
+            if($type==='embed_safe'){
+                if(!is_string($initial['url']??null)||$initial['url']==='')throw new \InvalidArgumentException('Indiquez l’adresse d’intégration dans les options du contenu externe.');
+                $blocks[]=BlockEditor::update([BlockEditor::blank($type)],[0=>$initial],[])[0];
+            }else $blocks[]=$type==='image'?['type'=>'image','media_id'=>$mediaId,'alt'=>'']:BlockEditor::blank($type);
         } else {
             if(!isset($blocks[$index]))throw new \InvalidArgumentException('Bloc introuvable.');
             if($operation==='remove')array_splice($blocks,$index,1);
