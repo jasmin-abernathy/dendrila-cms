@@ -78,8 +78,21 @@ case 0:
     $body.='<h2>Autre méthode : clé de préparation</h2><label class="field">Clé d’installation créée en ligne de commande (facultatif)<input name="token" type="password" autocomplete="off"></label>';
     break;
 case 1:
-    $body.='<h2>Quelle ambiance pour votre site ?</h2><p>Le contenu est identique dans chaque aperçu pour comparer les présentations.</p><div class="theme-grid">';
-    foreach(Catalog::themes() as $id=>$theme){$body.='<label class="theme-card"><span class="theme-preview"><iframe title="Aperçu : '.App::h($theme['label']).'" src="/theme-preview.php?theme='.rawurlencode($id).'" tabindex="-1" loading="eager" sandbox></iframe></span><span><input required type="radio" name="theme" value="'.App::h($id).'"'.(($state['theme']??'')===$id?' checked':'').'> <strong>'.App::h($theme['label']).'</strong></span><p>'.App::h($theme['description']).'</p></label>';}
+    $body.='<h2>Quelle ambiance pour votre site ?</h2><p>Comparez les six thèmes avec le même contenu. La miniature représente un <strong>site vierge</strong>, sans module ni contenu supplémentaire. Pour découvrir les mises en page possibles, ouvrez aussi l’exemple complet. Aucun aperçu ne modifie votre sélection.</p><div class="theme-grid">';
+    foreach(Catalog::themes() as $id=>$theme){
+        $label=App::h($theme['label']);
+        $preview='/theme-preview.php?theme='.rawurlencode($id);
+        $body.='<article class="theme-card">'
+            .'<label class="theme-option"><span class="theme-preview">'
+            .'<iframe title="Site vierge : '.$label.'" src="'.$preview.'&amp;mode=empty" tabindex="-1" loading="lazy" sandbox></iframe></span>'
+            .'<span class="theme-choice"><input required type="radio" name="theme" value="'.App::h($id).'"'
+            .(($state['theme']??'')===$id?' checked':'').'> <strong>'.$label.'</strong></span>'
+            .'<p>'.App::h($theme['description']).'</p></label>'
+            .'<div class="theme-card__actions">'
+            .'<a href="'.$preview.'&amp;mode=empty" target="_blank" rel="noopener noreferrer" aria-label="Ouvrir le site vierge, thème '.$label.'">Voir le site vierge <span aria-hidden="true">↗</span></a>'
+            .'<a href="'.$preview.'&amp;mode=demo" target="_blank" rel="noopener noreferrer" aria-label="Ouvrir l’exemple complet, thème '.$label.'">Exemple complet <span aria-hidden="true">↗</span></a>'
+            .'</div></article>';
+    }
     $body.='</div>';break;
 case 2:
     $body.='<h2>De quoi avez-vous besoin ?</h2><p>Pages, menu et administration sont inclus. Cochez seulement les fonctions utiles.</p>';
