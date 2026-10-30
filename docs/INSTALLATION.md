@@ -63,6 +63,14 @@ Les blocs comprennent texte, texte enrichi, image, galerie, bouton, intégration
 
 Le menu permet d’ajouter une page existante. Les changements de menu sont visibles après leur enregistrement. Les permissions du compte sont vérifiées par le serveur à chaque action.
 
+## Personnaliser l'apparence
+
+Après connexion au compte propriétaire ou administrateur, ouvrir `/admin/appearance.php` depuis le tableau de bord. Choisir l’un des six thèmes livrés, activer seulement les couleurs de marque à remplacer, choisir éventuellement deux familles de police système et indiquer les URLs HTTPS du logo et du logotype. Les couleurs désactivées sont héritées du thème.
+
+L'enregistrement est protégé par un jeton CSRF et un verrou de version ; les URL, couleurs et polices sont validées par les mêmes contrats que le moteur de thèmes. Un couple explicite texte/fond doit respecter un contraste minimum de 4,5:1. Les visiteurs et les aperçus utilisent les nouveaux réglages immédiatement, sans modifier les contenus publiés ni installer de fichiers distants. Les applications MMW voient la version de configuration augmenter. Les variables `DENDRILA_BRAND_JSON` de déploiement conservent leur priorité pour leurs clés.
+
+Cette fonctionnalité s'applique au front natif Dendrila. Un site client conservant son HTML et sa CSS historiques (ex. Prestadmin) doit garder son adaptateur visuel dédié ; ne jamais lui appliquer automatiquement l'habillage générique.
+
 ## Comptes et forum
 
 Le propriétaire peut générer un lien d’invitation depuis `/admin/accounts.php`. Choisir un rôle adapté ; le rôle membre permet de participer au forum sans éditer les pages. Partager le lien par son canal habituel : aucun e-mail n’est envoyé automatiquement. Le lien expire après 48 heures et ne sert qu’une fois. L’invité définit son mot de passe et son TOTP.
