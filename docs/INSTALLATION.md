@@ -10,7 +10,23 @@ Cette version réunit le noyau, l’administration native, les médias et le for
 - Racine web strictement dirigée vers `public/`. `config/`, `storage/`, `vendor/` et le code serveur doivent rester hors de la racine publique.
 - Le processus PHP doit pouvoir écrire dans `config/` et `storage/`, ainsi que dans son répertoire de sessions. Ces dossiers ne doivent pas être accessibles aux autres utilisateurs du serveur.
 
-## Installation neuve
+## Installation sans SSH ni Composer sur l'hébergement
+
+Un paquet prêt à extraire est généré par le workflow GitHub Actions **Build installable Dendrila ZIP**. L'archive `dendrila-cms-web-install.zip` contient les classes PHP, les six thèmes avec leurs médias et l'autoloader Composer de **production**. Aucune connexion Composer ni accès SSH n'est requis pour l'installation sur l'hébergement.
+
+1. Téléchargez l'artifact `dendrila-cms-web-install` du workflow GitHub, puis extrayez l'archive dans un **dossier privé** accessible depuis le gestionnaire de fichiers (par exemple `/home/compte/apps/dendrila-cms/`), sans remplacer de site existant.
+2. Dans la gestion de domaines de l'hébergeur, configurez le **DocumentRoot du domaine** vers le sous-dossier `dendrila-cms/public/` uniquement. **Ne placez jamais** `config/`, `src/`, `vendor/` ou `storage/` dans la racine publique. Si l'hébergeur ne permet pas cette configuration, arrêtez ici : il faut une autre méthode de déploiement, pas un contournement de protection.
+3. Activez PHP 8.5+, HTTPS et les extensions requises. Ouvrez `https://votre-domaine/preflight.php` pour vérifier les prérequis et les permissions.
+4. Créez dans l'interface de l'hébergeur une base MariaDB **vide** et son compte SQL avec les droits nécessaires. L'assistant ne crée pas de base à votre place.
+5. Ouvrez `https://votre-domaine/` : l'accueil redirige vers `/install.php`. À l'étape « Accès », un code de propriété aléatoire propre à votre session est affiché.
+6. Dans le gestionnaire de fichiers, créez `dendrila-cms/config/ownership-proof.txt` **hors de la racine publique**, avec le code exactement indiqué sur la page. Cliquez sur « Vérifier le fichier et continuer ». Dendrila lit puis supprime ce fichier. Le contrôle refuse une mauvaise valeur, un fichier trop volumineux, une preuve réutilisée ou un site déjà installé.
+7. Choisissez le thème et ses aperçus, les modules, saisissez les paramètres de la base et créez votre compte avec TOTP. La fin de l'installation verrouille le parcours, publie une page d'accueil et crée le menu.
+
+**Important :** l'archive n'est pas un installateur qui peut être jeté dans `public_html/` sans configuration. Le découpage entre racine publique et fichiers privés est une condition de sécurité. La preuve de propriété exige un accès au gestionnaire de fichiers, mais **aucun terminal ni clé de préparation CLI**. Le code ne remplace pas automatiquement un site client existant et ne modifie pas le DNS.
+
+La CI produit le ZIP avec `python3 bin/build-web-release.py` après `composer install --no-dev --optimize-autoloader`, puis l'extrait dans un dossier neuf et vérifie en HTTP local : diagnostic, première visite redirigée, preuve hors webroot, affichage du sélecteur des thèmes et absence d'exposition d'un fichier privé. Les tests de publication et de restauration MariaDB sont exécutés séparément.
+
+## Installation neuve avec terminal (alternative)
 
 Depuis la racine du dépôt :
 
