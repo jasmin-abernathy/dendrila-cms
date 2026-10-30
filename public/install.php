@@ -2,7 +2,7 @@
 declare(strict_types=1);
 require dirname(__DIR__).'/bootstrap.php';
 use Dendrila\Cms\Runtime\Application as App;
-use Dendrila\Cms\Installation\{Catalog,Installer};
+use Dendrila\Cms\Installation\{Catalog,Installer,WebOwnerProof};
 use Dendrila\Cms\BackOffice\SessionCsrf;
 use Dendrila\Cms\Auth\Totp;
 $directory=dirname(__DIR__).'/config';
@@ -12,16 +12,35 @@ header("Content-Security-Policy: default-src 'none'; style-src 'self'; img-src '
 $csrf=new SessionCsrf();$error='';$steps=['Accès','Thème','Modules','Base de données','Administrateur'];
 $state=$_SESSION['install']??['step'=>0];
 if(($state['authorized_until']??PHP_INT_MAX)<time())$state=['step'=>0];
+if(($state['step']??0)===0 && !isset($state['ownership_challenge'])){
+    $state['ownership_challenge']=WebOwnerProof::createChallenge();
+}
 if($_SERVER['REQUEST_METHOD']==='POST'){
     try {
         if(!$csrf->verify(is_string($_POST['csrf']??null)?$_POST['csrf']:''))throw new InvalidArgumentException('Formulaire expiré.');
         if(isset($_POST['back']) && $state['step']>1 && ($state['authorized_until']??0)>=time()){$state['step']=max(1,$state['step']-1);}
         else switch($state['step']){
             case 0:
-                $record=is_file($directory.'/install-token.json')?json_decode((string)file_get_contents($directory.'/install-token.json'),true):null;
-                $token=is_string($_POST['token']??null)?$_POST['token']:'';
-                if(!is_array($record)||($record['expires']??0)<time()||!hash_equals($record['hash'],hash('sha256',$token)))throw new InvalidArgumentException('Clé incorrecte ou expirée. Préparez l’installation depuis le serveur.');
-                session_regenerate_id(true);$state=['step'=>1,'authorized_until'=>min(time()+3600,$record['expires'])];break;
+                $method=$_POST['auth_method']??'token';
+                $expires=time()+3600;
+                if($method==='file'){
+                    $publicRoot=realpath(__DIR__);
+                    $documentRoot=realpath((string)($_SERVER['DOCUMENT_ROOT']??''));
+                    if($publicRoot===false || $documentRoot!==$publicRoot){
+                        throw new DomainException('La racine publique doit pointer vers le dossier public/ du CMS.');
+                    }
+                    if(!WebOwnerProof::confirm($directory,(string)($state['ownership_challenge']??''))){
+                        throw new InvalidArgumentException('Le fichier de preuve est absent ou incorrect. Créez-le dans config/, puis réessayez.');
+                    }
+                }elseif($method==='token'){
+                    $record=is_file($directory.'/install-token.json')?json_decode((string)file_get_contents($directory.'/install-token.json'),true):null;
+                    $token=is_string($_POST['token']??null)?$_POST['token']:'';
+                    if(!is_array($record)||($record['expires']??0)<time()||!hash_equals((string)($record['hash']??''),hash('sha256',$token))){
+                        throw new InvalidArgumentException('Clé incorrecte ou expirée. Vous pouvez aussi utiliser le fichier de preuve dans le gestionnaire de fichiers.');
+                    }
+                    $expires=min($expires,(int)$record['expires']);
+                }else{throw new InvalidArgumentException('Méthode de vérification inconnue.');}
+                session_regenerate_id(true);$state=['step'=>1,'authorized_until'=>$expires];break;
             case 1:
                 $theme=is_string($_POST['theme']??null)?$_POST['theme']:'';
                 if(!isset(Catalog::themes()[$theme]))throw new InvalidArgumentException('Choisissez un thème.');
@@ -47,7 +66,13 @@ if($error!=='')$body.='<p class="notice" role="alert">'.App::h($error).'</p>';
 $body.='<form method="post"><input type="hidden" name="csrf" value="'.App::h($csrf->token()).'">';
 $input=static fn(string $label,string $name,string $type='text',string $value=''):string=>'<label class="field">'.App::h($label).'<input required name="'.$name.'" type="'.$type.'" value="'.App::h($value).'"'.($type==='password'?' autocomplete="new-password"':'').'></label>';
 switch($state['step']){
-case 0:$body.='<p>Bienvenue dans Dendrila. La clé préparée sur le serveur réserve cette installation à son propriétaire.</p>'.$input('Clé d’installation','token','password');break;
+case 0:
+    $body.='<p>Bienvenue dans Dendrila. Avant toute installation, prouvez que vous contrôlez les fichiers du site. Deux méthodes sont disponibles.</p>';
+    $body.='<h2>Sans terminal : gestionnaire de fichiers</h2><p>Dans le gestionnaire de fichiers de votre hébergeur, créez ou remplacez le fichier <code>config/'.WebOwnerProof::FILENAME.'</code>, à côté du dossier <code>public/</code>, avec exactement cette ligne :</p>';
+    $body.='<p><code id="ownership-challenge" class="secret">'.App::h($state['ownership_challenge']).'</code></p>';
+    $body.='<p>Ce fichier doit rester hors de la racine web. Il sera supprimé après vérification. <a href="/preflight.php">Vérifier les prérequis</a>.</p>';
+    $body.='<h2>Autre méthode : clé de préparation</h2><label class="field">Clé d’installation créée en ligne de commande (facultatif)<input name="token" type="password" autocomplete="off"></label>';
+    break;
 case 1:
     $body.='<h2>Quelle ambiance pour votre site ?</h2><p>Le contenu est identique dans chaque aperçu pour comparer les présentations.</p><div class="theme-grid">';
     foreach(Catalog::themes() as $id=>$theme){$body.='<label class="theme-card"><span class="theme-preview"><iframe title="Aperçu : '.App::h($theme['label']).'" src="/theme-preview.php?theme='.rawurlencode($id).'" tabindex="-1" loading="eager" sandbox></iframe></span><span><input required type="radio" name="theme" value="'.App::h($id).'"'.(($state['theme']??'')===$id?' checked':'').'> <strong>'.App::h($theme['label']).'</strong></span><p>'.App::h($theme['description']).'</p></label>';}
@@ -63,5 +88,11 @@ case 4:
     $body.='<h2>Votre site et votre compte</h2>'.$input('Nom du site','name').$input('Adresse HTTPS du site','url','url').$input('Votre e-mail','email','email').$input('Votre mot de passe (12 caractères minimum)','password','password').'<h3>Protéger votre compte</h3><p>Ajoutez un compte dans votre application d’authentification : clé ci-dessous, codes à 6 chiffres, période de 30 secondes.</p><p><code class="secret">'.App::h($state['secret']).'</code></p><p>Conservez cette clé dans votre gestionnaire de mots de passe : elle permet de rétablir votre second facteur.</p>'.$input('Code actuel à 6 chiffres','code');break;
 }
 $body.='<div class="setup-actions">';if($state['step']>1)$body.='<button class="button secondary" name="back" value="1" formnovalidate>Retour</button>';
-$body.='<button class="button">'.($state['step']===4?'Installer mon site':'Continuer').'</button></div></form>';
+if($state['step']===0){
+    $body.='<button class="button" name="auth_method" value="file">Vérifier le fichier et continuer</button>';
+    $body.='<button class="button secondary" name="auth_method" value="token">Utiliser la clé</button>';
+}else{
+    $body.='<button class="button">'.($state['step']===4?'Installer mon site':'Continuer').'</button>';
+}
+$body.='</div></form>';
 echo App::page('Installons votre site',$body);
