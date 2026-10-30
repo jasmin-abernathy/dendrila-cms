@@ -13,6 +13,8 @@ on:
       - 'examples/content-types/page.json'
       - 'tests/web-owner-proof-run.php'
       - 'tests/web-release-smoke.py'
+      - 'tests/install-browser.cjs'
+      - 'tests/themes-browser.cjs'
       - '.github/workflows/web-install-release.yml'
 
 permissions:

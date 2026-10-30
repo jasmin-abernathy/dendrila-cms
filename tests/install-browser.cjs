@@ -31,8 +31,9 @@ const php=process.env.PHP_BINARY||'php';
     assert.equal(empty.status(),200);assert.equal(demo.status(),200);
     assert((await empty.text()).includes('Bienvenue sur notre site.'),'Empty preview is the actual starter page');
     const demoHtml=await demo.text();
-    assert(demoHtml.includes('Des idées qui prennent vie')&&demoHtml.includes('Lorem ipsum')&&demoHtml.includes('class="d-card-grid"'),'Rich thumbnail uses lorem, cards and photographs');
-    assert(demoHtml.includes('/assets/install-demo/mountains.webp'),'Showcase must use a bundled CC0 photo');
+    assert(demoHtml.includes('Démonstration')&&demoHtml.includes('class="d-button"'),'Thumbnail presents a usable site direction');
+    assert(!/Lorem ipsum|Blog|Actualités/.test(demoHtml),'No generic blog feed in the theme chooser');
+    if(!/ultra-minimal|graphic-rhythm/.test(demoLink))assert(demoHtml.includes('/assets/install-demo/'),'Visual directions use bundled CC0 photos');
   }
   await page.locator('input[value="editorial"]').check();
   const selectedBefore=await page.locator('input[name=theme]:checked').inputValue();
