@@ -130,7 +130,11 @@ final readonly class PublicPageRenderer
             . $this->renderNavigation($navigation, $language)
             . '</div></header><main id="contenu">'
             . $this->renderHero($title, $tagline, $hero, $mediaUrls, $supportedShapes, $structure)
+            // Minimal kit has a real two-column index, not a faux grid spread over
+            // many implicit rows. Other themes keep their existing DOM structure.
+            . ($theme['id'] === 'very-minimal' ? '<div class="d-main-content">' : '')
             . $bodyMarkup
+            . ($theme['id'] === 'very-minimal' ? '</div>' : '')
             . '</main>'
             . $this->renderFooter($siteName, $navigation, $language)
             . $privacyMarkup
