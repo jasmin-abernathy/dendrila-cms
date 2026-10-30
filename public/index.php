@@ -11,7 +11,7 @@ use Dendrila\Cms\Http\Response;
 
 require dirname(__DIR__) . '/bootstrap.php';
 $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
-if (!getenv('DENDRILA_SITE_ID') && is_file(dirname(__DIR__).'/config/install-token.json') && $path === '/') { header('Location: /install.php', true, 302); exit; }
+if (!getenv('DENDRILA_SITE_ID') && $path === '/') { header('Location: /install.php', true, 302); exit; }
 
 try {
     $dsn = getenv('DB_DSN') ?: '';
