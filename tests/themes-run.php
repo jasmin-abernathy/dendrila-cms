@@ -16,6 +16,17 @@ foreach($styles as $style=>$theme){
     themeCheck($empty['blocks'] === [['type'=>'text','text'=>'Bienvenue sur notre site.']],'Blank installation has exactly the starter text');
     themeCheck(count($full['blocks']) > count($empty['blocks']),'Rich demo never becomes the installed default');
     themeCheck(InstallThemePreview::media('empty') === [],'Blank preview needs no image module or storage');
+    $photos=InstallThemePreview::media('demo');
+    themeCheck(count($photos)===4,'Four shared photos for every theme');
+    foreach($photos as $url){
+        themeCheck(str_starts_with($url,'/assets/install-demo/'),'No third-party tracking on preview');
+        themeCheck(is_file($root.'/public'.$url),'The local WebP exists: '.$url);
+        themeCheck(filesize($root.'/public'.$url) < 320000,'Photograph is compressed for light previews');
+    }
+    themeCheck(count(array_filter($full['blocks'],static fn(array $block):bool=>$block['type']==='gallery'))===1,'Rich preview contains gallery');
+    themeCheck(count(array_filter($full['blocks'],static fn(array $block):bool=>$block['type']==='cards'))===1,'Rich preview contains cards');
+    themeCheck(str_contains($full['blocks'][0]['text'],'Lorem ipsum'),'Shared preview uses filler text');
+
     $p=Presentation::forTheme($style,[]);
     themeCheck($p['design_kit']['id']===$theme,'Preset maps to correct theme');
     themeCheck(str_starts_with($p['css_url'],'/design-kits/themes/'.$theme.'/theme.css?v='),'Real theme stylesheet is served');
