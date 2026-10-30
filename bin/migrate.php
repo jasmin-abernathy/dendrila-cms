@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 $root = dirname(__DIR__);
+require $root.'/bootstrap.php';
 $dsn = getenv('DB_DSN') ?: '';
 $username = getenv('DB_USERNAME') ?: '';
 $password = getenv('DB_PASSWORD') ?: '';

@@ -1,0 +1,40 @@
+const { chromium } = require('playwright');
+const fs=require('fs');const cp=require('child_process');const assert=require('assert');
+const php=process.env.PHP_BINARY||'php';
+(async()=>{
+ const token=cp.execFileSync(php,['bin/prepare-install.php'],{encoding:'utf8'}).trim().split('\n').pop();
+ fs.mkdirSync('build/test-artifacts',{recursive:true});
+ const browser=await chromium.launch({executablePath:process.env.CHROMIUM_EXECUTABLE||undefined,headless:true,args:['--no-sandbox']});
+ const page=await browser.newPage({viewport:{width:1280,height:900}});const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ try {
+  await page.goto('http://127.0.0.1:8080/install.php');
+  await page.getByLabel('Clé d’installation').fill(token);await page.getByRole('button',{name:'Continuer'}).click();
+  assert.equal(await page.locator('input[name=theme]').count(),6);
+  await page.screenshot({path:'build/test-artifacts/install-themes-desktop.png',fullPage:true});
+  await page.setViewportSize({width:390,height:844});
+  assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'No mobile overflow');
+  await page.screenshot({path:'build/test-artifacts/install-themes-mobile.png',fullPage:true});
+  await page.locator('input[value="quiet-elegant"]').check();await page.getByRole('button',{name:'Continuer'}).click();
+  await page.locator('input[value=media]').check();await page.locator('input[value=forum]').check();await page.getByRole('button',{name:'Continuer'}).click();
+  await page.getByLabel('Serveur').fill('127.0.0.1');await page.getByLabel('Port',{exact:true}).fill(process.env.INSTALL_DB_PORT||'3308');
+  await page.getByLabel('Nom de la base').fill('cms_browser_test');await page.getByLabel('Utilisateur de la base').fill(process.env.DB_USERNAME||'root');
+  await page.getByLabel('Mot de passe de la base').fill(process.env.DB_PASSWORD||'test-only');await page.getByRole('button',{name:'Continuer'}).click();
+  const secret=(await page.locator('code.secret').textContent()).trim();
+  const code=(offset=0)=>cp.execFileSync(php,['-r',`require 'vendor/autoload.php';echo Dendrila\\Cms\\Auth\\Totp::code('${secret}',intdiv(time(),30)+${offset});`],{encoding:'utf8'}).trim();
+  await page.getByLabel('Nom du site').fill('Atelier de démonstration');await page.getByLabel('Adresse HTTPS du site').fill('https://atelier.example.test');
+  await page.getByLabel('Votre e-mail').fill('owner@atelier.example.test');await page.getByLabel('Votre mot de passe').fill('Browser-test-password-2026!');await page.getByLabel('Code actuel').fill(code());
+  await page.getByRole('button',{name:'Installer mon site'}).click();assert(await page.getByRole('heading',{name:'Votre site est prêt'}).count());
+  await page.getByRole('link',{name:'Ouvrir l’administration'}).click();await page.getByLabel('E-mail',{exact:true}).fill('owner@atelier.example.test');await page.getByLabel('Mot de passe',{exact:true}).fill('Browser-test-password-2026!');await page.getByLabel('Code de votre application').fill(code(1));await page.getByRole('button',{name:'Se connecter'}).click();
+  assert.equal(await page.locator('[data-page-editor]').count(),1,'Authenticated editor');
+  await page.locator('textarea[name="blocks[0][text]"]').fill('Texte modifié depuis le navigateur.');await page.getByRole('button',{name:'Enregistrer ce bloc'}).click();
+  const guest=await browser.newPage();await guest.goto('http://127.0.0.1:8080/');assert(!(await guest.textContent('body')).includes('Texte modifié depuis le navigateur.'));
+  await page.getByRole('button',{name:'Publier le brouillon enregistré'}).click();await guest.reload();assert((await guest.textContent('body')).includes('Texte modifié depuis le navigateur.'));
+  await page.screenshot({path:'build/test-artifacts/admin-mobile.png',fullPage:true});
+  await page.goto('http://127.0.0.1:8080/forum/');await page.getByLabel('Titre',{exact:true}).fill('Discussion de test');await page.getByLabel('Message',{exact:true}).fill('Message soumis à modération.');await page.getByRole('button',{name:'Envoyer pour validation'}).click();
+  await guest.goto('http://127.0.0.1:8080/forum/');assert(!(await guest.textContent('body')).includes('Discussion de test'));
+  await page.getByRole('button',{name:'Publier',exact:true}).click();await guest.reload();assert((await guest.textContent('body')).includes('Discussion de test'));
+  const denied=await page.request.post('http://127.0.0.1:8080/admin/',{form:{action:'save_page',csrf:'bad'}});assert.equal(denied.status(),403);
+  const locked=await page.request.get('http://127.0.0.1:8080/install.php');assert.equal(locked.status(),410);
+  assert.deepEqual(errors,[]);console.log('Browser: wizard, six previews, mobile layout, TOTP login, edit/publish, moderation, CSRF and install lock passed.');
+ } finally {await browser.close();if(fs.existsSync('config/local.php'))fs.unlinkSync('config/local.php');}
+})().catch(e=>{console.error(e);process.exit(1)});

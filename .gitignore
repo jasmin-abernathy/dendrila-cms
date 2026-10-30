@@ -12,3 +12,11 @@
 .idea/
 .vscode/
 /build/
+
+/config/local.php
+/config/install-token.json
+/config/install.lock
+/vendor/
+
+/node_modules/
+/config/install-*.tmp

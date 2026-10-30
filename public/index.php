@@ -2,14 +2,16 @@
 declare(strict_types=1);
 
 use Dendrila\Cms\Api\ApiKernel;
-use Dendrila\Cms\Api\PdoDeviceAuthenticator;
+use Dendrila\Cms\Api\IdentityRuntimeFactory;
 use Dendrila\Cms\Api\PdoSiteChangeService;
 use Dendrila\Cms\Api\PdoSiteReadModel;
 use Dendrila\Cms\Http\HttpException;
 use Dendrila\Cms\Http\Request;
 use Dendrila\Cms\Http\Response;
 
-require dirname(__DIR__) . '/vendor/autoload.php';
+require dirname(__DIR__) . '/bootstrap.php';
+$path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
+if (!getenv('DENDRILA_SITE_ID') && is_file(dirname(__DIR__).'/config/install-token.json') && $path === '/') { header('Location: /install.php', true, 302); exit; }
 
 try {
     $dsn = getenv('DB_DSN') ?: '';
@@ -22,8 +24,23 @@ try {
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         PDO::ATTR_EMULATE_PREPARES => false,
     ]);
-    $kernel = new ApiKernel(new PdoDeviceAuthenticator($pdo), new PdoSiteReadModel($pdo),
-        changes: new PdoSiteChangeService($pdo));
+    if (getenv('DENDRILA_SITE_ID') && !str_starts_with($path, '/v1/') && !str_starts_with($path, '/.well-known/')) {
+        $html = (new \Dendrila\Cms\Runtime\PublicSite($pdo))->render($path);
+        http_response_code($html === null ? 404 : 200);
+        header('Content-Type: text/html; charset=utf-8');
+        header('X-Content-Type-Options: nosniff');
+        echo $html ?? \Dendrila\Cms\Runtime\Application::page('Page introuvable', '<p>Cette page n’existe pas ou n’est pas publiée.</p>');
+        exit;
+    }
+    $media = \Dendrila\Cms\Media\MediaFactory::fromEnvironment($pdo);
+    $identity = IdentityRuntimeFactory::fromEnvironment($pdo);
+    $kernel = new ApiKernel(
+        $identity->authenticator,
+        new PdoSiteReadModel($pdo, $media),
+        authentication: $identity->authentication,
+        changes: new PdoSiteChangeService($pdo, media: $media),
+        media: $media,
+    );
     $kernel->handle(Request::fromGlobals())->emit();
 } catch (Throwable $error) {
     error_log('MMW API bootstrap error: ' . $error::class . ': ' . $error->getMessage());
@@ -32,3 +49,4 @@ try {
         'message' => 'The API is temporarily unavailable.',
     ]], 503)->emit();
 }
+

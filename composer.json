@@ -7,7 +7,11 @@
     "ext-json": "*",
     "ext-mbstring": "*",
     "ext-pdo": "*",
-    "ext-pdo_mysql": "*"
+    "ext-pdo_mysql": "*",
+    "ext-gd": "*",
+    "ext-fileinfo": "*",
+    "ext-sodium": "*",
+    "ext-ctype": "*"
   },
   "autoload": {
     "psr-4": {
@@ -20,7 +24,7 @@
     }
   },
   "scripts": {
-    "test": "php tests/run.php && php tests/navigation-run.php && php tests/seo-run.php && php tests/http-run.php && php tests/design-run.php && php tests/privacy-run.php && php tests/consent-run.php && php tests/privacy-legal-mmw-run.php && php tests/privacy-wordpress-import-run.php && php tests/privacy-documents-run.php && php tests/front-run.php && php tests/reference-site-run.php",
+    "test": "php tests/run.php && php tests/navigation-run.php && php tests/seo-run.php && php tests/http-run.php && php tests/design-run.php && php tests/privacy-run.php && php tests/consent-run.php && php tests/privacy-legal-mmw-run.php && php tests/privacy-wordpress-import-run.php && php tests/privacy-documents-run.php && php tests/front-run.php && php tests/reference-site-run.php && php tests/backoffice-run.php && php tests/media-run.php && php tests/forum-run.php && php tests/install-run.php",
     "lint": "find src tests bin public -name '*.php' -print0 | xargs -0 -n1 php -l"
   }
 }

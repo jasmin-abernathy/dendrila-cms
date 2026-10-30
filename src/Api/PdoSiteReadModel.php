@@ -20,7 +20,7 @@ final readonly class PdoSiteReadModel implements SiteReadModel
     private ContentService $contentService;
     private PrivacyService $privacy;
 
-    public function __construct(private PDO $pdo)
+    public function __construct(private PDO $pdo, private ?\Dendrila\Cms\Media\MediaService $media = null)
     {
         $this->store = new PdoCmsStore($pdo);
         $authorization = new AuthorizationService($this->store);
@@ -48,7 +48,22 @@ final readonly class PdoSiteReadModel implements SiteReadModel
         PrivacySettingsModule::assertReservedIdAvailable($modules);
         PrivacyLegalModules::assertReservedIdsAvailable($modules);
         PrivacyDocumentsModule::assertReservedIdAvailable($modules);
-        $safeModules = self::safeModules($modules);
+        $safeModules = [];
+        foreach (self::safeModules($modules) as $module) {
+            if ($module['kind'] === 'media_library') {
+                if ($this->media === null || !$this->store->actorHasPermission($actor->siteId, $actor->actorId, 'media.read')) continue;
+                $update = $this->store->actorHasPermission($actor->siteId, $actor->actorId, 'media.update');
+                $delete = $this->store->actorHasPermission($actor->siteId, $actor->actorId, 'media.delete');
+                $upload = $this->store->actorHasPermission($actor->siteId, $actor->actorId, 'media.upload');
+                $writable = ($module['writable'] ?? false) === true;
+                $module['writable'] = $writable && ($update || $delete || $upload);
+                $module['options']['allow_update'] = $writable && $update;
+                $module['options']['allow_rotate'] = $writable && $update && ($module['options']['allow_rotate'] ?? false);
+                $module['options']['allow_delete'] = $writable && $delete && ($module['options']['allow_delete'] ?? false);
+                if (is_array($module['media'] ?? null)) $module['media']['upload_enabled'] = $writable && $upload && ($module['media']['upload_enabled'] ?? false);
+            }
+            $safeModules[] = $module;
+        }
         $privacyState = $this->privacyState($actor);
         if ($privacyState !== null) {
             $writablePrivacy = $this->store->actorHasPermission($actor->siteId, $actor->actorId, 'privacy.manage');
@@ -108,6 +123,13 @@ final readonly class PdoSiteReadModel implements SiteReadModel
                 'offset' => 0,
             ]),
         );
+        foreach (self::safeModules($storedModules) as $module) {
+            if ($module['kind'] !== 'media_library') continue;
+            unset($data[$module['id']]);
+            if ($this->media !== null && $this->store->actorHasPermission($actor->siteId, $actor->actorId, 'media.read')) {
+                $data[$module['id']] = ['items' => $this->media->items($actor, $module)];
+            }
+        }
         $privacyState = $this->privacyState($actor);
         if ($privacyState !== null) {
             $data[PrivacySettingsModule::ID] = PrivacySettingsModule::values($privacyState['settings']);
@@ -189,7 +211,7 @@ final readonly class PdoSiteReadModel implements SiteReadModel
     {
         $safe = [];
         $seen = [];
-        $kinds = ['dashboard', 'form', 'gallery', 'requests', 'records', 'calendar', 'settings'];
+        $kinds = ['dashboard', 'form', 'gallery', 'requests', 'records', 'calendar', 'settings', 'media_library'];
         if (count($modules) > 50) {
             throw new RuntimeException('Stored MMW configuration has too many modules.');
         }
@@ -272,11 +294,11 @@ final readonly class PdoSiteReadModel implements SiteReadModel
             }
             if (isset($module['options']) && is_array($module['options']) && !array_is_list($module['options'])) {
                 $options = array_intersect_key($module['options'], array_flip([
-                    'upload_enabled', 'max_bytes', 'accepted_mime_types', 'allow_create', 'allow_update', 'allow_delete',
+                    'upload_enabled', 'max_bytes', 'accepted_mime_types', 'allow_create', 'allow_update', 'allow_delete', 'allow_rotate',
                     'group_id', 'group_title', 'group_description', 'group_order', 'field_sections',
                     'item_label', 'empty_message',
                 ]));
-                foreach (['upload_enabled', 'allow_create', 'allow_update', 'allow_delete'] as $key) {
+                foreach (['upload_enabled', 'allow_create', 'allow_update', 'allow_delete', 'allow_rotate'] as $key) {
                     if (isset($options[$key]) && !is_bool($options[$key])) {
                         throw new RuntimeException("Stored MMW module option '{$key}' is invalid.");
                     }
@@ -383,6 +405,20 @@ final readonly class PdoSiteReadModel implements SiteReadModel
             if (isset($module['media'])) {
                 $media = self::safeMedia($module['media']);
                 $entry['media'] = $media === [] ? new \stdClass() : $media;
+            }
+            if ($module['kind'] === 'media_library') {
+                if (isset($module['options']) && (!is_array($module['options']) || ($module['options'] !== [] && array_is_list($module['options'])))) throw new RuntimeException('Media options must be an object.');
+                foreach (['fields' => $entry['fields'] ?? [], 'media' => is_array($entry['media'] ?? null) ? ($entry['media']['fields'] ?? []) : []] as $fields) {
+                    foreach ($fields as $field) {
+                        if (!in_array($field['id'], ['title', 'alt', 'caption', 'credit', 'kind', 'position'], true)
+                            || ($field['id'] === 'position' ? $field['type'] !== 'number' : !in_array($field['type'], ['text', 'multiline', 'single_choice', 'url', 'email'], true))) {
+                            throw new RuntimeException('Unsupported native media field.');
+                        }
+                    }
+                }
+                foreach (['allow_rotate', 'allow_delete'] as $option) {
+                    if (array_key_exists($option, $module['options'] ?? []) && !is_bool($module['options'][$option])) throw new RuntimeException('Invalid media capability.');
+                }
             }
             $safe[] = $entry;
         }
@@ -532,3 +568,4 @@ final readonly class PdoSiteReadModel implements SiteReadModel
         }
     }
 }
+

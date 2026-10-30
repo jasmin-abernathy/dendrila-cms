@@ -1,5 +1,7 @@
 # Dendrila CMS
 
+Installation autonome : voir [le guide d’installation et d’utilisation](docs/INSTALLATION.md) pour le parcours thèmes → modules → base → compte protégé.
+
 Noyau CMS modulaire, pilotable par **Mon Manager Web (MMW)** et réutilisable par plusieurs sites.
 
 Ce dépôt ne remplace pas l'application `jasmin-abernathy/lepotager-site-manager`.
@@ -78,3 +80,19 @@ Par défaut, les réglages d'API d'un site commencent avec une liste de modules 
 - La vie privée est un socle du CMS, pas une extension à installer après coup.
 - Export et réversibilité doivent rester possibles.
 - Accessibilité et sobriété sont des contraintes de base, pas des options.
+
+## Administration web commune (première version)
+
+Le moteur fournit maintenant un **back-office responsive réutilisable** dans
+`src/BackOffice/`, avec ses ressources dans `public/backoffice-assets/`.
+Les pages et menus passent par les services/permissions Dendrila existants ;
+les médias, comptes et second facteur nécessitent les adaptateurs du site.
+L'usage et la migration depuis BMH / Oscura sont détaillés dans
+[`docs/BACKOFFICE-COMMUN.md`](docs/BACKOFFICE-COMMUN.md).
+Le module n'est pas activé automatiquement en production.
+
+
+
+## Médiathèque native
+
+Images privées à l’origine, dérivés WebP, upload MMW, recherche et suppression protégée : [mise en service et contrat](docs/MEDIA-LIBRARY.md).
