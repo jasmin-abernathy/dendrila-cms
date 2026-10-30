@@ -50,6 +50,13 @@ const php=process.env.PHP_BINARY||'php';
   await page.setViewportSize({width:390,height:844});
   assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Appearance mobile has no horizontal overflow');
   await page.screenshot({path:'build/test-artifacts/appearance-mobile.png',fullPage:true});
+  // Restore the originally installed theme before the independent six-theme parity suite.
+  await page.locator('select[name=theme]').selectOption('quiet-elegant');
+  await page.locator('input[name="enabled[]"][value="primary"]').uncheck();
+  await page.locator('input[name=logo_url]').fill('');
+  await page.getByRole('button',{name:'Enregistrer l’apparence'}).click();
+  const reverted=await (await page.request.get('http://127.0.0.1:8080/')).text();
+  assert(reverted.includes('data-dendrila-theme="quiet-elegant"'),'Appearance can revert without losing content');
   await page.goto('http://127.0.0.1:8080/admin/?section=textes');
 
   await page.locator('textarea[name="blocks[0][text]"]').fill('Texte modifié depuis le navigateur.');await page.getByRole('button',{name:'Enregistrer ce bloc'}).click();
