@@ -14,6 +14,7 @@ module.exports=async function accessibility(page){
  await page.getByLabel('Souligner les liens').check();
  assert.equal(await page.locator('html').getAttribute('data-reading-size'),'200');
  assert.equal(await page.locator('html').evaluate(el=>getComputedStyle(el).fontSize),'32px');
+ assert(await page.locator('.d-hero,.d-hero__grid,.d-hero__copy,.d-hero__media,.d-cta-band,.d-section__heading').evaluateAll(elements=>elements.every(el=>['::before','::after'].every(p=>getComputedStyle(el,p).display==='none'))),'Simplified mode removes theme decoration');
  const pair=await opener.evaluate(el=>[getComputedStyle(el).color,getComputedStyle(el).backgroundColor]);
  assert.deepEqual(pair,['rgb(255, 255, 255)','rgb(17, 17, 17)']);
  assert(await dialog.evaluate(el=>el.scrollWidth<=el.clientWidth+1),'Settings fit the screen with increased text');

@@ -21,7 +21,7 @@ html.d-reading-spacing p{margin-block-end:2em!important}
 html.d-reading-links a{text-decoration:underline!important;text-underline-offset:.2em!important}
 /* Simplified mode deliberately removes theme decoration, without hiding content/media. */
 html.d-reading-readable body,html.d-reading-readable body :not(svg):not(svg *){background-color:#fff!important;background-image:none!important;color:#111!important;border-color:#111!important;box-shadow:none!important;text-shadow:none!important;filter:none!important;backdrop-filter:none!important;mix-blend-mode:normal!important;font-family:Arial,Helvetica,sans-serif!important}
-html.d-reading-readable :is(.d-hero,.d-section,.d-media,.d-card,.d-header,.d-footer,.d-brand__mark)::before,html.d-reading-readable :is(.d-hero,.d-section,.d-media,.d-card,.d-header,.d-footer,.d-brand__mark)::after{display:none!important}
+html.d-reading-readable :is(.d-hero,.d-hero__grid,.d-hero__copy,.d-hero__media,.d-section,.d-section__heading,.d-media,.d-card,.d-header,.d-footer,.d-brand__mark,.d-eyebrow,.d-cta-band,.d-nav a)::before,html.d-reading-readable :is(.d-hero,.d-hero__grid,.d-hero__copy,.d-hero__media,.d-section,.d-section__heading,.d-media,.d-card,.d-header,.d-footer,.d-brand__mark,.d-eyebrow,.d-cta-band,.d-nav a)::after{display:none!important}
 html.d-reading-readable :is(p,li,dt,dd){line-height:1.6!important}
 html.d-reading-readable :is(button,.button,.d-button,input[type=submit]){background:#111!important;color:#fff!important;border:2px solid #111!important}
 html.d-reading-readable a{text-decoration:underline!important}
