@@ -21,8 +21,10 @@ module.exports=async function reviewThemes(browser,php){
     const empty=await page.request.get('http://127.0.0.1:8080/theme-preview.php?theme='+style+'&mode=empty');
     assert.equal(empty.status(),200,'Empty preview must work before database installation');
     const emptyHtml=await empty.text();
-    assert(emptyHtml.includes('Bienvenue sur notre site.'),'Empty preview mirrors the installed starter text');
-    assert(!emptyHtml.includes('class="d-gallery"')&&!emptyHtml.includes('class="d-card-grid"'),'Empty mode does not preview optional content');
+    assert(emptyHtml.includes('class="d-card-grid"') || emptyHtml.includes('class="d-steps"'),
+      'Starter preview includes real sections, not a blank placeholder');
+    assert(emptyHtml.includes('/theme-preview.php?theme=' + style),
+      'All starter pages are linked before installation');
     await page.goto('http://127.0.0.1:8080/theme-preview.php?theme='+style+'&mode=demo');
     assert.equal(await page.locator('body').getAttribute('data-dendrila-theme'),theme);
     await require('./accessibility-browser.cjs')(page);

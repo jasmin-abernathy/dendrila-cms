@@ -22,7 +22,13 @@ $settings=require $base.'/config/local.php';foreach($settings as $k=>$v)putenv($
 $pdo=new PDO($settings['DB_DSN'],$settings['DB_USERNAME'],$settings['DB_PASSWORD'],[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC,PDO::ATTR_EMULATE_PREPARES=>false]);
 verifyInstall((new Migrator($pdo))->run()===[],'Migrations repeat safely');
 try{Installer::connect($db);throw new RuntimeException('Nonempty DB accepted');}catch(DomainException){}
-verifyInstall(str_contains((new PublicSite($pdo))->render('/'),'Bienvenue sur notre site.'),'Fresh site serves a published homepage');
+verifyInstall(str_contains((new PublicSite($pdo))->render('/'),'Un séjour à votre rythme'),'Fresh site serves the selected theme homepage');
+$starterCount=(int)$pdo->query("SELECT COUNT(*) FROM contents WHERE site_id='default' AND type_id='page'")->fetchColumn();
+verifyInstall($starterCount===count(\Dendrila\Cms\Installation\StarterSiteCatalog::pages('quiet-elegant')),
+    'Installation seeds every reference-based page in the real database');
+$draftCount=(int)$pdo->query("SELECT COUNT(*) FROM contents WHERE site_id='default' AND type_id='page' AND status='draft'")->fetchColumn();
+verifyInstall($draftCount===$starterCount-1,'All secondary pages are private drafts');
+verifyInstall((new PublicSite($pdo))->render('/chambres/')===null,'Unpublished theme pages stay private');
 
 $appearance=\Dendrila\Cms\Runtime\AppearanceSettings::read($pdo,'default');
 verifyInstall($appearance['theme']==='quiet-elegant'&&$appearance['brand']===[],'Initial appearance follows installed theme');

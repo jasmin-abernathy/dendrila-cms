@@ -30,7 +30,7 @@ const php=process.env.PHP_BINARY||'php';
     const empty=await page.request.get('http://127.0.0.1:8080'+emptyLink);
     const demo=await page.request.get('http://127.0.0.1:8080'+demoLink);
     assert.equal(empty.status(),200);assert.equal(demo.status(),200);
-    assert((await empty.text()).includes('Bienvenue sur notre site.'),'Empty preview is the actual starter page');
+    assert((await empty.text()).includes('class="d-card-grid"'),'Starter preview includes real editable theme sections');
     const demoHtml=await demo.text();
     assert(demoHtml.includes('Démonstration')&&demoHtml.includes('class="d-button"'),'Thumbnail presents a usable site direction');
     assert(!/Lorem ipsum|Blog|Actualités/.test(demoHtml),'No generic blog feed in the theme chooser');

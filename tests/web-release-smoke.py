@@ -77,7 +77,7 @@ def run(archive: Path):
             # Validate the actual installation wizard, not only the preview endpoints.
             assert body.count('name="theme"') == 6, "Six selectable themes in the installer"
             assert body.count('class="theme-card__actions"') == 6, "Six theme cards offer links to full HTML previews"
-            assert body.count('mode=empty') == 6, "Six blank-site links only (not thumbnail default)"
+            assert body.count('mode=empty') == 6, "Six editable starter-site links"
             assert body.count('mode=demo') == 12, "Six rich photo thumbnails plus six full-page demo links"
             for style in ("simple-illustrated", "quiet-elegant", "image-forward",
                           "ultra-minimal", "graphic-rhythm", "editorial"):
@@ -85,9 +85,9 @@ def run(archive: Path):
                     status, html = get(opener, "/theme-preview.php?theme=" + style + "&mode=" + mode)
                     assert status == 200, (style, mode, status)
                     assert "data-dendrila-theme=" in html
-                    assert ("Bienvenue sur notre site." in html if mode == "empty" else "Démonstration" in html), (style, mode)
+                    assert ('class="d-card-grid"' in html if mode == "empty" else "Démonstration" in html), (style, mode)
                     if mode == "empty":
-                        assert 'class="d-gallery"' not in html and 'class="d-card-grid"' not in html
+                        assert '/theme-preview.php?theme=' + style in html, (style, 'starter navigation')
                         assert "/assets/install-demo/" not in html
                     else:
                         assert "Lorem ipsum" not in html and "Blog" not in html
@@ -138,7 +138,7 @@ def run(archive: Path):
             assert "Votre site est prêt" in completed
             assert (root / "config/local.php").is_file()
             status, homepage = get(opener, "/")
-            assert status == 200 and "Bienvenue sur notre site." in homepage
+            assert status == 200 and "À la une : prendre le temps de comprendre" in homepage
             assert 'data-dendrila-theme="editorial"' in homepage
             print("PASS: extracted package completes real MariaDB installation, account creation and publication")
             print("PASS: release ZIP, Composer autoload, first-visit redirect, preflight, file-manager proof and private directory isolation")
