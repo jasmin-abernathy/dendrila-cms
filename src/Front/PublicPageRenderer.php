@@ -81,20 +81,31 @@ final readonly class PublicPageRenderer
         }
 
         [$hero, $bodyBlocks] = $this->extractHero($blocks, $structure['hero']);
+        $isHome = ($page['slug'] ?? 'home') === 'home';
+        $composedHome = $isHome && count($bodyBlocks) > 1;
         $bodyMarkup = '';
         foreach ($bodyBlocks as $index => $block) {
             if (!is_array($block)) {
                 throw new InvalidArgumentException('Every page block must be an object.');
             }
             if (($block['type'] ?? null) === 'gallery') $block['media_alts'] = $mediaAlts;
-            $bodyMarkup .= $this->renderBlock(
-                $block,
-                (int) $index,
-                $mediaUrls,
-                $supportedShapes,
-                $structure,
-                $language,
+            $markup = $this->renderBlock(
+                $block, (int) $index, $mediaUrls, $supportedShapes, $structure, $language,
             );
+            // Every section remains independent in storage and in the editor.
+            // Homepages get a theme-driven composition; articles and inside
+            // pages keep an ordinary semantic document flow.
+            if ($composedHome) {
+                $kind = is_string($block['type'] ?? null) ? str_replace('_', '-', $block['type']) : 'unknown';
+                $bodyMarkup .= '<div class="d-home-tile d-home-tile--' . self::escape($kind)
+                    . '" data-section="' . $index . '">' . $markup . '</div>';
+            } else {
+                $bodyMarkup .= $markup;
+            }
+        }
+        if ($composedHome) {
+            $bodyMarkup = '<div class="d-home-composition d-home-composition--'
+                . self::escape($theme['id']) . '">' . $bodyMarkup . '</div>';
         }
 
         $logoUrl = $presentation['brand_assets']['logo_url'] ?? null;
@@ -197,17 +208,26 @@ final readonly class PublicPageRenderer
         // Theme-owned artwork makes empty homepages visually distinct without
         // pretending the site has uploaded content or creating fake media records.
         // It disappears when the editor provides an actual hero image.
-        if ($media === '' && $isHome && in_array($themeId,
-            ['simple-illustrated', 'quiet-elegant', 'image-centered', 'dynamic-graphic'], true)) {
-            $art = '<div class="d-hero__art" aria-hidden="true">';
-            if ($themeId === 'image-centered') {
-                foreach (['mountains','architecture','forest'] as $name) {
-                    $art .= '<img loading="eager" alt="" src="/assets/install-demo/'.$name.'.webp">';
+        if ($media === '' && $isHome) {
+            // Explicitly licensed local photos belonging to the theme kit, not
+            // remote requests or generated artwork; see docs/PHOTO-SOURCES.md.
+            $photos = match($themeId) {
+                'simple-illustrated' => ['community', 'flowers'],
+                'quiet-elegant' => ['forest', 'architecture'],
+                'image-centered' => ['mountains', 'architecture', 'forest'],
+                'dynamic-graphic' => ['workshop'],
+                'editorial' => ['workshop'],
+                default => [],
+            };
+            if ($photos !== []) {
+                $art = '<div class="d-hero__art" aria-hidden="true">';
+                foreach($photos as $name) {
+                    $art .= '<img loading="eager" decoding="async" alt="" src="'
+                        . '/design-kits/themes/' . self::escape($themeId) . '/assets/'
+                        . self::escape($name) . '.webp">';
                 }
-            } elseif ($themeId === 'quiet-elegant') {
-                $art .= '<img alt="" loading="eager" src="/assets/install-demo/forest.webp">';
+                $media = $art . '</div>';
             }
-            $media = $art . '</div>';
         }
         return '<section class="d-hero"><div class="d-shell d-hero__grid"><div class="d-hero__copy">'
             . $eyebrow . '<h1 class="d-title">' . self::escape($title) . '</h1>' . $intro . $cta

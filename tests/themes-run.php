@@ -74,7 +74,7 @@ foreach($styles as $style=>$theme){
 }
 // Real landing compositions must be distinct before a customer uploads media.
 $layoutContracts=[
- 'simple-illustrated'=>['illustration-service.svg','d-card-grid>.d-card:first-child','d-section--block-steps'],
+ 'simple-illustrated'=>['d-hero__art img','d-card-grid>.d-card:first-child','d-home-composition'],
  'quiet-elegant'=>['d-hero__art img','d-card-grid .d-card:first-child','d-section--block-gallery'],
  'image-forward'=>['d-hero__art img','d-gallery__item:nth-child(1)','d-section--block-gallery'],
  'ultra-minimal'=>['d-card-grid .d-card','d-hero__copy .d-lead','d-section--block-pricing'],
@@ -85,11 +85,21 @@ foreach($layoutContracts as $design=>$features){
  $css=(string)file_get_contents(Presentation::forTheme($design)['design_kit']['entrypoint_path']);
  foreach($features as $feature)themeCheck(str_contains($css,$feature),'Missing distinct layout ' . $design . ': ' . $feature);
 }
-$artwork=$root.'/public/design-kits/themes/simple-illustrated/assets/';
-foreach(['illustration-service.svg','illustration-process.svg','illustration-garden.svg'] as $filename){
- themeCheck(is_file($artwork.$filename)&&filesize($artwork.$filename)>700,'Actual local illustration is bundled: '.$filename);
+$photoRules=[
+ 'simple-illustrated'=>['community','flowers','nature'],
+ 'quiet-elegant'=>['forest','architecture'],
+ 'image-centered'=>['mountains','architecture','forest','flowers','nature'],
+ 'dynamic-graphic'=>['workshop'],
+ 'editorial'=>['workshop'],
+];
+foreach($photoRules as $kit=>$names){
+ foreach($names as $name){
+  $photo=$root.'/public/design-kits/themes/'.$kit.'/assets/'.$name.'.webp';
+  themeCheck(is_file($photo) && filesize($photo)>3000,
+   'Locally licensed WebP is bundled: '.$kit.'/'.$name);
+ }
 }
-foreach(['simple-illustrated','quiet-elegant','image-forward','graphic-rhythm'] as $design){
+foreach(['simple-illustrated','quiet-elegant','image-forward','graphic-rhythm','editorial'] as $design){
  $starter=\Dendrila\Cms\Installation\StarterSiteCatalog::validatedPages($design)[0];
  $presentation=Presentation::forTheme($design);
  $html=(new PublicPageRenderer())->render(['name'=>'Test starter'],[

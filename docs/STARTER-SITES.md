@@ -46,3 +46,9 @@ Les tests n'installent aucun site réel et n'envoient aucune requête métier.
 Les six thèmes Dendrila possèdent une navigation mobile native avec commande « Menu » (élément HTML details/summary sans JavaScript). Sur les tablettes et petits écrans, les compositions se restructurent dans leur kit CSS respectif : couvertures illustrées, composition photo, catalogue minimal, affiche graphique, page éditoriale. Le panneau de navigation offre des liens de 44 px minimum, des contours de focus visibles et une hauteur limitée pour les écrans en paysage. Les fichiers publics sont alignés sur le dépôt dendrila-design-kits (voir docs/RESPONSIVE.md dans ce dépôt).
 
 Tests : php tests/themes-run.php, php tests/starter-sites-run.php, bash tests/run.sh dans Design Kits. Les tests automatiques valident le HTML et les règles CSS, mais ne remplacent pas une recette visuelle avec navigateur sur téléphone et tablette.
+
+## Composition de l'accueil et photographies libres
+
+Les premières sections de chaque page d'accueil sont rendues dans un conteneur \`d-home-composition\` dont la grille est définie **par le thème**. Les blocs restent indépendants et éditables dans leur ordre de lecture. La galerie photo peut précéder les cartes, être placée à côté du texte ou dominer la page ; le catalogue minimal affiche une colonne de services et un déroulement en vis-à-vis ; l'éditorial présente une « une » et un encart. Les pages intérieures restent en lecture ordinaire.
+
+Les couvertures avec photos d'exemple utilisent exclusivement des WebP locaux Commons, en CC0 ou domaine public (sources dans \`docs/PREVIEW-IMAGES.md\`). Dans l'aperçu de l'installateur, les galeries sont illustrées sans aucune écriture en base : seul le propriétaire ajoute ses propres médias, puis personnalise ou remplace les photos du thème.

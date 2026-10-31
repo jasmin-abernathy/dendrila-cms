@@ -48,14 +48,47 @@ try {
         }
         unset($block);
     }
+    // Populate only READ-ONLY previews with documented CC0/public-domain
+    // photographs. These IDs never go into the installed CMS database.
+    $previewPhotos = [];
+    $previewAlts = [];
+    if ($mode === 'empty') {
+        $photoFiles = match ($id) {
+            'simple-illustrated' => ['community', 'flowers', 'nature'],
+            'quiet-elegant' => ['forest', 'architecture'],
+            'image-forward' => ['mountains', 'architecture', 'forest', 'nature', 'flowers'],
+            'graphic-rhythm' => ['workshop', 'community'],
+            'editorial' => ['workshop', 'nature'],
+            default => [],
+        };
+        foreach ($photoFiles as $photoName) {
+            $photoId = 'demo_' . $photoName;
+            $previewPhotos[$photoId] = '/assets/install-demo/' . $photoName . '.webp';
+            $previewAlts[$photoId] = [
+                'community' => 'Personnes autour d’une table',
+                'flowers' => 'Fleurs',
+                'nature' => 'Personnes observant la nature',
+                'forest' => 'Forêt',
+                'architecture' => 'Architecture moderne',
+                'mountains' => 'Paysage de montagne',
+                'workshop' => 'Personnes réunies autour d’un projet',
+            ][$photoName];
+        }
+        foreach ($previewPage['blocks'] as &$block) {
+            if (($block['type'] ?? null) === 'gallery' && ($block['media_ids'] ?? null) === []) {
+                $block['media_ids'] = array_keys($previewPhotos);
+            }
+        }
+        unset($block);
+    }
     $html=(new PublicPageRenderer())->render(
         InstallThemePreview::site($mode,$id),
         $previewPage,
         $presentation,
         $presentation['css_url'],
-        InstallThemePreview::media($mode),
+        array_merge(InstallThemePreview::media($mode), $previewPhotos),
         InstallThemePreview::navigation($mode,$id),
-        mediaAlts: InstallThemePreview::alternatives()
+        mediaAlts: array_merge(InstallThemePreview::alternatives(), $previewAlts)
     );
 } catch (InvalidArgumentException) {
     http_response_code(404);

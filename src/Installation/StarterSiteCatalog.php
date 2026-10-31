@@ -104,6 +104,7 @@ final class StarterSiteCatalog
                 $page('home','Un lieu à découvrir',[
                     $text('Présentez ici un lieu, ses espaces, son atmosphère et ce qui le rend unique. Remplacez les textes et images pour construire votre propre présentation.'),
                     $cta('Découvrir les espaces','/espaces'),
+                    $gallery('Images du lieu'),
                     $cards('Explorer le lieu',[['Les espaces','Présentez les pièces, espaces ou équipements disponibles.','/espaces'],['Présentation','Découvrez l’histoire et les caractéristiques du lieu.','/presentation'],['À découvrir','Activités, projets ou informations à découvrir.','/decouvrir']]),
                 ],'Accueil'),
                 $page('presentation','Présentation',[
@@ -134,8 +135,8 @@ final class StarterSiteCatalog
                 $page('home','L’image au premier plan',[
                     $text('Présentez vos images, votre travail ou vos réalisations. Remplacez les médias d’exemple par les vôtres.'),
                     $cta('Découvrir les projets','/projets'),
+                    $gallery('Sélection d’images'),
                     $cards('À parcourir',[['Projets','Découvrez les réalisations et leurs histoires.','/projets'],['Actualités','Suivez les événements ou nouveautés.','/actualites'],['À propos','Découvrez l’univers et les intentions du projet.','/a-propos']]),
-                    $gallery('Images à la une'),
                 ],'Accueil'),
                 $page('galerie','Galerie',[
                     $text('Présentez vos images et réalisations. Créez des albums, des légendes et des descriptions accessibles.'),
@@ -199,6 +200,7 @@ final class StarterSiteCatalog
                     $text('Un projet vivant, des activités et des rencontres à présenter. Personnalisez les textes, dates et informations avant publication.'),
                     $cta('Voir les activités','/activites'),
                     $cards('À la une',[['Découvrir','Les activités et nouveautés.','/activites'],['Suivre','Les prochaines dates.','/agenda'],['Participer','Les différentes façons de s’impliquer.','/a-propos']]),
+                    $steps('Le déroulement',[['Découvrir','Explorer le projet et ses activités.'],['Participer','Trouver la formule qui convient.'],['Partager','Suivre les résultats et prochains rendez-vous.']]),
                 ],'Accueil'),
                 $page('agenda','Agenda',[
                     $steps('Dates et temps forts',[['Première date','Présentez l’activité ou le rendez-vous.'],['Deuxième date','Ajoutez une nouvelle étape.'],['Autre rendez-vous','Décrivez un événement ou une actualité.'],['Bilan','Partagez les résultats ou les images.']]),

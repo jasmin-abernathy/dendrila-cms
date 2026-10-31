@@ -35,7 +35,7 @@ for entry in catalog['themes']:
             raise SystemExit('Symlinks are not allowed in the bundle')
         if not path.is_file() or 'preview' in path.relative_to(theme).parts:
             continue
-        if path.suffix not in ('.json','.css','.svg'):
+        if path.suffix not in ('.json','.css','.svg','.webp'):
             raise SystemExit('Unexpected runtime asset: ' + str(path))
         files[path.relative_to(source).as_posix()] = path.read_bytes()
     if entry['path'] + '/' + manifest['entrypoint'] not in files:

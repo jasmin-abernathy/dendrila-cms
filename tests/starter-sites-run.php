@@ -92,15 +92,19 @@ foreach($required as $style=>$expected) {
    ],$menu));
   assertStarter(str_contains($html,'data-dendrila-theme='),'Every page uses real theme rendering');
   assertStarter(!str_contains($html,'javascript:'),'No untrusted script URLs');
-  if ($slug==='home' && in_array($style,['simple-illustrated','quiet-elegant','image-forward','graphic-rhythm'],true)) {
+  if ($slug==='home' && in_array($style,['simple-illustrated','quiet-elegant','image-forward','graphic-rhythm','editorial'],true)) {
    assertStarter(str_contains($html,'class="d-hero__art"'),'Theme-supplied artwork missing: '.$style);
    if ($style==='image-forward') {
-    assertStarter(substr_count($html,'/assets/install-demo/')===3,
-      'Photo-first homepage must have a real locally bundled triptych');
+    assertStarter(substr_count($html,'/design-kits/themes/image-centered/assets/')===3,
+      'Photo-first homepage must have a local CC0 triptych');
    }
   }
   if ($slug!=='home') {
    assertStarter(!str_contains($html,'class="d-hero__art"'),'Artwork repeated on interior pages: '.$style);
+  }
+  if ($slug==='home' && count($page['blocks'])>3) {
+   assertStarter(str_contains($html,'class="d-home-composition d-home-composition--'),
+      'Homepage must compose sections as a visual layout: '.$style);
   }
   $blocksTotal+=count($page['blocks']);
   $pagesTotal++;
@@ -111,6 +115,6 @@ foreach($required as $style=>$expected) {
  $renderedNav=InstallThemePreview::navigation('empty',$style);
  assertStarter(count($renderedNav)===count($pages),'All starter routes previewable');
 }
-assertStarter($pagesTotal===40&&$blocksTotal===97,'The six starters contain exactly 40 editable pages and 97 sections');
+assertStarter($pagesTotal===40&&$blocksTotal===99,'The six starters contain exactly 40 editable pages and 99 sections');
 echo "Starter sites: $pagesTotal CMS pages, $blocksTotal sections, six styles; draft/public states, links and renders OK\n";
 
