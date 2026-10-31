@@ -48,6 +48,7 @@ final readonly class PdoSiteReadModel implements SiteReadModel
         PrivacySettingsModule::assertReservedIdAvailable($modules);
         PrivacyLegalModules::assertReservedIdsAvailable($modules);
         PrivacyDocumentsModule::assertReservedIdAvailable($modules);
+        NativePagesModule::assertReservedIdAvailable($modules);
         $safeModules = [];
         foreach (self::safeModules($modules) as $module) {
             if ($module['kind'] === 'media_library') {
@@ -63,6 +64,13 @@ final readonly class PdoSiteReadModel implements SiteReadModel
                 if (is_array($module['media'] ?? null)) $module['media']['upload_enabled'] = $writable && $upload && ($module['media']['upload_enabled'] ?? false);
             }
             $safeModules[] = $module;
+        }
+        if ($this->store->findContentType($actor->siteId,'page')!==null
+            && $this->store->actorHasPermission($actor->siteId,$actor->actorId,'content.read')) {
+            $canEdit=$this->store->actorHasPermission($actor->siteId,$actor->actorId,'content.update')
+                || $this->store->actorHasPermission($actor->siteId,$actor->actorId,'content.update_own');
+            $canPublish=$this->store->actorHasPermission($actor->siteId,$actor->actorId,'content.publish');
+            $safeModules[] = self::safeModules([NativePagesModule::definition($canEdit,$canPublish)])[0];
         }
         $privacyState = $this->privacyState($actor);
         if ($privacyState !== null) {
@@ -107,6 +115,7 @@ final readonly class PdoSiteReadModel implements SiteReadModel
         PrivacySettingsModule::assertReservedIdAvailable($storedModules);
         PrivacyLegalModules::assertReservedIdsAvailable($storedModules);
         PrivacyDocumentsModule::assertReservedIdAvailable($storedModules);
+        NativePagesModule::assertReservedIdAvailable($storedModules);
         self::safeModules($storedModules);
         $data = (new SnapshotProjector())->project(
             $storedModules,
@@ -129,6 +138,10 @@ final readonly class PdoSiteReadModel implements SiteReadModel
             if ($this->media !== null && $this->store->actorHasPermission($actor->siteId, $actor->actorId, 'media.read')) {
                 $data[$module['id']] = ['items' => $this->media->items($actor, $module)];
             }
+        }
+        if ($this->store->findContentType($actor->siteId,'page')!==null
+            && $this->store->actorHasPermission($actor->siteId,$actor->actorId,'content.read')) {
+            $data[NativePagesModule::ID] = NativePagesModule::snapshot($this->contentService,$actor);
         }
         $privacyState = $this->privacyState($actor);
         if ($privacyState !== null) {
@@ -296,9 +309,9 @@ final readonly class PdoSiteReadModel implements SiteReadModel
                 $options = array_intersect_key($module['options'], array_flip([
                     'upload_enabled', 'max_bytes', 'accepted_mime_types', 'allow_create', 'allow_update', 'allow_delete', 'allow_rotate',
                     'group_id', 'group_title', 'group_description', 'group_order', 'field_sections',
-                    'item_label', 'empty_message',
+                    'item_label', 'empty_message', 'require_version', 'save_label',
                 ]));
-                foreach (['upload_enabled', 'allow_create', 'allow_update', 'allow_delete', 'allow_rotate'] as $key) {
+                foreach (['upload_enabled', 'allow_create', 'allow_update', 'allow_delete', 'allow_rotate', 'require_version'] as $key) {
                     if (isset($options[$key]) && !is_bool($options[$key])) {
                         throw new RuntimeException("Stored MMW module option '{$key}' is invalid.");
                     }
@@ -320,6 +333,7 @@ final readonly class PdoSiteReadModel implements SiteReadModel
                     'group_description' => 500,
                     'item_label' => 80,
                     'empty_message' => 255,
+                    'save_label' => 100,
                 ] as $key => $maxLength) {
                     if (isset($options[$key])
                         && (!is_string($options[$key]) || trim($options[$key]) === ''
