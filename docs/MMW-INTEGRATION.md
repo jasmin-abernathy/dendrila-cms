@@ -1,5 +1,17 @@
 # Intégration avec Mon Manager Web
 
+## Nouvelles installations : association native et édition des contenus
+
+Lors d’une **nouvelle installation Dendrila CMS**, l’installateur configure le fournisseur d’identité `native` sans adaptateur propre au client. Après installation, le site expose `GET /.well-known/lepotager-site-manager.json` avec sa propre origine HTTPS et `auth_methods: ["pairing_code"]`.
+
+Dans **Administration → Appli → Associer un appareil**, une personne connectée par mot de passe et TOTP, disposant de `content.read`, génère un code à huit chiffres, valable dix minutes et utilisable une seule fois. Seul son HMAC est conservé. Le serveur limite les tentatives et délivre un jeton distinct par appareil. La révocation et la désactivation du compte sont appliquées par l’API lors des requêtes suivantes. Le manifeste public ne contient aucun secret.
+
+La nouvelle installation ajoute automatiquement à MMW le module réservé **`pages`**, de type `records`, pour **consulter et modifier les pages**. L’écran n’est pas une simple liste : chaque page possède un titre et un champ permettant de modifier son premier bloc de texte. Le reste des blocs, notamment les photos et galeries, est préservé. L’écriture se fait en brouillon avec vérification de version (`options.require_version=true`, `expected_version` dans la mutation). L’action explicite **Publier** respecte le workflow de validation et les permissions du CMS. Les autres blocs continuent d’être modifiés via le back-office Dendrila.
+
+Les **photos** sont exposées par le module natif `media_library`, lorsque la médiathèque est activée. Le snapshot contient les liens HTTPS vers les miniatures et images dérivées ; MMW peut les afficher sans les recadrer, avec les titres, descriptions alternatives et fonctions d’édition effectivement autorisées. Un site possédant des albums historiques peut transmettre `image_url` et `album` via un module `gallery` compatible, sans adaptation dans l’APK.
+
+Les sites historiques comme Oscura conservent leurs adaptateurs et leurs règles tant qu’ils n’ont pas migré. **Aucune bascule automatique** n’est effectuée par cette implémentation. Les tests et la recette sur site pilote restent indispensables avant diffusion générale.
+
 Le CMS Core doit alimenter ou implémenter le protocole existant.
 Référence : `jasmin-abernathy/lepotager-site-manager/docs/protocol-v1.md`.
 
