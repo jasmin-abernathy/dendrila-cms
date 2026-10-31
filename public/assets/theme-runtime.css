@@ -7,5 +7,14 @@ body[data-dendrila-theme]{margin:0}
 [data-dendrila-theme] .d-hero__grid:not(:has(>.d-hero__media)){grid-template-columns:minmax(0,1fr);min-height:0}
 [data-dendrila-theme] .d-media__image{max-width:100%}
 @media(max-width:38rem){[data-dendrila-theme] .d-header__inner{flex-wrap:wrap}[data-dendrila-theme] .d-nav{max-width:100%}}
-
-
+/* Shared native services, without brand-specific hard-coding. */
+.d-steps{list-style:none;margin:1.5rem 0 0;padding:0;display:grid;gap:1.25rem}
+.d-step{display:grid;grid-template-columns:auto 1fr;align-items:start;gap:1.1rem;padding:1.25rem 0;border-top:1px solid var(--dendrila-border,#d3d8d2)}
+.d-step__number{display:grid;place-items:center;width:2.5rem;height:2.5rem;flex-shrink:0;border:2px solid var(--accent);border-radius:50%;font-weight:700;font-variant-numeric:tabular-nums}
+.d-step h3,.d-pricing__card h3{margin:0 0 .35rem;font-size:1.2rem;line-height:1.35}
+.d-step p,.d-pricing__card p{margin:.25rem 0 0}
+.d-pricing{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr));align-items:stretch;gap:1.25rem;margin-top:1.5rem}
+.d-pricing__card{display:flex;flex-direction:column;align-items:start;gap:.8rem;border:1px solid var(--dendrila-border,#cbd7c6);padding:clamp(1rem,3vw,1.75rem);border-radius:var(--dendrila-radius);background:var(--paper);min-width:0}
+.d-pricing__amount{font-size:clamp(1.4rem,3vw,2rem);line-height:1.2;overflow-wrap:anywhere}
+.d-pricing__card .d-button{margin-top:auto}
+@media(prefers-contrast:more){.d-pricing__card,.d-step{border-width:2px}}

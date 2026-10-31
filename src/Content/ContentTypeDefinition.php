@@ -133,6 +133,8 @@ final readonly class ContentTypeDefinition
             'faq' => ['type', 'items', 'heading'],
             'key_values' => ['type', 'items', 'heading'],
             'statistics' => ['type', 'items', 'heading'],
+            'steps' => ['type', 'items', 'heading'],
+            'pricing' => ['type', 'items', 'heading'],
             'embed_safe' => ['type', 'provider', 'url', 'label', 'heading'],
         ];
         foreach ($value as $block) {
@@ -164,7 +166,7 @@ final readonly class ContentTypeDefinition
             if ($type === 'gallery' && !$this->optionalText($block, 'alt')) {
                 return false;
             }
-            if (in_array($type, ['gallery', 'cards', 'faq', 'key_values', 'statistics', 'embed_safe'], true)
+            if (in_array($type, ['gallery', 'cards', 'faq', 'key_values', 'statistics', 'steps', 'pricing', 'embed_safe'], true)
                 && !$this->optionalText($block, 'heading')) {
                 return false;
             }
@@ -174,11 +176,11 @@ final readonly class ContentTypeDefinition
             if ($type === 'cta' && strlen($block['label']) > 300) {
                 return false;
             }
-            if (in_array($type, ['cards', 'faq', 'key_values', 'statistics'], true)
+            if (in_array($type, ['cards', 'faq', 'key_values', 'statistics', 'steps', 'pricing'], true)
                 && (!is_array($block['items'] ?? null) || !array_is_list($block['items']) || count($block['items']) > 50)) {
                 return false;
             }
-            if (in_array($type, ['cards', 'faq', 'key_values', 'statistics'], true)
+            if (in_array($type, ['cards', 'faq', 'key_values', 'statistics', 'steps', 'pricing'], true)
                 && !$this->validBlockItems($type, $block['items'])) {
                 return false;
             }
@@ -196,6 +198,8 @@ final readonly class ContentTypeDefinition
             'faq' => [['question', 'answer'], ['question', 'answer']],
             'key_values' => [['label', 'value'], ['label', 'value']],
             'statistics' => [['label', 'value'], ['label', 'value', 'note']],
+            'steps' => [['title', 'text'], ['title', 'text']],
+            'pricing' => [['title', 'price', 'text'], ['title', 'price', 'text', 'label', 'url']],
         };
         foreach ($items as $item) {
             if (!is_array($item) || array_diff(array_keys($item), $allowed) !== []

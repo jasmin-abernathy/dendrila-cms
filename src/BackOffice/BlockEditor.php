@@ -12,11 +12,14 @@ final class BlockEditor
         'embed_safe'=>['provider'=>'Fournisseur','url'=>'Adresse','label'=>'Libellé','heading'=>'Titre'],
         'cards'=>['heading'=>'Titre'],'faq'=>['heading'=>'Titre'],
         'key_values'=>['heading'=>'Titre'],'statistics'=>['heading'=>'Titre'],
+        'steps'=>['heading'=>'Titre'],'pricing'=>['heading'=>'Titre'],
     ];
     public const ITEMS=['cards'=>['title'=>'Titre','text'=>'Texte','url'=>'Lien','media_id'=>'Photo'],
         'faq'=>['question'=>'Question','answer'=>'Réponse'],
         'key_values'=>['label'=>'Libellé','value'=>'Valeur'],
-        'statistics'=>['label'=>'Libellé','value'=>'Valeur','note'=>'Précision']];
+        'statistics'=>['label'=>'Libellé','value'=>'Valeur','note'=>'Précision'],
+        'steps'=>['title'=>'Étape','text'=>'Description'],
+        'pricing'=>['title'=>'Offre','price'=>'Prix','text'=>'Description','label'=>'Bouton (facultatif)','url'=>'Lien (facultatif)']];
     public static function update(array $original,array $edits,array $allowedMedia):array {
         foreach($edits as $index=>$edit){
             if(!ctype_digit((string)$index)||!isset($original[(int)$index])||!is_array($edit))throw new \InvalidArgumentException('Bloc invalide.');
@@ -84,7 +87,7 @@ final class BlockEditor
         return match($type){'text','rich_text'=>['type'=>$type,'text'=>''], 'gallery'=>['type'=>'gallery','media_ids'=>[]],
             'embed_safe'=>['type'=>'embed_safe','provider'=>'youtube-nocookie','url'=>'','label'=>'','heading'=>''],
             'cta'=>['type'=>'cta','label'=>'En savoir plus','url'=>'/'],
-            'cards','faq','key_values','statistics'=>['type'=>$type,'heading'=>'','items'=>[]],
+            'cards','faq','key_values','statistics','steps','pricing'=>['type'=>$type,'heading'=>'','items'=>[]],
             default=>throw new \InvalidArgumentException('Type de bloc non disponible.')};
     }
 }

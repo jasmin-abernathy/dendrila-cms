@@ -219,6 +219,10 @@ final readonly class PublicPageRenderer
                 . $this->renderSectionHeading($block) . $this->renderKeyValues($block) . '</div></section>',
             'statistics' => '<section class="' . $sectionClass . '"><div class="d-shell">'
                 . $this->renderSectionHeading($block) . $this->renderStatistics($block) . '</div></section>',
+            'steps' => '<section class="' . $sectionClass . '"><div class="d-shell">'
+                . $this->renderSectionHeading($block) . $this->renderSteps($block) . '</div></section>',
+            'pricing' => '<section class="' . $sectionClass . '"><div class="d-shell">'
+                . $this->renderSectionHeading($block) . $this->renderPricing($block) . '</div></section>',
             'cta' => '<section class="d-cta-band"><div class="d-shell d-cta-band__inner">'
                 . $this->renderCtaLink($block) . '</div></section>',
             'embed_safe' => '<section class="' . $sectionClass . '"><div class="d-shell">'
@@ -331,6 +335,41 @@ final readonly class PublicPageRenderer
         return '<div class="d-stats">' . implode('', $markup) . '</div>';
     }
 
+    /** Reusable, accessible service blocks. No payment processing inside presentation. */
+    private function renderSteps(array $block): string
+    {
+        $steps = [];
+        foreach (self::items($block, 'steps') as $i => $item) {
+            $steps[] = '<li class="d-step"><span class="d-step__number" aria-hidden="true">'
+                . ($i + 1) . '</span><div><h3>'
+                . self::escape(self::shortText($item['title'] ?? null, 'step title', 1000))
+                . '</h3><p>' . nl2br(self::escape(self::longText($item['text'] ?? null, 'step text')), false)
+                . '</p></div></li>';
+        }
+        return '<ol class="d-steps">' . implode('', $steps) . '</ol>';
+    }
+
+    private function renderPricing(array $block): string
+    {
+        $cards = [];
+        foreach (self::items($block, 'pricing') as $item) {
+            $action = '';
+            if (($item['label'] ?? '') !== '' && ($item['url'] ?? '') !== '') {
+                $action = '<a class="d-button" href="'
+                    . self::escape(self::safeLinkUrl(self::shortText($item['url'], 'offer URL', 2000)))
+                    . '">' . self::escape(self::shortText($item['label'], 'offer action', 300)) . '</a>';
+            }
+            $cards[] = '<article class="d-pricing__card"><h3>'
+                . self::escape(self::shortText($item['title'] ?? null, 'offer title', 1000))
+                . '</h3><strong class="d-pricing__amount">'
+                . self::escape(self::shortText($item['price'] ?? null, 'offer price', 500))
+                . '</strong><p>'
+                . nl2br(self::escape(self::longText($item['text'] ?? null, 'offer details')), false)
+                . '</p>' . $action . '</article>';
+        }
+        return '<div class="d-pricing">' . implode('', $cards) . '</div>';
+    }
+
     private function renderEmbed(array $block, string $locale): string
     {
         $provider = self::shortText($block['provider'] ?? null, 'embed provider', 100);
@@ -373,7 +412,7 @@ final readonly class PublicPageRenderer
     {
         return match ($mode) {
             'alternating' => $index % 2 === 1,
-            'soft_sections' => in_array($type, ['cards', 'faq', 'key_values', 'statistics'], true),
+            'soft_sections' => in_array($type, ['cards', 'faq', 'key_values', 'statistics', 'steps', 'pricing'], true),
             default => false,
         };
     }
