@@ -18,7 +18,7 @@ $blocks=[['type'=>'text','text'=>'Original'],['type'=>'gallery','media_ids'=>['p
 $updated=BlockEditor::update($blocks,[0=>['text'=>'Edited'],1=>['media_ids'=>['']]],['photo']);
 installCheck($updated[0]['text']==='Edited'&&$updated[1]['media_ids']===[]&&$updated[2]===$blocks[2],'Block updates preserve unrelated structure');
 try{BlockEditor::update($blocks,[1=>['media_ids'=>['foreign']]],['photo']);throw new RuntimeException('Foreign photo accepted');}catch(InvalidArgumentException){}
-foreach(['text','rich_text','gallery','cta','embed_safe','cards','faq','key_values','statistics'] as $type)installCheck(BlockEditor::blank($type)['type']===$type,'All offered blocks initialize');
+foreach(['text','rich_text','gallery','cta','embed_safe','cards','faq','key_values','statistics','steps','pricing'] as $type)installCheck(BlockEditor::blank($type)['type']===$type,'All offered blocks initialize');
 $collection=['type'=>'faq','heading'=>'Titre','items'=>[['question'=>'A','answer'=>'A'],['question'=>'B','answer'=>'B']]];
 $moved=BlockEditor::collection($collection,'item_up',1);
 installCheck($moved['items'][0]['question']==='B'&&$moved['heading']==='Titre','Collection reorders while preserving metadata');

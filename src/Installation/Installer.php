@@ -21,6 +21,7 @@ final class Installer
     public static function install(array $state,array $account,string $directory):void {
         if(!isset(Catalog::themes()[$state['theme']??'']))throw new \InvalidArgumentException('Thème inconnu.');
         \Dendrila\Cms\Runtime\Presentation::forTheme($state['theme']);
+        $starterPages=StarterSiteCatalog::validatedPages($state['theme']);
         $addons=Catalog::selection($state['addons']??[]);
         foreach(Catalog::requirements($addons)['extensions'] as $ext)if(!extension_loaded($ext))throw new \RuntimeException('Extension PHP manquante : '.$ext);
         $name=trim($account['name']??'');$email=strtolower(trim($account['email']??''));$password=$account['password']??'';
@@ -65,9 +66,21 @@ final class Installer
                 $q=$pdo->prepare("INSERT INTO native_accounts (site_id,actor_id,email,password_hash,totp_cipher,last_totp_step,created_at) VALUES ('default','owner',?,?,?,?,UTC_TIMESTAMP(6))");$q->execute([$email,password_hash($password,PASSWORD_DEFAULT),$identity->encrypt($state['secret']),$step]);
                 $pdo->commit();
                 $store=new PdoCmsStore($pdo);$actor=new ActorContext('default','owner');$authz=new AuthorizationService($store);$content=new ContentService($store,$authz);
-                $home=$content->createDraft($actor,'page',['title'=>$name,'slug'=>'home','blocks'=>[['type'=>'text','text'=>'Bienvenue sur notre site.']]],'install-home');
-                $content->transition($actor,$home['content']['id'],'published',1,'install-publish-home');
-                $items=[['id'=>'home','label'=>'Accueil','url'=>'/','visible'=>true]];
+                // Seed the actual reference-derived page sections, not only the preview.
+                // Only the homepage is published initially: every other page starts
+                // as an editable draft, with its menu entry hidden until reviewed.
+                foreach($starterPages as $starter) {
+                    $slug=$starter['slug'];
+                    $draft=$content->createDraft($actor,'page',[
+                        'title'=>$starter['title'],'slug'=>$slug,'blocks'=>$starter['blocks'],
+                    ],'install-starter-'.$slug);
+                    if($slug==='home') {
+                        $content->transition($actor,$draft['content']['id'],'published',1,'install-publish-home');
+                    }
+                }
+                $items=StarterSiteCatalog::navigation($state['theme']);
+                foreach($items as &$item) $item['visible']=$item['id']==='home';
+                unset($item);
                 if(in_array('forum',$addons,true))$items[]=['id'=>'forum','label'=>'Forum','url'=>'/forum/','visible'=>true];
                 (new NavigationService(new PdoNavigationRepository($pdo),$store,$authz))->save($actor,'main','Menu principal','primary',$items,0);
                 if(!rename($tmp,$directory.'/local.php'))throw new \RuntimeException('Finalisation de la configuration impossible.');

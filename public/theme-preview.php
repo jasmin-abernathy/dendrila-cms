@@ -13,9 +13,21 @@ try {
     // Both previews use the actual theme resolver and public HTML renderer.
     // No database or installed site, admin session or optional module required.
     $presentation=Presentation::forTheme($id);
+    $previewPage=InstallThemePreview::page($mode,$id);
+    if($mode==='empty'){
+        $requested=is_string($_GET['page']??null)?$_GET['page']:'home';
+        $found=false;
+        foreach(\Dendrila\Cms\Installation\StarterSiteCatalog::validatedPages($id) as $candidate){
+            if($candidate['slug']!==$requested) continue;
+            $previewPage=['title'=>$candidate['title'],'blocks'=>$candidate['blocks']];
+            $found=true;
+            break;
+        }
+        if(!$found) throw new InvalidArgumentException('Unknown starter page.');
+    }
     $html=(new PublicPageRenderer())->render(
         InstallThemePreview::site($mode,$id),
-        InstallThemePreview::page($mode,$id),
+        $previewPage,
         $presentation,
         $presentation['css_url'],
         InstallThemePreview::media($mode),

@@ -14,9 +14,12 @@ $styles=['simple-illustrated'=>'simple-illustrated','quiet-elegant'=>'quiet-eleg
 foreach($styles as $style=>$theme){
     $empty=InstallThemePreview::page('empty',$style);
     $full=InstallThemePreview::page('demo',$style);
-    themeCheck($empty['blocks'] === [['type'=>'text','text'=>'Bienvenue sur notre site.']],'Blank installation has exactly the starter text');
-    themeCheck(count($full['blocks']) > count($empty['blocks']),'Rich demo never becomes the installed default');
-    themeCheck(InstallThemePreview::media('empty') === [],'Blank preview needs no image module or storage');
+    $starter=\Dendrila\Cms\Installation\StarterSiteCatalog::validatedPages($style);
+    themeCheck($empty['blocks'] === $starter[0]['blocks'],'Starter preview matches real installation homepage');
+    themeCheck(count($starter)>=6,'Every style seeds a complete multi-page website');
+    themeCheck(count($empty['blocks'])>=3,'Homepage includes real reusable sections');
+    themeCheck($full['blocks'] !== $empty['blocks'],'Photo-rich demo remains separate from starter');
+    themeCheck(InstallThemePreview::media('empty') === [],'Starter pages require no image module or storage');
     $structures[]=implode(',',array_column($full['blocks'],'type'));
     $photos=InstallThemePreview::media('demo');
     themeCheck(count($photos)===4,'Four shared photos for every theme');

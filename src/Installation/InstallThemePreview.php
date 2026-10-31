@@ -2,7 +2,7 @@
 declare(strict_types=1);
 namespace Dendrila\Cms\Installation;
 
-/** Theme-specific, read-only examples. Nothing here is installed into a new site. */
+/** Read-only theme examples and exact starter pages; no database writes in previews. */
 final class InstallThemePreview
 {
     private const STYLES = ['simple-illustrated','quiet-elegant','image-forward','ultra-minimal','graphic-rhythm','editorial'];
@@ -23,7 +23,10 @@ final class InstallThemePreview
     public static function page(string $mode, string $style = 'simple-illustrated'): array
     {
         self::check($mode,$style);
-        if ($mode === 'empty') return ['title'=>'Mon site','blocks'=>[['type'=>'text','text'=>'Bienvenue sur notre site.']]];
+        if ($mode === 'empty') {
+            $pages=StarterSiteCatalog::validatedPages($style);
+            return ['title'=>$pages[0]['title'],'blocks'=>$pages[0]['blocks']];
+        }
         $text=static fn(string $s):array=>['type'=>'text','text'=>$s];
         $cta=static fn(string $s):array=>['type'=>'cta','label'=>$s,'url'=>'#contenu'];
         $photo=static fn(string $id,string $alt):array=>['type'=>'image','media_id'=>$id,'alt'=>$alt];
@@ -86,7 +89,14 @@ final class InstallThemePreview
     public static function navigation(string $mode, string $style = 'simple-illustrated'): array
     {
         self::check($mode,$style);
-        $labels=$mode==='empty'?['Accueil']:match($style){
+        if($mode==='empty') return array_map(
+            static fn(array $item):array=>[
+                'label'=>$item['label'],'url'=>'/theme-preview.php?theme='.rawurlencode($style)
+                    .'&mode=empty&page='.rawurlencode($item['id'])
+            ],
+            StarterSiteCatalog::navigation($style)
+        );
+        $labels=match($style){
             'simple-illustrated'=>['Services','Le lieu','Contact'],'quiet-elegant'=>['La maison','L’esprit','Contact'],
             'image-forward'=>['Sélection','À propos','Contact'],'ultra-minimal'=>['Expertises','Approche','Contact'],
             'graphic-rhythm'=>['Programme','Le collectif','Infos pratiques'],'editorial'=>['Mission','Expertises','Contact'],

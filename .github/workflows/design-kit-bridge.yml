@@ -64,6 +64,8 @@ jobs:
           php tests/seo-run.php
           php tests/design-run.php
           php tests/themes-run.php
+          php tests/starter-sites-run.php
+          php tests/service-blocks-run.php
           php tests/front-run.php
           php tests/reference-site-run.php
       - name: JSON syntax

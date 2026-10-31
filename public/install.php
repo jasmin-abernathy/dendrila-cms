@@ -48,7 +48,14 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             case 1:
                 $theme=is_string($_POST['theme']??null)?$_POST['theme']:'';
                 if(!isset(Catalog::themes()[$theme]))throw new InvalidArgumentException('Choisissez un thème.');
-                $state['theme']=$theme;$state['step']=2;break;
+                $state['theme']=$theme;
+                // Photo-first starters need a media library; show it preselected,
+                // but always let the site owner opt out before installation.
+                if(!isset($state['addons'])) {
+                    $state['addons']=in_array($theme,['simple-illustrated','quiet-elegant','image-forward'],true)
+                        ? ['media'] : [];
+                }
+                $state['step']=2;break;
             case 2:
                 $state['addons']=Catalog::selection($_POST['addons']??[]);$state['step']=3;break;
             case 3:
@@ -59,7 +66,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             case 4:
                 $account=[];foreach(['name','email','password','code','url'] as $key)$account[$key]=is_string($_POST[$key]??null)?$_POST[$key]:'';
                 Installer::install($state,$account,$directory);unset($_SESSION['install']);session_regenerate_id(true);
-                echo App::page('Votre site est prêt','<p>Le thème et les modules choisis sont installés. Vous pouvez maintenant modifier vos pages.</p><p><a class="button" href="/admin/">Ouvrir l’administration</a></p><p>Attendez le prochain code de votre application d’authentification pour vous connecter.</p>');exit;
+                echo App::page('Votre site est prêt','<p>Le thème et les modules choisis sont installés. Les pages inspirées du modèle du thème sont créées : seul l’accueil est publié, les autres attendent votre relecture dans les brouillons. Activez ensuite leurs liens de menu.</p><p><a class="button" href="/admin/">Ouvrir l’administration</a></p><p>Attendez le prochain code de votre application d’authentification pour vous connecter.</p>');exit;
         }
     }catch(InvalidArgumentException|DomainException $e){$error=$e->getMessage();http_response_code(422);}
     catch(Throwable $e){error_log('Dendrila installation: '.$e::class);$error='Installation interrompue. Consultez les journaux serveur. Si des tables ont été créées, utilisez une nouvelle base vide ; aucune donnée existante ne sera effacée.';http_response_code(500);}
@@ -78,7 +85,7 @@ case 0:
     $body.='<h2>Autre méthode : clé de préparation</h2><label class="field">Clé d’installation créée en ligne de commande (facultatif)<input name="token" type="password" autocomplete="off"></label>';
     break;
 case 1:
-    $body.='<h2>Quelle ambiance pour votre site ?</h2><p>Découvrez <strong>six compositions différentes</strong> : services, maison d’hôtes, portfolio photo, studio minimal, événement et présentation institutionnelle. Aucun thème n’impose un blog. Les images sont fournies avec Dendrila, sans connexion à un service externe. Ces exemples ne sont <strong>pas ajoutés à votre site</strong> : après installation, vous partez d’une page vierge. Aucun aperçu ne modifie votre sélection.</p><div class="theme-grid">';
+    $body.='<h2>Quelle ambiance pour votre site ?</h2><p>Découvrez <strong>six compositions différentes</strong> : services, maison d’hôtes, portfolio photo, studio minimal, événement et média éditorial. Chaque thème installe une <strong>structure complète de pages et de sections modifiables</strong>. Seul l’accueil est publié ; les autres pages sont créées en brouillons et restent absentes du menu public avant validation. Aucun thème n’impose un blog. Les images des démonstrations sont locales et ne sont pas automatiquement ajoutées à vos contenus. Aucun aperçu ne modifie votre sélection.</p><div class="theme-grid">';
     foreach(Catalog::themes() as $id=>$theme){
         $label=App::h($theme['label']);
         $preview='/theme-preview.php?theme='.rawurlencode($id);
@@ -90,12 +97,12 @@ case 1:
             .'<p>'.App::h($theme['description']).'</p></label>'
             .'<div class="theme-card__actions">'
             .'<a href="'.$preview.'&amp;mode=demo" target="_blank" rel="noopener noreferrer" aria-label="Ouvrir la démonstration complète, thème '.$label.'">Voir la démonstration <span aria-hidden="true">↗</span></a>'
-            .'<a href="'.$preview.'&amp;mode=empty" target="_blank" rel="noopener noreferrer" aria-label="Ouvrir le site vierge, thème '.$label.'">Site vierge <span aria-hidden="true">↗</span></a>'
+            .'<a href="'.$preview.'&amp;mode=empty" target="_blank" rel="noopener noreferrer" aria-label="Ouvrir le site de départ, thème '.$label.'">Pages de départ <span aria-hidden="true">↗</span></a>'
             .'</div></article>';
     }
     $body.='</div>';break;
 case 2:
-    $body.='<h2>De quoi avez-vous besoin ?</h2><p>Pages, menu et administration sont inclus. Cochez seulement les fonctions utiles.</p>';
+    $body.='<h2>De quoi avez-vous besoin ?</h2><p>Pages, menu et administration sont inclus. Pour les thèmes illustrés ou photographiques, la médiathèque est précochée afin de pouvoir compléter les galeries. Vous pouvez la décocher. Les réservations, paiements et recherches dans une base externe demandent des modules spécifiques qui ne sont pas activés par le thème.</p>';
     foreach(Catalog::addons() as $id=>$module)$body.='<label class="addon-card"><input type="checkbox" name="addons[]" value="'.$id.'"'.(in_array($id,$state['addons']??[],true)?' checked':'').'><span><strong>'.App::h($module['label']).'</strong><br>'.App::h($module['description']).'</span></label>';
     break;
 case 3:
