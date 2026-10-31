@@ -19,6 +19,15 @@ final class IdentityRuntimeFactory
         if ($provider === '' || $provider === 'none') {
             return new IdentityRuntime(new PdoDeviceAuthenticator($pdo), null);
         }
+        if ($provider === 'native') {
+            $siteId=trim((string)($env('DENDRILA_SITE_ID')??''));
+            $key=(string)($env('DENDRILA_AUTH_KEY')??'');
+            $pairing=new NativeMmwPairing($pdo,$siteId,$key);
+            return new IdentityRuntime(
+                new NativeMmwDeviceAuthenticator($pdo,$siteId),
+                new AuthenticationService($pairing,new PdoDeviceTokenIssuer($pdo)),
+            );
+        }
         if ($provider !== 'legacy_mmw_pairing') {
             throw new \RuntimeException('Unsupported identity provider configuration.');
         }

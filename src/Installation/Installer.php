@@ -44,7 +44,7 @@ final class Installer
             $private=dirname($directory).'/storage';
             if(!is_dir($private)&&!mkdir($private,0700,true))throw new \RuntimeException('Stockage privé inaccessible.');
             foreach(['media','forum'] as $module)if(in_array($module,$addons,true)&&!is_dir($private.'/'.$module)&&!mkdir($private.'/'.$module,0700,true))throw new \RuntimeException('Stockage du module inaccessible.');
-            $settings=['APP_ENV'=>'production','APP_BASE_URL'=>$url,'DB_DSN'=>self::dsn($state['db']),'DB_USERNAME'=>$state['db']['user'],'DB_PASSWORD'=>$state['db']['password'],'DENDRILA_SITE_ID'=>'default','DENDRILA_SITE_NAME'=>$name,'DENDRILA_THEME'=>$state['theme'],'DENDRILA_ADDONS'=>implode(',',$addons),'DENDRILA_AUTH_KEY'=>bin2hex(random_bytes(32))];
+            $settings=['APP_ENV'=>'production','APP_BASE_URL'=>$url,'DB_DSN'=>self::dsn($state['db']),'DB_USERNAME'=>$state['db']['user'],'DB_PASSWORD'=>$state['db']['password'],'DENDRILA_SITE_ID'=>'default','DENDRILA_SITE_NAME'=>$name,'DENDRILA_IDENTITY_PROVIDER'=>'native','DENDRILA_THEME'=>$state['theme'],'DENDRILA_ADDONS'=>implode(',',$addons),'DENDRILA_AUTH_KEY'=>bin2hex(random_bytes(32))];
             if(in_array('media',$addons,true))$settings+=['MEDIA_PRIVATE_ROOT'=>$private.'/media','MEDIA_PUBLIC_ENDPOINT'=>$url.'/media.php'];
             if(in_array('forum',$addons,true))$settings['FORUM_PRIVATE_ROOT']=$private.'/forum';
             // Verify atomic private config write before creating any tables.

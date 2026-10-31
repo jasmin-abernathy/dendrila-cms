@@ -71,6 +71,47 @@ $future=Totp::code($secret,intdiv(time(),30)+1);
 verifyInstall(!$identity->login('owner@example.test','wrong',$future,'127.0.0.1'),'Wrong password rejected');
 verifyInstall($identity->login('owner@example.test',$password,$future,'127.0.0.1'),'Two factors authenticate');
 verifyInstall($identity->currentActor()?->actorId==='owner','Session actor resolved');
+
+verifyInstall(($settings['DENDRILA_IDENTITY_PROVIDER']??'')==='native',
+    'Fresh installs enable native Mon Manager Web association without a site adapter.');
+$manifest=\Dendrila\Cms\Api\MmwDiscoveryManifest::fromEnvironment(
+    static fn(string $key):?string=>isset($settings[$key])?(string)$settings[$key]:null
+);
+verifyInstall($manifest['api_base_url']==='https://example.test'
+    && $manifest['auth_methods']===['pairing_code']
+    && $manifest['site_id']==='default',
+    'Fresh CMS publishes a site-specific MMW discovery manifest.');
+$runtime=\Dendrila\Cms\Api\IdentityRuntimeFactory::fromEnvironment($pdo,
+    static fn(string $key):?string=>isset($settings[$key])?(string)$settings[$key]:null
+);
+verifyInstall($runtime->authentication instanceof \Dendrila\Cms\Api\AuthenticationService
+    && $runtime->authenticator instanceof \Dendrila\Cms\Api\NativeMmwDeviceAuthenticator,
+    'Native MMW identity is wired automatically by the installer.');
+$mmw=new \Dendrila\Cms\Api\NativeMmwPairing($pdo,'default',$settings['DENDRILA_AUTH_KEY']);
+$code=$mmw->issueCode($actor);
+verifyInstall(preg_match('/^[0-9]{8}$/D',$code)===1,'Pairing code is eight digits.');
+$known=$pdo->prepare('SELECT code_hash FROM native_mmw_pair_codes WHERE site_id=? AND actor_id=?');
+$known->execute(['default','owner']);
+verifyInstall($known->fetchColumn()!==$code,'Plaintext pairing codes are never stored.');
+$paired=$runtime->authentication->pair(['code'=>$code,'device_name'=>'Test Android']);
+verifyInstall($paired['status']==='authenticated'
+    && preg_match('/^[a-f0-9]{64}$/D',$paired['device_token'])===1,
+    'Native MMW code issues a revocable device token.');
+$request=new \Dendrila\Cms\Http\Request('GET','/v1/config',[
+    'x-lepotager-device-token'=>$paired['device_token'],
+    'x-lepotager-protocol'=>'1',
+], '');
+$mobileActor=$runtime->authenticator->authenticate($request);
+verifyInstall($mobileActor->siteId==='default'&&$mobileActor->actorId==='owner',
+    'Device token restores real CMS membership and permissions.');
+$devices=$mmw->devices($actor);
+verifyInstall(count($devices)===1,'Paired Android device is visible in the back-office.');
+$mmw->revoke($actor,$devices[0]['device_id']);
+try{$runtime->authenticator->authenticate($request);throw new RuntimeException('Revoked device was accepted.');}
+catch(\Dendrila\Cms\Api\Unauthorized){}
+try{$mmw->pair($code);throw new RuntimeException('Pairing code was reusable.');}
+catch(\Dendrila\Cms\Api\AuthenticationFailure){}
+
 verifyInstall(!$identity->login('owner@example.test',$password,$future,'127.0.0.1'),'Login code cannot replay');
 $accounts=new Accounts($pdo,'default',$settings['DENDRILA_AUTH_KEY']);$token=$accounts->invite($actor,'member@example.test','member');$memberSecret=Totp::secret();
 $accounts->redeem($token,$password,$memberSecret,Totp::code($memberSecret,intdiv(time(),30)));
@@ -112,6 +153,54 @@ $core->changeBlock($actor,$blockPage,$version++,'add',0,'embed_safe','',0,['prov
 $core->publishPage($actor,$blockPage,$version);
 $html=(new PublicSite($pdo))->render('/tous-les-blocs/');
 verifyInstall(str_contains($html,'dendrila-privacy-consent-config')&&str_contains($html,'data-dendrila-src='),'Every offered block persists and publishes with working consent markup');
+
+$readModel=new \Dendrila\Cms\Api\PdoSiteReadModel($pdo,$media);
+$mobileConfig=$readModel->configuration($actor);
+$pageModules=array_values(array_filter($mobileConfig['modules'],
+    static fn(array $module):bool=>($module['id']??'')==='pages'));
+verifyInstall(count($pageModules)===1 && ($pageModules[0]['kind']??'')==='records'
+    && ($pageModules[0]['writable']??false)===true
+    && ($pageModules[0]['options']['require_version']??false)===true,
+    'New Dendrila sites expose versioned, editable pages to MMW by default.');
+$viewerConfig=$readModel->configuration(new ActorContext('default','test-viewer'));
+$viewerPages=array_values(array_filter($viewerConfig['modules'],
+    static fn(array $module):bool=>($module['id']??'')==='pages'));
+verifyInstall(count($viewerPages)===1 && ($viewerPages[0]['writable']??true)===false,
+    'Viewer accounts can read pages but cannot edit them.');
+$beforeMobile=$content->get($actor,$blockPage);
+$mobileVersion=(int)$beforeMobile['version'];
+$mobileResult=\Dendrila\Cms\Api\NativePagesModule::apply($content,$actor,'update_item',[
+    'item_id'=>$blockPage,'expected_version'=>$mobileVersion,
+    'title'=>'Page modifiée depuis MMW','body'=>'Texte édité depuis Android',
+], 'mmw-mobile-edit-20261031');
+verifyInstall(($mobileResult['status']??null)==='applied'
+    && !str_contains((new PublicSite($pdo))->render('/tous-les-blocs/'),'Texte édité depuis Android'),
+    'MMW saves a working draft, never silently overwriting the public page.');
+$edited=$content->get($actor,$blockPage);
+verifyInstall(count($edited['values']['blocks'])===count($beforeMobile['values']['blocks'])
+    && ($edited['values']['title']??'')==='Page modifiée depuis MMW',
+    'Mobile text editing preserves all other blocks, including galleries.');
+try{
+    \Dendrila\Cms\Api\NativePagesModule::apply($content,$actor,'update_item',[
+        'item_id'=>$blockPage,'expected_version'=>$mobileVersion,
+        'title'=>'Modification obsolète','body'=>'Stale',
+    ], 'mmw-mobile-stale-20261031');
+    throw new RuntimeException('Stale mobile page edit was accepted.');
+}catch(\Dendrila\Cms\Content\VersionConflict){}
+$publish=\Dendrila\Cms\Api\NativePagesModule::apply($content,$actor,'item_action',[
+    'item_id'=>$blockPage,'expected_version'=>(int)$edited['version'],'action_id'=>'publish',
+], 'mmw-mobile-publish-20261031');
+verifyInstall(in_array($publish['status']??null,['applied','pending_review'],true),
+    'Publication respects the CMS approval workflow.');
+if(($publish['status']??null)==='applied') {
+    verifyInstall(str_contains((new PublicSite($pdo))->render('/tous-les-blocs/'),'Texte édité depuis Android'),
+        'Only an explicit publish action makes the mobile changes public.');
+}
+$mobileSnapshot=$readModel->snapshot($actor);
+verifyInstall(isset($mobileSnapshot['data']->pages['items'])
+    && is_array($mobileSnapshot['data']->pages['items']),
+    'MMW receives a native editable page collection in its snapshot.');
+
 if(getenv('INSTALL_BACKUP_MANIFEST')){
     $manifest=getenv('INSTALL_BACKUP_MANIFEST');if(!is_dir(dirname($manifest)))mkdir(dirname($manifest),0700,true);
     $old=umask(0077);file_put_contents($manifest,json_encode(['root'=>$base,'totp_hash'=>hash('sha256',$secret)],JSON_THROW_ON_ERROR));umask($old);
