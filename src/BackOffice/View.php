@@ -436,6 +436,15 @@ final readonly class View
   <p class="quiet">Il s’agit du site sécurisé installé sur votre écran d’accueil, pas d’une application iOS native. Une connexion reste nécessaire.</p>
  </div>
  <div class="panel">
+  <h2>Mon Manager Web : modifier les contenus depuis Android</h2>
+  <p>Associez votre téléphone avec un code temporaire, puis retrouvez les pages, photographies et autres modules que votre compte a le droit de modifier. Chaque appareil peut être révoqué séparément.</p>
+  <?php if(getenv('DENDRILA_IDENTITY_PROVIDER')==='native'): ?>
+   <p><a class="button" href="/admin/mmw.php">Associer un appareil / Gérer les accès</a></p>
+  <?php else: ?>
+   <p class="quiet">L’association native n’est pas activée sur ce site hérité : conservez son parcours de connexion existant.</p>
+  <?php endif ?>
+ </div>
+ <div class="panel">
   <h2>Sur Android</h2>
   <?php if($this->config->androidDownloadUrl!==null): ?>
    <p><a class="button" href="<?=self::h($this->config->androidDownloadUrl)?>" rel="noopener noreferrer">Télécharger Mon Manager Web</a></p>
