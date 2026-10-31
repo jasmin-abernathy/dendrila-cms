@@ -41,6 +41,33 @@ foreach($styles as $style=>$theme){
     $html=(new PublicPageRenderer())->render(['name'=>'Site test'],['title'=>'Une page','blocks'=>[['type'=>'text','text'=>'Contenu'],['type'=>'image','media_id'=>'photo','shape'=>'organic-soft']]],$p,$p['css_url'],['photo'=>'/assets/preview.svg']);
     themeCheck(str_contains($html,'data-dendrila-theme="'.$theme.'"')&&str_contains($html,$p['css_url']),'Rendered page uses matching CSS scope');
     themeCheck(!str_contains($html,'/assets/site.css'),'Native rendering no longer uses generic stylesheet');
+
+    // All six themes get the same accessible native navigation behavior,
+    // while their CSS determines the actual mobile composition.
+    $menuHtml=(new PublicPageRenderer())->render(
+        ['name'=>'Site de test','home_url'=>'/'],
+        ['title'=>'Accueil','slug'=>'home','blocks'=>[['type'=>'text','text'=>'Bienvenue']]],
+        $p,$p['css_url'],[],[
+            ['label'=>'Accueil','url'=>'/'],
+            ['label'=>'Galerie','url'=>'/galerie'],
+            ['label'=>'Contact','url'=>'/contact'],
+        ]
+    );
+    themeCheck(substr_count($menuHtml,'class="d-mobile-menu"')===1,
+        'Every themed page has one native mobile menu: '.$style);
+    themeCheck(substr_count($menuHtml,'<summary aria-label="Ouvrir le menu de navigation">')===1,
+        'Mobile menu uses keyboard-friendly native HTML: '.$style);
+    themeCheck(substr_count($menuHtml,'<nav class="d-nav" aria-label="Navigation principale">')===2,
+        'Desktop and mobile navigation share identical links: '.$style);
+    themeCheck(substr_count($menuHtml,'href="/galerie"')>=2,
+        'The public gallery link is reachable in both menus: '.$style);
+    $cssText=(string)file_get_contents($p['design_kit']['entrypoint_path']);
+    foreach(['V3 responsive contract','@media(max-width:64rem)','@media(max-width:42rem)',
+             '.d-mobile-menu__panel','min-height:2.8rem!important',
+             '@media(prefers-reduced-motion:reduce)'] as $responsiveRule) {
+        themeCheck(str_contains($cssText,$responsiveRule),
+            'Missing responsive contract '.$responsiveRule.' in '.$style);
+    }
     $branded=Presentation::forTheme($style,['primary'=>'#204060','body_font'=>'neutral-sans','logo_url'=>'https://site.example/logo.svg']);
     themeCheck(str_contains($branded['compiled_css'],'--dendrila-color-primary: #204060;'),'Brand overrides compile in the selected theme scope');
     themeCheck($branded['brand_assets']['logo_url']==='https://site.example/logo.svg','Logo is forwarded');

@@ -131,6 +131,7 @@ final readonly class PublicPageRenderer
             . '<header class="d-header"><div class="d-shell d-header__inner">'
             . '<a class="d-brand" href="' . self::escape($homeUrl) . '">' . $logo . '<span>' . self::escape($siteName) . '</span></a>'
             . $this->renderNavigation($navigation, $language)
+            . $this->renderMobileNavigation($navigation, $language)
             . '</div></header><main id="contenu">'
             . $this->renderHero($title, $tagline, $hero, $mediaUrls, $supportedShapes, $structure, $theme['id'], ($page['slug'] ?? 'home') === 'home')
             // Minimal kit has a real two-column index, not a faux grid spread over
@@ -409,6 +410,19 @@ final readonly class PublicPageRenderer
                 . '">' . self::escape(self::shortText($item['label'] ?? null, 'navigation label', 190)) . '</a>';
         }
         return $links === [] ? '' : '<nav class="d-nav" aria-label="' . ($language === 'en' ? 'Main navigation' : 'Navigation principale') . '">' . implode('', $links) . '</nav>';
+    }
+
+    /** Native details/summary is operable by touch, keyboard and without JavaScript. */
+    private function renderMobileNavigation(array $navigation, string $language): string
+    {
+        if ($navigation === []) return '';
+        $label = $language === 'en' ? 'Menu' : 'Menu';
+        $accessibleLabel = $language === 'en' ? 'Open the navigation menu' : 'Ouvrir le menu de navigation';
+        return '<details class="d-mobile-menu"><summary aria-label="' . $accessibleLabel
+            . '"><span class="d-mobile-menu__label">' . $label . '</span>'
+            . '<span class="d-mobile-menu__icon" aria-hidden="true"><i></i><i></i><i></i></span></summary>'
+            . '<div class="d-mobile-menu__panel">' . $this->renderNavigation($navigation, $language)
+            . '</div></details>';
     }
 
     private function renderFooter(string $siteName, array $navigation, string $language): string

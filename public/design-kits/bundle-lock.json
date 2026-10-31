@@ -1,20 +1,20 @@
 {
   "schema_version": 1,
   "repository": "jasmin-abernathy/dendrila-design-kits",
-  "revision": "0af2d96da2fab93e822999ebc4ce374206ca61fe",
+  "revision": "6ef98ef867c54435c3adeb9a72f70d287d85a2c2",
   "files": {
     "catalog.json": "0b251820729bf51409fa519b8b013098243a54c97aa6085b478402473b33ad4b",
     "themes/dynamic-graphic/assets/motifs/diagonal-grid.svg": "8ec6ceba7a17f2ec509dc30771c8f36534e573ef0a38540437985720babb3955",
-    "themes/dynamic-graphic/theme.css": "ffca986fc2a551872603d34be0cb8f77310026b51859c05ef309f3e4a9750b4b",
+    "themes/dynamic-graphic/theme.css": "99dcf2b496298e329adb636da0ce404451a64d25c0f56974a75fcede8283aa1d",
     "themes/dynamic-graphic/theme.json": "82255f214749f647834ed02941002cf036e1fe0ae0dc1927253f0e9917be0ede",
-    "themes/editorial/theme.css": "4b1a5ac273a5b784ef8c2bbd8971860ef6f902366dee91ff68172d9449dd1a6a",
+    "themes/editorial/theme.css": "2bcf657e9af42eba56ba6a9e6c0d8e1860c8ee5c9640f5de33e014d6f300b7c0",
     "themes/editorial/theme.json": "a865fd26baad4dc76586b528b2f2ed4d0cac317db0a2477e285cb3a7016b80c7",
     "themes/image-centered/assets/motifs/frame-lines.svg": "773baa7fa00f59aad2c060de168e7f3108e46ba0e080edc3e9d4a9e44b026e5a",
-    "themes/image-centered/theme.css": "4b6f9d6bf1dcaf4753f240dc78a251acf371a74ad59a9094927f0f39f0998801",
+    "themes/image-centered/theme.css": "a9b1f60d93668b6cd2e975d0a37be80b12dd4f3858a375a28f387ec186e6a266",
     "themes/image-centered/theme.json": "df7169e92e5ba9d274ccc3e80a31d6b0f55b870d8b399e9838cbf583da282f02",
     "themes/quiet-elegant/assets/masks/organic-soft.svg": "9048aabefe3f9ab2249ad53cec3a060fe65d739949d6c20c3ad8bd71d260f4a8",
     "themes/quiet-elegant/assets/motifs/botanical-line.svg": "5ccc913189716685826ebff6d911f292b0df8211dc78d897c773b5d524dc713d",
-    "themes/quiet-elegant/theme.css": "0e85241674716d4dd0895402b5ff66cc382613a9ade141c82804d36686d68695",
+    "themes/quiet-elegant/theme.css": "c22e8f8bb1604b0be790ff2011c20cf8b36c7e791858e1bc3e4694a5fb4b0a59",
     "themes/quiet-elegant/theme.json": "d1908aca082e4f8c30e8f3ffaf9d0189cdd4817d63ba24f32a4d816cbfb92e24",
     "themes/simple-illustrated/assets/illustration-garden.svg": "c12e3f9e2e2d001fa4a5cc9380b12fab6c4df68dea8d72bb77741159c2e1416d",
     "themes/simple-illustrated/assets/illustration-process.svg": "ce1a7de3dc007bb35bf97b091313739f4ed932911ad287eb70e89ffbcdd46796",
@@ -23,9 +23,9 @@
     "themes/simple-illustrated/assets/masks/organic-soft.svg": "ac237821144a0f7cd10c888faf7dfb99ae81febe920dd6b174b3d8be05a9eb3c",
     "themes/simple-illustrated/assets/masks/organic-tall.svg": "5690ddfb622326ec634a368e08f88a4932cb19f27268f62621abda6e117cbcac",
     "themes/simple-illustrated/assets/motifs/organic-line.svg": "a7ba859cb68dac10febf98d6711b27e2d2f0eed774b4759a76f970ef790618a6",
-    "themes/simple-illustrated/theme.css": "36d3ff24cef135f78501b2a9bd1d0228da40d384e8a0b7cd4ddedc8dca72b755",
+    "themes/simple-illustrated/theme.css": "e199946710e4565b19520f26af72a3f036e6602055c253cdcc7b0314c797ca6f",
     "themes/simple-illustrated/theme.json": "f1ba135d9ed15034504b9125596d3f493ec00d6ba881de49a2c9ad06c08d2d42",
-    "themes/very-minimal/theme.css": "6ec4909bc15b1ad4c493b30c8edda195300ce4f892bda71cc240ab51dbdc5653",
+    "themes/very-minimal/theme.css": "03fa0343ca1c8938bd59b7cc64b4ae7c74347a66a5c4f7df19e35ea3f365fa11",
     "themes/very-minimal/theme.json": "53571bfa3c3500b28280d01cc70153aa02a6bb7f07f68c7070ffaf40dd81ea05"
   }
 }

@@ -40,3 +40,9 @@ php tests/front-run.php
 Pour le back-office avec dépendances de test : charger tests/Support/InMemoryCmsStore.php avant tests/backoffice-run.php.
 
 Les tests n'installent aucun site réel et n'envoient aucune requête métier.
+
+## Responsive et navigation clavier
+
+Les six thèmes Dendrila possèdent une navigation mobile native avec commande « Menu » (élément HTML details/summary sans JavaScript). Sur les tablettes et petits écrans, les compositions se restructurent dans leur kit CSS respectif : couvertures illustrées, composition photo, catalogue minimal, affiche graphique, page éditoriale. Le panneau de navigation offre des liens de 44 px minimum, des contours de focus visibles et une hauteur limitée pour les écrans en paysage. Les fichiers publics sont alignés sur le dépôt dendrila-design-kits (voir docs/RESPONSIVE.md dans ce dépôt).
+
+Tests : php tests/themes-run.php, php tests/starter-sites-run.php, bash tests/run.sh dans Design Kits. Les tests automatiques valident le HTML et les règles CSS, mais ne remplacent pas une recette visuelle avec navigateur sur téléphone et tablette.
