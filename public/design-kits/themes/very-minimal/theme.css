@@ -409,3 +409,27 @@
 [data-dendrila-theme="very-minimal"] .d-key-values dd{font-size:.9rem;margin:.45rem 0 0;color:var(--dendrila-color-muted);font-weight:400}
 [data-dendrila-theme="very-minimal"] .d-footer{background:transparent;border-top:1px solid var(--dendrila-color-border);color:var(--dendrila-color-text)}
 @media(max-width:52rem){[data-dendrila-theme="very-minimal"] main{grid-template-columns:1fr;gap:3rem;padding-block:2rem}[data-dendrila-theme="very-minimal"] .d-title{max-width:22ch}}
+
+
+/* V2 — A service index, with a rigorous functional rail rather than blog cards. */
+[data-dendrila-theme="very-minimal"] .d-hero{background:var(--dendrila-color-bg);border-bottom:2px solid var(--dendrila-color-text)}
+[data-dendrila-theme="very-minimal"] .d-hero__grid{padding-block:clamp(3rem,10vw,8rem);max-width:var(--dendrila-content-max,80rem)}
+[data-dendrila-theme="very-minimal"] .d-title{font-size:clamp(3.2rem,8vw,8.3rem);max-width:13ch;line-height:.96;letter-spacing:-.07em}
+[data-dendrila-theme="very-minimal"] .d-hero__copy{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,.8fr);gap:2.5rem;align-items:end}
+[data-dendrila-theme="very-minimal"] .d-hero__copy .d-title{grid-column:1}
+[data-dendrila-theme="very-minimal"] .d-hero__copy .d-lead{grid-column:2;grid-row:1;align-self:end}
+[data-dendrila-theme="very-minimal"] .d-hero__copy .d-actions{grid-column:2;grid-row:2}
+[data-dendrila-theme="very-minimal"] .d-card-grid{grid-template-columns:1fr!important;gap:0!important;border-top:2px solid var(--dendrila-color-text)}
+[data-dendrila-theme="very-minimal"] .d-card-grid .d-card{display:grid;grid-template-columns:minmax(0,.6fr) minmax(0,1fr);column-gap:3rem;align-items:start;min-height:0!important;padding:1.5rem 0!important;border:0;border-bottom:1px solid var(--dendrila-color-border);background:transparent!important;box-shadow:none!important;border-radius:0}
+[data-dendrila-theme="very-minimal"] .d-card__title{margin:0;max-width:19ch;font-size:clamp(1.1rem,2vw,1.65rem)}
+[data-dendrila-theme="very-minimal"] .d-card p{margin:0;font-size:1rem}
+[data-dendrila-theme="very-minimal"] .d-section--block-steps .d-steps{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2rem}
+[data-dendrila-theme="very-minimal"] .d-section--block-pricing .d-pricing{grid-template-columns:repeat(2,minmax(0,1fr));border-top:2px solid var(--dendrila-color-text)}
+[data-dendrila-theme="very-minimal"] .d-section--block-pricing .d-pricing__card{border:0;border-bottom:1px solid var(--dendrila-color-border);padding:1.5rem 0;border-radius:0}
+[data-dendrila-theme="very-minimal"] .d-section--block-faq .d-faq details{border-radius:0}
+@media(max-width:44rem){
+ [data-dendrila-theme="very-minimal"] .d-hero__copy{grid-template-columns:1fr;gap:.8rem}
+ [data-dendrila-theme="very-minimal"] .d-hero__copy .d-title,[data-dendrila-theme="very-minimal"] .d-hero__copy .d-lead,[data-dendrila-theme="very-minimal"] .d-hero__copy .d-actions{grid-column:1;grid-row:auto}
+ [data-dendrila-theme="very-minimal"] .d-card-grid .d-card{grid-template-columns:1fr;gap:.6rem}
+ [data-dendrila-theme="very-minimal"] .d-section--block-steps .d-steps,[data-dendrila-theme="very-minimal"] .d-section--block-pricing .d-pricing{grid-template-columns:1fr}
+}

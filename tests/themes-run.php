@@ -43,6 +43,31 @@ foreach($styles as $style=>$theme){
     themeCheck(str_contains($branded['compiled_css'],'--dendrila-color-primary: #204060;'),'Brand overrides compile in the selected theme scope');
     themeCheck($branded['brand_assets']['logo_url']==='https://site.example/logo.svg','Logo is forwarded');
 }
+// Real landing compositions must be distinct before a customer uploads media.
+$layoutContracts=[
+ 'simple-illustrated'=>['illustration-service.svg','d-card-grid>.d-card:first-child','d-section--block-steps'],
+ 'quiet-elegant'=>['d-hero__art img','d-card-grid .d-card:first-child','d-section--block-gallery'],
+ 'image-forward'=>['d-hero__art img','d-gallery__item:nth-child(1)','d-section--block-gallery'],
+ 'ultra-minimal'=>['d-card-grid .d-card','d-hero__copy .d-lead','d-section--block-pricing'],
+ 'graphic-rhythm'=>['d-hero__art::before','d-title','d-section--block-cards'],
+ 'editorial'=>['d-brand','d-section--block-cards .d-card:first-child','d-hero__copy .d-lead'],
+];
+foreach($layoutContracts as $design=>$features){
+ $css=(string)file_get_contents(Presentation::forTheme($design)['design_kit']['entrypoint_path']);
+ foreach($features as $feature)themeCheck(str_contains($css,$feature),'Missing distinct layout ' . $design . ': ' . $feature);
+}
+$artwork=$root.'/public/design-kits/themes/simple-illustrated/assets/';
+foreach(['illustration-service.svg','illustration-process.svg','illustration-garden.svg'] as $filename){
+ themeCheck(is_file($artwork.$filename)&&filesize($artwork.$filename)>700,'Actual local illustration is bundled: '.$filename);
+}
+foreach(['simple-illustrated','quiet-elegant','image-forward','graphic-rhythm'] as $design){
+ $starter=\Dendrila\Cms\Installation\StarterSiteCatalog::validatedPages($design)[0];
+ $presentation=Presentation::forTheme($design);
+ $html=(new PublicPageRenderer())->render(['name'=>'Test starter'],[
+    'title'=>$starter['title'],'slug'=>'home','blocks'=>$starter['blocks']
+ ],$presentation,$presentation['css_url']);
+ themeCheck(str_contains($html,'class="d-hero__art"'),'Home fallback is visible for ' . $design);
+}
 themeCheck(count(array_unique($structures))===6,'Six distinct demo content structures');
 try{InstallThemePreview::page('unknown');throw new RuntimeException('Unknown preview mode accepted');}catch(InvalidArgumentException){} 
 foreach(['../editorial','missing'] as $id){try{Presentation::forTheme($id,[]);throw new RuntimeException('Unknown style accepted');}catch(InvalidArgumentException){}}

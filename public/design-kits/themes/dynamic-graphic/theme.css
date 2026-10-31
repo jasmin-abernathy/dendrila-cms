@@ -524,3 +524,32 @@
 [data-dendrila-theme="dynamic-graphic"] .d-card__title{font-family:var(--dendrila-font-heading);font-size:clamp(1.6rem,3vw,2.8rem);margin:0;text-transform:uppercase}
 [data-dendrila-theme="dynamic-graphic"] .d-card p{color:var(--dendrila-color-text);margin:0}
 @media(max-width:38rem){[data-dendrila-theme="dynamic-graphic"] .d-hero__grid{padding-block:3rem}[data-dendrila-theme="dynamic-graphic"] .d-card{grid-template-columns:1fr;gap:.8rem}}
+
+
+/* V2 — Cultural event poster: massive type, geometric stage and asymmetric programme. */
+[data-dendrila-theme="dynamic-graphic"] .d-hero{background:var(--dendrila-color-primary);color:#fff;position:relative;overflow:hidden}
+[data-dendrila-theme="dynamic-graphic"] .d-hero__grid{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.7fr);min-height:clamp(33rem,65vw,51rem);padding-block:clamp(2rem,6vw,6rem)}
+[data-dendrila-theme="dynamic-graphic"] .d-hero__copy{z-index:3}
+[data-dendrila-theme="dynamic-graphic"] .d-title{font-size:clamp(4.1rem,10vw,10rem);font-weight:950;line-height:.88;text-transform:uppercase;letter-spacing:-.085em;max-width:9ch}
+[data-dendrila-theme="dynamic-graphic"] .d-hero__art{position:relative;min-height:25rem;align-self:stretch;isolation:isolate}
+[data-dendrila-theme="dynamic-graphic"] .d-hero__art::before{content:"";position:absolute;inset:0 16% 4% 5%;background:var(--dendrila-color-secondary);clip-path:polygon(14% 0,100% 10%,82% 100%,0 82%);transform:rotate(-9deg)}
+[data-dendrila-theme="dynamic-graphic"] .d-hero__art::after{content:"";position:absolute;width:70%;aspect-ratio:1;top:8%;right:-5%;border:clamp(2rem,6vw,6rem) solid var(--dendrila-color-bg);border-radius:50%;transform:rotate(-15deg)}
+[data-dendrila-theme="dynamic-graphic"] .d-section--block-cards .d-card-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:.75rem}
+[data-dendrila-theme="dynamic-graphic"] .d-section--block-cards .d-card{grid-column:span 2;min-height:21rem;padding:clamp(1rem,2.7vw,2.5rem);display:flex;flex-direction:column;justify-content:flex-end;border:0;border-radius:0;background:var(--dendrila-color-accent-soft)}
+[data-dendrila-theme="dynamic-graphic"] .d-section--block-cards .d-card:first-child{grid-column:span 4;min-height:25rem;background:var(--dendrila-color-secondary);color:var(--dendrila-color-bg)}
+[data-dendrila-theme="dynamic-graphic"] .d-section--block-cards .d-card:nth-child(3n){background:var(--dendrila-color-primary);color:#fff;transform:translateY(2rem)}
+[data-dendrila-theme="dynamic-graphic"] .d-section--block-steps .d-steps{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0}
+[data-dendrila-theme="dynamic-graphic"] .d-step{border:3px solid var(--dendrila-color-text);padding:2rem;min-height:10rem}
+[data-dendrila-theme="dynamic-graphic"] .d-step__number{border-radius:0;font-size:1.5rem}
+[data-dendrila-theme="dynamic-graphic"] .d-pricing__card{border-radius:0;border:3px solid var(--dendrila-color-text)}
+@media(max-width:52rem){
+ [data-dendrila-theme="dynamic-graphic"] .d-hero__grid{grid-template-columns:1fr}
+ [data-dendrila-theme="dynamic-graphic"] .d-hero__art{min-height:15rem;max-height:18rem}
+ [data-dendrila-theme="dynamic-graphic"] .d-section--block-cards .d-card-grid{grid-template-columns:repeat(2,1fr)}
+ [data-dendrila-theme="dynamic-graphic"] .d-section--block-cards .d-card,[data-dendrila-theme="dynamic-graphic"] .d-section--block-cards .d-card:first-child{grid-column:auto;min-height:14rem}
+ [data-dendrila-theme="dynamic-graphic"] .d-section--block-cards .d-card:nth-child(3n){transform:none}
+}
+@media(max-width:36rem){
+ [data-dendrila-theme="dynamic-graphic"] .d-title{font-size:clamp(3.3rem,15vw,5.5rem)}
+ [data-dendrila-theme="dynamic-graphic"] .d-section--block-cards .d-card-grid,[data-dendrila-theme="dynamic-graphic"] .d-section--block-steps .d-steps{grid-template-columns:1fr}
+}

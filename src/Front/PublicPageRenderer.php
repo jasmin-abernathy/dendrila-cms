@@ -132,7 +132,7 @@ final readonly class PublicPageRenderer
             . '<a class="d-brand" href="' . self::escape($homeUrl) . '">' . $logo . '<span>' . self::escape($siteName) . '</span></a>'
             . $this->renderNavigation($navigation, $language)
             . '</div></header><main id="contenu">'
-            . $this->renderHero($title, $tagline, $hero, $mediaUrls, $supportedShapes, $structure)
+            . $this->renderHero($title, $tagline, $hero, $mediaUrls, $supportedShapes, $structure, $theme['id'], ($page['slug'] ?? 'home') === 'home')
             // Minimal kit has a real two-column index, not a faux grid spread over
             // many implicit rows. Other themes keep their existing DOM structure.
             . ($theme['id'] === 'very-minimal' ? '<div class="d-main-content">' : '')
@@ -181,7 +181,7 @@ final readonly class PublicPageRenderer
         return [$hero, $body];
     }
 
-    private function renderHero(string $title, string $tagline, array $hero, array $mediaUrls, array $supportedShapes, array $structure): string
+    private function renderHero(string $title, string $tagline, array $hero, array $mediaUrls, array $supportedShapes, array $structure, string $themeId, bool $isHome): string
     {
         $intro = '';
         if (is_array($hero['intro'])) {
@@ -192,6 +192,21 @@ final readonly class PublicPageRenderer
         $media = '';
         if (is_array($hero['media']) && $structure['hero'] !== 'minimal') {
             $media = '<div class="d-hero__media">' . $this->renderMediaFrame($hero['media'], $mediaUrls, $supportedShapes, true) . '</div>';
+        }
+        // Theme-owned artwork makes empty homepages visually distinct without
+        // pretending the site has uploaded content or creating fake media records.
+        // It disappears when the editor provides an actual hero image.
+        if ($media === '' && $isHome && in_array($themeId,
+            ['simple-illustrated', 'quiet-elegant', 'image-centered', 'dynamic-graphic'], true)) {
+            $art = '<div class="d-hero__art" aria-hidden="true">';
+            if ($themeId === 'image-centered') {
+                foreach (['mountains','architecture','forest'] as $name) {
+                    $art .= '<img loading="eager" alt="" src="/assets/install-demo/'.$name.'.webp">';
+                }
+            } elseif ($themeId === 'quiet-elegant') {
+                $art .= '<img alt="" loading="eager" src="/assets/install-demo/forest.webp">';
+            }
+            $media = $art . '</div>';
         }
         return '<section class="d-hero"><div class="d-shell d-hero__grid"><div class="d-hero__copy">'
             . $eyebrow . '<h1 class="d-title">' . self::escape($title) . '</h1>' . $intro . $cta

@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 620" role="img" aria-labelledby="title">
+<title id="title">Illustration d'un accompagnement humain autour d'un bureau</title>
+<defs>
+ <pattern id="dots" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="12" cy="12" r="2" fill="#7da38b" opacity=".36"/></pattern>
+ <linearGradient id="soft" x1="0" x2="1"><stop stop-color="#f6c8b4"/><stop offset="1" stop-color="#f7e6c3"/></linearGradient>
+</defs>
+<path d="M89 165C149 23 440 13 593 116s103 355-29 429S177 594 100 460 55 257 89 165Z" fill="#e2f0dd"/>
+<path d="M52 285C74 119 221 64 399 75s282 163 274 322-153 159-270 170S30 481 52 285Z" fill="url(#dots)" opacity=".75"/>
+<g stroke="#315d49" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+ <path d="M90 435c12-108 75-191 127-233" fill="none"/><path d="M138 351c-72-29-77-94-66-128 79 17 105 63 91 118M176 284c-11-70 11-118 57-140 30 66 3 122-39 157M100 418c-45 5-74 33-78 82 53 12 100-9 115-47" fill="#95c4a4"/>
+ <path d="M519 506c-4-77 8-135 49-188" fill="none"/><path d="M544 416c-33-45-33-90-12-126 42 30 49 72 36 111M563 347c15-51 52-70 86-72 7 51-19 89-71 102" fill="#bcd8b7"/>
+</g>
+<path d="M190 437h370l18 29H171Z" fill="#80564e"/>
+<path d="M219 466l-23 81m332-81 23 81" stroke="#80564e" stroke-width="16" stroke-linecap="round"/>
+<path d="M264 320c7-63 47-101 95-100 52 3 90 57 85 114l-16 111H282Z" fill="#4d796d"/>
+<ellipse cx="345" cy="174" rx="58" ry="67" fill="#f6c8a4"/>
+<path d="M291 158c-8-41 15-86 60-88 36 2 55 23 61 48-24 1-43-8-62-28-10 29-31 43-59 49z" fill="#385446"/>
+<path d="M299 170c3 16 7 37 19 52m79-51c-3 18-10 34-23 50" fill="none" stroke="#b47662" stroke-width="4"/>
+<circle cx="326" cy="168" r="4" fill="#385446"/><circle cx="372" cy="168" r="4" fill="#385446"/>
+<path d="M332 191c15 8 26 7 35-3" fill="none" stroke="#915b4d" stroke-width="4" stroke-linecap="round"/>
+<path d="M283 326c-19 30-31 66-29 104h67l27-66m81-38c19 19 32 52 38 87l-54 21-28-61" stroke="#eac0a7" stroke-width="21" stroke-linecap="round" fill="none"/>
+<path d="M280 390h164l-11 59H287Z" fill="#e8f0e9" stroke="#315d49" stroke-width="6"/>
+<rect x="290" y="338" width="143" height="92" rx="10" fill="#fffbef" stroke="#315d49" stroke-width="6"/>
+<path d="M319 367h81m-81 22h52m-52 22h36" stroke="#adc8ae" stroke-width="8" stroke-linecap="round"/>
+<g fill="none" stroke="#d18b69" stroke-width="7" stroke-linecap="round">
+<path d="m473 153 40-46m-11 61 61-21m-61 55 50 17"/>
+</g>
+<circle cx="530" cy="94" r="20" fill="#f2c76f"/>
+</svg>

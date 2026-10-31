@@ -19,7 +19,7 @@ try {
         $found=false;
         foreach(\Dendrila\Cms\Installation\StarterSiteCatalog::validatedPages($id) as $candidate){
             if($candidate['slug']!==$requested) continue;
-            $previewPage=['title'=>$candidate['title'],'blocks'=>$candidate['blocks']];
+            $previewPage=['title'=>$candidate['title'],'slug'=>$candidate['slug'],'blocks'=>$candidate['blocks']];
             $found=true;
             break;
         }
