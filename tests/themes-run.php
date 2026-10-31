@@ -7,6 +7,8 @@ use Dendrila\Cms\Installation\InstallThemePreview;
 function themeCheck(bool $ok,string $message):void{if(!$ok)throw new RuntimeException($message);}
 $root=dirname(__DIR__);$bundle=$root.'/public/design-kits';
 $lock=json_decode(file_get_contents($bundle.'/bundle-lock.json'),true,512,JSON_THROW_ON_ERROR);
+themeCheck((fileperms($bundle) & 0005) === 0005,
+    'The published design-kit root must be traversable by the web server (0755, not mkdtemp 0700)');
 themeCheck(preg_match('/^[a-f0-9]{40}$/D',$lock['revision'])===1,'Bundle pins an upstream revision');
 foreach($lock['files'] as $path=>$hash)themeCheck(hash_file('sha256',$bundle.'/'.$path)===$hash,'Bundled asset matches lock: '.$path);
 $structures=[];

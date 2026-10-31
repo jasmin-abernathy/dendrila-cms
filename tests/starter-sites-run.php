@@ -65,6 +65,10 @@ foreach($required as $style=>$expected) {
   assertStarter(!str_contains($html,'javascript:'),'No untrusted script URLs');
   if ($slug==='home' && in_array($style,['simple-illustrated','quiet-elegant','image-forward','graphic-rhythm'],true)) {
    assertStarter(str_contains($html,'class="d-hero__art"'),'Theme-supplied artwork missing: '.$style);
+   if ($style==='image-forward') {
+    assertStarter(substr_count($html,'/assets/install-demo/')===3,
+      'Photo-first homepage must have a real locally bundled triptych');
+   }
   }
   if ($slug!=='home') {
    assertStarter(!str_contains($html,'class="d-hero__art"'),'Artwork repeated on interior pages: '.$style);

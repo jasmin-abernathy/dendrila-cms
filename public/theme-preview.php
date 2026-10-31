@@ -24,6 +24,29 @@ try {
             break;
         }
         if(!$found) throw new InvalidArgumentException('Unknown starter page.');
+        // In a read-only installer preview, internal CTA and card links must
+        // navigate the other draft pages inside the preview, not 404 on
+        // routes that do not exist until installation.
+        $slugs=array_column(\Dendrila\Cms\Installation\StarterSiteCatalog::validatedPages($id),'slug');
+        $previewLink=static function(string $url) use ($id,$slugs):string {
+            if(!str_starts_with($url,'/') || str_starts_with($url,'//')) return $url;
+            $slug=trim((string)parse_url($url,PHP_URL_PATH),'/');
+            $slug=$slug===''?'home':$slug;
+            if(!in_array($slug,$slugs,true)) return $url;
+            return '/theme-preview.php?theme='.rawurlencode($id).'&mode=empty&page='.rawurlencode($slug);
+        };
+        foreach($previewPage['blocks'] as &$block){
+            if(($block['type']??'')==='cta' && is_string($block['url']??null)) {
+                $block['url']=$previewLink($block['url']);
+            }
+            if(($block['type']??'')==='cards' && is_array($block['items']??null)){
+                foreach($block['items'] as &$item){
+                    if(is_string($item['url']??null)) $item['url']=$previewLink($item['url']);
+                }
+                unset($item);
+            }
+        }
+        unset($block);
     }
     $html=(new PublicPageRenderer())->render(
         InstallThemePreview::site($mode,$id),

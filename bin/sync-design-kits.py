@@ -53,6 +53,12 @@ try:
     lock = {'schema_version':1, 'repository':'jasmin-abernathy/dendrila-design-kits',
             'revision':args.revision, 'files':{p:hashlib.sha256(b).hexdigest() for p,b in sorted(files.items())}}
     (staging / 'bundle-lock.json').write_text(json.dumps(lock, indent=2)+'\n')
+    # mkdtemp starts at 0700. On shared hosting that makes every stylesheet
+    # and SVG inaccessible (server rewrites to 503). This directory is purely
+    # public, reviewed static assets: readable traversal must be explicit.
+    for item in staging.rglob('*'):
+        item.chmod(0o755 if item.is_dir() else 0o644)
+    staging.chmod(0o755)
     if target.exists():
         shutil.rmtree(target)
     os.replace(staging,target)
