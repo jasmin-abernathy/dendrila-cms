@@ -97,9 +97,9 @@ final class InstallThemePreview
             StarterSiteCatalog::navigation($style)
         );
         $labels=match($style){
-            'simple-illustrated'=>['Services','Le lieu','Contact'],'quiet-elegant'=>['La maison','L’esprit','Contact'],
-            'image-forward'=>['Sélection','À propos','Contact'],'ultra-minimal'=>['Expertises','Approche','Contact'],
-            'graphic-rhythm'=>['Programme','Le collectif','Infos pratiques'],'editorial'=>['Mission','Expertises','Contact'],
+            'simple-illustrated'=>['Services','À propos','Contact'],'quiet-elegant'=>['Présentation','Espaces','Contact'],
+            'image-forward'=>['Galerie','Projets','Contact'],'ultra-minimal'=>['Services','Méthode','Contact'],
+            'graphic-rhythm'=>['Agenda','À propos','Infos pratiques'],'editorial'=>['Publications','Dossiers','Contact'],
         };
         return array_map(static fn($label)=>['label'=>$label,'url'=>'#contenu'],$labels);
     }

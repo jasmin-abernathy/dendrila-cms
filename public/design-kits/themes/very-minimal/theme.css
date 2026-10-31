@@ -433,3 +433,23 @@
  [data-dendrila-theme="very-minimal"] .d-card-grid .d-card{grid-template-columns:1fr;gap:.6rem}
  [data-dendrila-theme="very-minimal"] .d-section--block-steps .d-steps,[data-dendrila-theme="very-minimal"] .d-section--block-pricing .d-pricing{grid-template-columns:1fr}
 }
+
+
+/* All links: no underline; preserve visible keyboard focus and hover contrast. */
+body[data-dendrila-theme="very-minimal"] a,
+body[data-dendrila-theme="very-minimal"] a:hover,
+body[data-dendrila-theme="very-minimal"] a:focus,
+body[data-dendrila-theme="very-minimal"] a:active {
+    text-decoration: none !important;
+    text-decoration-line: none !important;
+}
+body[data-dendrila-theme="very-minimal"] .d-nav a {
+    border-bottom: 0 !important;
+}
+body[data-dendrila-theme="very-minimal"] .d-nav a::after {
+    display: none !important;
+}
+body[data-dendrila-theme="very-minimal"] a:focus-visible {
+    outline: 3px solid currentColor;
+    outline-offset: 4px;
+}

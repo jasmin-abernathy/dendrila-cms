@@ -920,3 +920,23 @@
  [data-dendrila-theme="simple-illustrated"] .d-card-grid>.d-card:first-child{padding-right:30%}
  [data-dendrila-theme="simple-illustrated"] .d-section--block-faq>.d-shell{grid-template-columns:1fr;gap:1rem}
 }
+
+
+/* All links: no underline; preserve visible keyboard focus and hover contrast. */
+body[data-dendrila-theme="simple-illustrated"] a,
+body[data-dendrila-theme="simple-illustrated"] a:hover,
+body[data-dendrila-theme="simple-illustrated"] a:focus,
+body[data-dendrila-theme="simple-illustrated"] a:active {
+    text-decoration: none !important;
+    text-decoration-line: none !important;
+}
+body[data-dendrila-theme="simple-illustrated"] .d-nav a {
+    border-bottom: 0 !important;
+}
+body[data-dendrila-theme="simple-illustrated"] .d-nav a::after {
+    display: none !important;
+}
+body[data-dendrila-theme="simple-illustrated"] a:focus-visible {
+    outline: 3px solid currentColor;
+    outline-offset: 4px;
+}

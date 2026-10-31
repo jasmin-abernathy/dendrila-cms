@@ -148,3 +148,23 @@
  [data-dendrila-theme="editorial"] .d-section--block-cards .d-card-grid,[data-dendrila-theme="editorial"] .d-section--block-steps .d-steps{grid-template-columns:1fr}
  [data-dendrila-theme="editorial"] .d-section--block-cards .d-card:first-child{grid-column:auto}
 }
+
+
+/* All links: no underline; preserve visible keyboard focus and hover contrast. */
+body[data-dendrila-theme="editorial"] a,
+body[data-dendrila-theme="editorial"] a:hover,
+body[data-dendrila-theme="editorial"] a:focus,
+body[data-dendrila-theme="editorial"] a:active {
+    text-decoration: none !important;
+    text-decoration-line: none !important;
+}
+body[data-dendrila-theme="editorial"] .d-nav a {
+    border-bottom: 0 !important;
+}
+body[data-dendrila-theme="editorial"] .d-nav a::after {
+    display: none !important;
+}
+body[data-dendrila-theme="editorial"] a:focus-visible {
+    outline: 3px solid currentColor;
+    outline-offset: 4px;
+}

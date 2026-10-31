@@ -553,3 +553,23 @@
  [data-dendrila-theme="dynamic-graphic"] .d-title{font-size:clamp(3.3rem,15vw,5.5rem)}
  [data-dendrila-theme="dynamic-graphic"] .d-section--block-cards .d-card-grid,[data-dendrila-theme="dynamic-graphic"] .d-section--block-steps .d-steps{grid-template-columns:1fr}
 }
+
+
+/* All links: no underline; preserve visible keyboard focus and hover contrast. */
+body[data-dendrila-theme="dynamic-graphic"] a,
+body[data-dendrila-theme="dynamic-graphic"] a:hover,
+body[data-dendrila-theme="dynamic-graphic"] a:focus,
+body[data-dendrila-theme="dynamic-graphic"] a:active {
+    text-decoration: none !important;
+    text-decoration-line: none !important;
+}
+body[data-dendrila-theme="dynamic-graphic"] .d-nav a {
+    border-bottom: 0 !important;
+}
+body[data-dendrila-theme="dynamic-graphic"] .d-nav a::after {
+    display: none !important;
+}
+body[data-dendrila-theme="dynamic-graphic"] a:focus-visible {
+    outline: 3px solid currentColor;
+    outline-offset: 4px;
+}

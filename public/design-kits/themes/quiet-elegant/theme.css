@@ -542,3 +542,23 @@
  [data-dendrila-theme="quiet-elegant"] .d-card-grid .d-card:first-child{grid-row:auto}
  [data-dendrila-theme="quiet-elegant"] .d-section--block-text .d-prose{margin-left:auto}
 }
+
+
+/* All links: no underline; preserve visible keyboard focus and hover contrast. */
+body[data-dendrila-theme="quiet-elegant"] a,
+body[data-dendrila-theme="quiet-elegant"] a:hover,
+body[data-dendrila-theme="quiet-elegant"] a:focus,
+body[data-dendrila-theme="quiet-elegant"] a:active {
+    text-decoration: none !important;
+    text-decoration-line: none !important;
+}
+body[data-dendrila-theme="quiet-elegant"] .d-nav a {
+    border-bottom: 0 !important;
+}
+body[data-dendrila-theme="quiet-elegant"] .d-nav a::after {
+    display: none !important;
+}
+body[data-dendrila-theme="quiet-elegant"] a:focus-visible {
+    outline: 3px solid currentColor;
+    outline-offset: 4px;
+}

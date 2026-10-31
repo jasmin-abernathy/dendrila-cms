@@ -16,13 +16,27 @@ function assertStarter(bool $condition,string $message):void {
  if (!$condition) throw new RuntimeException($message);
 }
 $required=[
- 'simple-illustrated'=>['home','prestations','approche','rendez-vous','galerie','questions','contact'],
- 'quiet-elegant'=>['home','maison','chambres','sejour','decouvrir','contact'],
- 'image-forward'=>['home','galeries','series','ateliers','stenope','demarche','contact'],
- 'ultra-minimal'=>['home','prestations','methode','interlocuteur','facturation','outils','contact'],
- 'graphic-rhythm'=>['home','programme','ateliers','collectif','partenaires','infos-pratiques','contact'],
- 'editorial'=>['home','analyses','dossiers','rubriques','entretiens','a-propos','contact'],
+ 'simple-illustrated'=>['home','services','a-propos','informations','galerie','questions','contact'],
+ 'quiet-elegant'=>['home','presentation','espaces','informations','decouvrir','contact'],
+ 'image-forward'=>['home','galerie','projets','actualites','a-propos','contact'],
+ 'ultra-minimal'=>['home','services','methode','a-propos','offres','ressources','contact'],
+ 'graphic-rhythm'=>['home','agenda','activites','a-propos','partenaires','infos-pratiques','contact'],
+ 'editorial'=>['home','publications','dossiers','themes','rencontres','a-propos','contact'],
 ];
+$photographyPages=StarterSiteCatalog::validatedPages('image-forward');
+$galleryPages=array_values(array_filter($photographyPages,static fn(array $page):bool=>$page['slug']==='galerie'));
+assertStarter(count($galleryPages)===1 && $galleryPages[0]['menu_label']==='Galerie',
+    'Photo theme must expose one generic Galerie menu entry');
+assertStarter(count($photographyPages)===6
+    && !in_array('coulisses', array_column($photographyPages,'slug'), true)
+    && !in_array('stenope', array_column($photographyPages,'slug'), true),
+    'Do not impose behind-the-scenes or pinhole pages');
+assertStarter(!str_contains(json_encode($photographyPages,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR),'sténopé'),
+    'A specialist technique cannot be imposed in a generic photographic starter');
+assertStarter(array_column($photographyPages,'menu_label')===
+    ['Accueil','Galerie','Projets','Actualités','À propos','Contact'],
+    'Photographic site should use generic navigation labels');
+
 $blocksTotal=0;
 $pagesTotal=0;
 foreach($required as $style=>$expected) {
@@ -30,6 +44,21 @@ foreach($required as $style=>$expected) {
  assertStarter(array_column($pages,'slug')===$expected,$style.' page inventory differs');
  $menu=NavigationDefinition::normalizeItems(StarterSiteCatalog::navigation($style));
  assertStarter(count($menu)===count($pages),'Every seeded page has a navigation entry');
+ $allSlugs=array_column($pages,'slug');
+ foreach ($pages as $page) {
+   foreach ($page['blocks'] as $block) {
+     $links=[];
+     if ($block['type']==='cta') $links[]=($block['url']??'');
+     if ($block['type']==='cards') foreach (($block['items']??[]) as $item) $links[]=($item['url']??'');
+     foreach ($links as $url) {
+       if ($url==='' || !str_starts_with((string)$url,'/')) continue;
+       $target=trim((string)parse_url($url,PHP_URL_PATH),'/') ?: 'home';
+       assertStarter(in_array($target,$allSlugs,true),
+         'Starter link in '.$style.'/'.$page['slug'].' points to missing '.$target);
+     }
+   }
+ }
+
  $store=new InMemoryCmsStore();
  $site='starter-'.$style;
  $actor=new ActorContext($site,'owner');
@@ -82,6 +111,6 @@ foreach($required as $style=>$expected) {
  $renderedNav=InstallThemePreview::navigation('empty',$style);
  assertStarter(count($renderedNav)===count($pages),'All starter routes previewable');
 }
-assertStarter($pagesTotal>=40&&$blocksTotal>=100,'Site starters provide substantial editable sections');
+assertStarter($pagesTotal===40&&$blocksTotal===97,'The six starters contain exactly 40 editable pages and 97 sections');
 echo "Starter sites: $pagesTotal CMS pages, $blocksTotal sections, six styles; draft/public states, links and renders OK\n";
 

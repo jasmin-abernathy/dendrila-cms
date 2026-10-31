@@ -53,46 +53,45 @@ final class StarterSiteCatalog
         $text=[self::class,'text'];$cta=[self::class,'cta'];$cards=[self::class,'cards'];
         $steps=[self::class,'steps'];$faq=[self::class,'faq'];$info=[self::class,'info'];
         $gallery=[self::class,'gallery'];$prices=[self::class,'prices'];$page=[self::class,'page'];
-        return match($style) {
-            'simple-illustrated' => [
-                $page('home','Un accompagnement à votre rythme',[
-                    $text('Présentez ici votre activité et votre manière d’accompagner les personnes. Ce texte est entièrement modifiable.'),
-                    $cta('Découvrir les prestations','/prestations'),
-                    $cards('Des solutions adaptées',[
-                        ['Accompagnement','Expliquez les prestations que vous proposez.','/prestations'],
-                        ['Votre approche','Présentez votre méthode et vos engagements.','/approche'],
-                        ['Un rendez-vous','Indiquez comment prendre contact avant une prestation.','/rendez-vous'],
+        return match($style) {            'simple-illustrated' => [
+                $page('home','Un espace pour vos projets',[
+                    $text('Présentez ici votre activité, votre projet ou votre organisation. Ce texte est entièrement modifiable.'),
+                    $cta('Découvrir nos services','/services'),
+                    $cards('Ce que nous proposons',[
+                        ['Services','Présentez vos activités et vos propositions.','/services'],
+                        ['Présentation','Racontez votre démarche et vos engagements.','/a-propos'],
+                        ['Informations','Indiquez les modalités de contact ou de participation.','/informations'],
                     ]),
-                    $info('En bref',[['Accompagnement','Individuel ou collectif selon vos services'],['Accueil','Précisez vos modalités et vos horaires']]),
+                    $info('En bref',[['Activité','Présentez ce que vous proposez'],['Accueil','Précisez vos modalités et vos horaires']]),
                 ],'Accueil'),
-                $page('prestations','Vos prestations',[
-                    $text('Décrivez vos services, leurs objectifs et les personnes auxquelles ils s’adressent.'),
-                    $cards('Prestations',[['Premier échange','Présenter les besoins et envisager une suite.'],['Accompagnement','Expliquer la durée et les modalités.'],['Atelier','Présenter un format collectif, si vous en proposez un.']]),
+                $page('services','Nos services',[
+                    $text('Décrivez les services, activités ou réalisations que vous souhaitez mettre en avant.'),
+                    $cards('À découvrir',[['Proposition 1','Présentez un premier service ou projet.'],['Proposition 2','Précisez ce qui distingue une autre activité.'],['Proposition 3','Ajoutez une autre réalisation ou un service.']]),
                     $cta('Demander des informations','/contact'),
-                ],'Prestations'),
-                $page('approche','Votre approche',[
-                    $text('Présentez votre parcours, vos convictions et le cadre de votre activité.'),
-                    $steps('Comment se déroule un accompagnement ?',[
-                        ['Faire connaissance','Un premier échange pour comprendre les attentes.'],
-                        ['Construire le parcours','Une proposition adaptée aux besoins exprimés.'],
-                        ['Faire le point','Un bilan pour mesurer les progrès et envisager la suite.'],
+                ],'Services'),
+                $page('a-propos','À propos',[
+                    $text('Racontez l’histoire du projet, les personnes impliquées et vos valeurs.'),
+                    $steps('Notre démarche',[
+                        ['Découvrir','Présenter les besoins ou les objectifs.'],
+                        ['Construire','Organiser les étapes du projet.'],
+                        ['Faire le point','Partager les résultats et les prochaines étapes.'],
                     ]),
                     $cta('Nous contacter','/contact'),
-                ],'Approche'),
-                $page('rendez-vous','Préparer un rendez-vous',[
-                    $text('Présentez les conditions d’accueil, les disponibilités et la prise de contact. Le module de réservation reste facultatif et doit être activé séparément.'),
-                    $info('Informations utiles',[['Lieu','À personnaliser'],['Disponibilités','À préciser'],['Réservation','Aucun rendez-vous n’est enregistré par ce contenu d’exemple']]),
+                ],'À propos'),
+                $page('informations','Informations pratiques',[
+                    $text('Précisez les horaires, modalités d’accès ou de participation. Les éventuelles réservations nécessitent un module distinct.'),
+                    $info('Informations utiles',[['Lieu','À personnaliser'],['Horaires','À préciser'],['Participation','À détailler ; aucune réservation n’est créée automatiquement']]),
                     $cta('Écrire un message','/contact'),
-                ],'Rendez-vous'),
-                $page('galerie','Images et réalisations',[
+                ],'Informations'),
+                $page('galerie','Galerie',[
                     $text('Ajoutez vos photos depuis la médiathèque et renseignez leur description alternative.'),
-                    $gallery('Galerie à compléter'),
+                    $gallery('Images à ajouter'),
                 ],'Galerie'),
                 $page('questions','Questions fréquentes',[
-                    $faq('Avant de prendre contact',[
-                        ['À qui s’adresse ce service ?','Précisez les publics et les besoins pris en charge.'],
-                        ['Comment se déroule un premier échange ?','Indiquez votre méthode et les modalités pratiques.'],
-                        ['Comment prendre rendez-vous ?','Renvoyez vers le module de réservation s’il est activé, ou vers le contact.'],
+                    $faq('Questions fréquentes',[
+                        ['Que proposez-vous ?','Présentez les activités, services ou ressources disponibles.'],
+                        ['Comment participer ou vous contacter ?','Précisez les modalités pratiques.'],
+                        ['Où trouver les informations ?','Renvoyez vers les pages pertinentes ou le contact.'],
                     ]),
                     $cta('Poser une autre question','/contact'),
                 ],'FAQ'),
@@ -102,63 +101,59 @@ final class StarterSiteCatalog
                 ],'Contact'),
             ],
             'quiet-elegant' => [
-                $page('home','Un séjour à votre rythme',[
-                    $text('Une maison, un lieu de repos, une atmosphère à raconter. Remplacez ce texte et les photos pour présenter votre établissement.'),
-                    $cta('Découvrir les chambres','/chambres'),
-                    $cards('Votre séjour',[['Les chambres','Les espaces privés et leur caractère.','/chambres'],['Le lieu','La maison, le jardin et les espaces communs.','/maison'],['Aux alentours','Idées de promenade et informations locales.','/decouvrir']]),
+                $page('home','Un lieu à découvrir',[
+                    $text('Présentez ici un lieu, ses espaces, son atmosphère et ce qui le rend unique. Remplacez les textes et images pour construire votre propre présentation.'),
+                    $cta('Découvrir les espaces','/espaces'),
+                    $cards('Explorer le lieu',[['Les espaces','Présentez les pièces, espaces ou équipements disponibles.','/espaces'],['Présentation','Découvrez l’histoire et les caractéristiques du lieu.','/presentation'],['À découvrir','Activités, projets ou informations à découvrir.','/decouvrir']]),
                 ],'Accueil'),
-                $page('maison','La maison',[
-                    $text('Racontez l’histoire du lieu et ce qui le rend particulier.'),
-                    $info('La maison en pratique',[['Capacité','À préciser'],['Accueil','Modalités à préciser'],['Accessibilité','Informations à compléter']]),
-                    $gallery('La maison en images'),
-                ],'La maison'),
-                $page('chambres','Chambres et hébergements',[
-                    $text('Présentez les chambres avec leurs prestations et leurs équipements.'),
-                    $cards('Les espaces',[['Chambre 1','Description et équipements à personnaliser.'],['Chambre 2','Description et équipements à personnaliser.'],['Espaces communs','Ce qui est accessible aux visiteurs.']]),
-                    $gallery('Photos des chambres'),
-                ],'Chambres'),
-                $page('sejour','Préparer votre séjour',[
-                    $steps('Les étapes',[['Découvrir','Choisissez un hébergement adapté.'],['Contacter','Confirmez les conditions et les disponibilités.'],['Arriver','Retrouvez les informations pratiques avant le séjour.']]),
-                    $faq('Questions fréquentes',[['Comment réserver ?','La réservation en ligne nécessite un module distinct.'],['Quelles sont les heures d’arrivée ?','Précisez les horaires propres à votre hébergement.']]),
-                ],'Séjour'),
-                $page('decouvrir','Découvrir les environs',[
-                    $text('Présentez les paysages, les activités et les lieux autour de votre établissement.'),
-                    $cards('À découvrir',[['Balades','Itinéraires et paysages à proximité.'],['Culture','Patrimoine et rencontres locales.'],['Table et terroir','Commerces et producteurs du territoire.']]),
-                    $gallery('À voir autour du lieu'),
+                $page('presentation','Présentation',[
+                    $text('Racontez l’histoire, la démarche ou le cadre de votre projet.'),
+                    $info('En pratique',[['Accueil','Modalités à préciser'],['Services','À détailler'],['Accessibilité','Informations à compléter']]),
+                    $gallery('Présentation en images'),
+                ],'Présentation'),
+                $page('espaces','Nos espaces',[
+                    $text('Présentez les différents espaces, produits ou éléments de votre projet.'),
+                    $cards('Les espaces',[['Espace 1','Description à personnaliser.'],['Espace 2','Autre élément à présenter.'],['Espaces communs','Informations sur les espaces partagés, si nécessaire.']]),
+                    $gallery('Les espaces en images'),
+                ],'Espaces'),
+                $page('informations','Informations pratiques',[
+                    $steps('Les étapes',[['Découvrir','Consultez les informations présentées.'],['Contacter','Vérifiez les possibilités et modalités.'],['Participer','Retrouvez les renseignements utiles.']]),
+                    $faq('Questions fréquentes',[['Comment vous contacter ?','Indiquez les moyens de contact disponibles.'],['Quelles sont les modalités d’accueil ?','Précisez les horaires ou conditions propres à votre activité.']]),
+                ],'Informations'),
+                $page('decouvrir','À découvrir',[
+                    $text('Mettez en avant vos coups de cœur, vos projets, vos ressources ou les activités locales.'),
+                    $cards('À découvrir',[['Découvertes','Sélection de lieux ou de projets.'],['Activités','Suggestions et propositions.'],['Ressources','Informations et liens utiles.']]),
+                    $gallery('Une sélection d’images'),
                 ],'À découvrir'),
-                $page('contact','Contact et accès',[
-                    $info('Informations pratiques',[['Adresse','À personnaliser'],['Accès','Précisez les transports et le stationnement'],['Contact','À renseigner']]),
-                    $text('Ce modèle ne recueille pas de coordonnées ni de réservation sans l’activation d’un module dédié.'),
+                $page('contact','Contact',[
+                    $info('Informations pratiques',[['Adresse','À personnaliser'],['Accès','Précisez les modalités pratiques'],['Contact','À renseigner']]),
+                    $text('Ce modèle n’enregistre pas de demandes sans l’activation d’un module dédié.'),
                 ],'Contact'),
             ],
             'image-forward' => [
-                $page('home','Photographier et regarder autrement',[
-                    $text('Présentez votre univers photographique et vos dernières séries. Remplacez les images d’exemple par les vôtres depuis la médiathèque.'),
-                    $cta('Explorer les galeries','/galeries'),
-                    $cards('À parcourir',[['Les séries','Parcourir les ensembles photographiques.','/series'],['Les ateliers','Découvrir les rencontres et les pratiques.','/ateliers'],['La démarche','Comprendre les techniques et les choix du projet.','/demarche']]),
-                    $gallery('Photographies à la une'),
+                $page('home','L’image au premier plan',[
+                    $text('Présentez vos images, votre travail ou vos réalisations. Remplacez les médias d’exemple par les vôtres.'),
+                    $cta('Découvrir les projets','/projets'),
+                    $cards('À parcourir',[['Projets','Découvrez les réalisations et leurs histoires.','/projets'],['Actualités','Suivez les événements ou nouveautés.','/actualites'],['À propos','Découvrez l’univers et les intentions du projet.','/a-propos']]),
+                    $gallery('Images à la une'),
                 ],'Accueil'),
-                $page('galeries','Galeries photographiques',[
-                    $text('Rassemblez les photographies par album. Ajoutez leurs légendes et leurs descriptions accessibles dans la médiathèque.'),
-                    $gallery('Albums et sélections'),
-                    $cta('Contacter l’auteur','/contact'),
-                ],'Galeries'),
-                $page('series','Séries et projets',[
-                    $cards('Projets photographiques',[['Série 01','Une série et son contexte à documenter.'],['Série 02','Un autre territoire, une autre recherche.'],['Archives','Photographies plus anciennes à valoriser.']]),
-                    $gallery('Photographies des séries'),
-                ],'Séries'),
-                $page('ateliers','Ateliers et rencontres',[
-                    $text('Présentez les ateliers proposés et conservez un historique des rencontres passées.'),
-                    $steps('Participer à un atelier',[['Choisir un atelier','Consulter la présentation et les conditions.'],['Demander sa place','Contacter l’organisation ; aucune réservation n’est automatiquement créée.'],['Participer','Retrouver les informations pratiques et le matériel conseillé.']]),
-                    $cards('Historique des ateliers',[['Atelier passé','Ajoutez ici un atelier et ses photographies.']]),
-                ],'Ateliers'),
-                $page('stenope','Découvrir le sténopé',[
-                    $text('Une photographie sans objectif complexe : présentez ici le dispositif, son principe, les prises de vue et la démarche.'),
-                    $cards('La pratique',[['Le matériel','Expliquer la chambre noire et les supports.'],['La prise de vue','L’exposition, le cadrage et le temps.'],['Le développement','La transformation de l’image.']]),
-                    $gallery('Photographies au sténopé'),
-                ],'Sténopé'),
-                $page('demarche','À propos de la démarche',[
-                    $text('Présentez l’auteur, le territoire, les méthodes et les liens entre les différentes séries.'),
+                $page('galerie','Galerie',[
+                    $text('Présentez vos images et réalisations. Créez des albums, des légendes et des descriptions accessibles.'),
+                    $gallery('Sélection d’images'),
+                    $cta('Prendre contact','/contact'),
+                ],'Galerie'),
+                $page('projets','Projets',[
+                    $cards('Projets à présenter',[['Projet 1','Présentez une réalisation et son contexte.'],['Projet 2','Décrivez un autre projet.'],['Archives','Sélection de travaux passés.']]),
+                    $gallery('Images des projets'),
+                ],'Projets'),
+                $page('actualites','Actualités',[
+                    $text('Présentez vos nouveautés, événements, ateliers ou publications récents.'),
+                    $steps('Suivre les actualités',[['Découvrir','Consultez les nouveautés.'],['S’informer','Retrouvez les détails et les informations pratiques.'],['Participer','Contactez l’organisation si une activité est proposée.']]),
+                    $cards('Archives',[['Actualité passée','Ajoutez une publication ou un événement précédent.']]),
+                ],'Actualités'),
+
+                $page('a-propos','À propos',[
+                    $text('Présentez votre activité, votre parcours, votre démarche et les personnes impliquées.'),
                     $cta('Échanger','/contact'),
                 ],'À propos'),
                 $page('contact','Contact',[
@@ -166,96 +161,96 @@ final class StarterSiteCatalog
                 ],'Contact'),
             ],
             'ultra-minimal' => [
-                $page('home','Une organisation claire, du temps retrouvé',[
-                    $text('Présentez votre activité de services, ses bénéfices concrets et son expérience.'),
-                    $cta('Voir les prestations','/prestations'),
-                    $cards('Vos besoins',[['Remettre en ordre','Documents et méthodes à simplifier.','/prestations'],['Gestion du quotidien','Suivi et échéances.','/prestations'],['Renfort ponctuel','Un appui lors d’une période chargée.','/prestations'],['Préparer un changement','Outils et nouvelles obligations.','/facturation']]),
-                    $steps('Un accompagnement simple',[['Échanger','Identifier vos besoins.'],['Prioriser','Fixer les prochaines étapes.'],['Accompagner','Mettre en place un suivi adapté.']]),
+                $page('home','L’essentiel, simplement',[
+                    $text('Présentez votre activité, vos projets et vos principaux atouts.'),
+                    $cta('Découvrir les services','/services'),
+                    $cards('À découvrir',[['Service 1','Présentez votre offre principale.','/services'],['Service 2','Expliquez une autre proposition.','/services'],['Votre approche','Présentez vos méthodes.','/methode'],['Les offres','Découvrez les formules disponibles.','/offres']]),
+                    $steps('Comment ça fonctionne',[['Découvrir','Présenter le projet ou le besoin.'],['Organiser','Définir les étapes utiles.'],['Réaliser','Mettre en œuvre et faire le point.']]),
                 ],'Accueil'),
-                $page('prestations','Prestations administratives',[
-                    $text('Présentez les missions, leur périmètre et les modalités d’intervention.'),
-                    $cards('Ce que vous pouvez déléguer',[['Documents','Classement, préparation et suivi.'],['Factures et devis','Suivi et relances validées.'],['Dossiers','Vérifications et pièces manquantes.'],['Transition','Préparation de nouveaux outils.']]),
+                $page('services','Services',[
+                    $text('Présentez les services, produits ou compétences de votre activité.'),
+                    $cards('Nos services',[['Service 1','Description du premier service.'],['Service 2','Description d’une autre offre.'],['Projet','Exemple de réalisation.'],['Accompagnement','Précisez vos modalités d’intervention.']]),
                     $cta('Présenter votre besoin','/contact'),
-                ],'Prestations'),
+                ],'Services'),
                 $page('methode','Une méthode adaptée',[
                     $steps('Déroulement',[['Premier échange','Définir les objectifs.'],['Choix de la mission','Convenir du périmètre et du rythme.'],['Travail et suivi','Expliquer les interventions et les livrables.'],['Bilan','Faire le point et ajuster.']]),
                 ],'Méthode'),
-                $page('interlocuteur','Votre interlocuteur',[
-                    $text('Présentez votre parcours, votre expérience, votre secteur et la façon dont les clients peuvent vous joindre.'),
-                    $info('Le profil',[['Expérience','À compléter'],['Secteur','À compléter'],['Modalités','Sur place ou à distance, selon votre activité']]),
-                ],'Votre interlocuteur'),
-                $page('facturation','Préparer la facturation électronique',[
-                    $text('Expliquez l’offre de préparation des données et le périmètre des contrôles. Les prix ci-dessous sont des exemples à adapter avant publication commerciale.'),
-                    $prices('Tarifs à personnaliser',[['Offre découverte','Gratuit','Précisez les limites et les conditions.'],['Prestation complète','Sur devis','Décrivez les livrables, le calendrier et les règles de facturation.']]),
-                    $steps('Le parcours',[['Préparer le fichier','Rassembler les données utiles.'],['Valider le périmètre','Confirmer les conditions de la mission.'],['Transmettre en privé','Le dépôt sécurisé doit être configuré séparément.'],['Vérifier les données','Contrôle des correspondances.'],['Restituer','Remettre les résultats selon les conditions convenues.']]),
+                $page('a-propos','À propos',[
+                    $text('Présentez l’équipe, l’histoire, les valeurs et les informations utiles sur votre activité.'),
+                    $info('En bref',[['Expérience','À compléter'],['Secteur','À compléter'],['Modalités','À préciser']]),
+                ],'À propos'),
+                $page('offres','Offres et tarifs',[
+                    $text('Présentez les différentes formules et leurs modalités. Les prix ci-dessous sont des exemples à adapter avant toute publication commerciale.'),
+                    $prices('Offres à personnaliser',[['Découverte','Gratuit','Indiquez les conditions si vous proposez une offre gratuite.'],['Personnalisé','Sur devis','Présentez le périmètre et les modalités de votre offre.']]),
+                    $steps('Le déroulement',[['Échanger','Décrire les besoins.'],['Définir','Préciser les modalités.'],['Démarrer','Organiser le travail ou la livraison.'],['Suivre','Faire le point sur l’avancement.'],['Conclure','Présenter les résultats.']]),
                     $cta('Demander des informations','/contact'),
-                ],'Facturation'),
-                $page('outils','Outils utiles',[
-                    $text('Décrivez les outils complémentaires et les recherches possibles. Les API, quotas, paiements et espaces clients ne sont pas activés par un simple thème.'),
-                    $cards('Outils à raccorder',[['Recherche d’entreprise','Recherche SIREN et SIRET : module métier requis.'],['Dépôt de documents','Espace privé et droits d’accès requis.'],['Suivi de dossier','Historique des étapes et permissions à configurer.']]),
-                ],'Outils'),
+                ],'Offres'),
+                $page('ressources','Ressources',[
+                    $text('Partagez des ressources, documents, outils ou liens utiles. Les modules interactifs restent à installer séparément.'),
+                    $cards('À consulter',[['Documentation','Présentez des guides ou informations pratiques.'],['Outils','Ajoutez des fonctionnalités dédiées si nécessaire.'],['Liens utiles','Ressources complémentaires à sélectionner.']]),
+                ],'Ressources'),
                 $page('contact','Contact',[
                     $text('Ajoutez une adresse de contact et, si vous le souhaitez, activez un formulaire anti-spam après installation.'),
                     $info('Informations',[['E-mail','À compléter'],['Téléphone','À compléter'],['Localisation','À compléter']]),
                 ],'Contact'),
             ],
             'graphic-rhythm' => [
-                $page('home','Créer et se rencontrer',[
-                    $text('Un événement ouvert, des rendez-vous variés et un programme à composer. Personnalisez les dates et les informations avant publication.'),
-                    $cta('Voir le programme','/programme'),
-                    $cards('Trois temps forts',[['Faire','Des ateliers concrets.','/ateliers'],['Rencontrer','Des échanges et des discussions.','/programme'],['Partager','Des temps collectifs.','/collectif']]),
+                $page('home','Des idées en mouvement',[
+                    $text('Un projet vivant, des activités et des rencontres à présenter. Personnalisez les textes, dates et informations avant publication.'),
+                    $cta('Voir les activités','/activites'),
+                    $cards('À la une',[['Découvrir','Les activités et nouveautés.','/activites'],['Suivre','Les prochaines dates.','/agenda'],['Participer','Les différentes façons de s’impliquer.','/a-propos']]),
                 ],'Accueil'),
-                $page('programme','Programme',[
-                    $steps('Temps forts',[['Ouverture','Présentation de l’événement et de son intention.'],['Ateliers','Activités participatives à détailler.'],['Rencontres','Interventions et discussions.'],['Clôture','Restitution et échanges.']]),
-                    $info('Repères',[['Dates','À renseigner'],['Lieu','À renseigner'],['Accès','À préciser']]),
-                ],'Programme'),
-                $page('ateliers','Ateliers',[
-                    $cards('Participer',[['Atelier créatif','Matériel et objectifs à détailler.'],['Atelier numérique','Compétences et prérequis à présenter.'],['Atelier collectif','Une activité en équipe.']]),
-                    $faq('Questions fréquentes',[['Faut-il s’inscrire ?','Précisez les conditions. Une inscription nécessite un module dédié.']]),
-                ],'Ateliers'),
-                $page('collectif','Le collectif',[
-                    $text('Présentez l’équipe d’organisation, ses objectifs et ses engagements.'),
-                    $cards('Le projet',[['Valeurs','Une démarche ouverte et accessible.'],['Équipe','Les personnes qui portent le projet.'],['Contributions','Les façons de participer.']]),
-                ],'Le collectif'),
+                $page('agenda','Agenda',[
+                    $steps('Dates et temps forts',[['Première date','Présentez l’activité ou le rendez-vous.'],['Deuxième date','Ajoutez une nouvelle étape.'],['Autre rendez-vous','Décrivez un événement ou une actualité.'],['Bilan','Partagez les résultats ou les images.']]),
+                    $info('Repères',[['Dates','À renseigner'],['Lieu','À renseigner'],['Informations','À préciser']]),
+                ],'Agenda'),
+                $page('activites','Activités',[
+                    $cards('À découvrir',[['Activité 1','Description à personnaliser.'],['Activité 2','Compétences et informations à présenter.'],['Activité 3','Un projet ou événement complémentaire.']]),
+                    $faq('Questions fréquentes',[['Comment participer ?','Précisez les modalités ; toute inscription nécessite un module dédié.']]),
+                ],'Activités'),
+                $page('a-propos','À propos',[
+                    $text('Présentez le projet, les personnes qui y participent et les objectifs communs.'),
+                    $cards('Le projet',[['Valeurs','Ce qui anime le projet.'],['Équipe','Les personnes impliquées.'],['Contributions','Les façons de participer.']]),
+                ],'À propos'),
                 $page('partenaires','Partenaires',[
                     $text('Présentez les structures partenaires et le rôle de chacune.'),
                     $cards('Nos soutiens',[['Partenaire 1','Description à personnaliser.'],['Partenaire 2','Description à personnaliser.']]),
                 ],'Partenaires'),
                 $page('infos-pratiques','Informations pratiques',[
-                    $info('Préparer sa venue',[['Adresse','À renseigner'],['Horaires','À renseigner'],['Accessibilité','À renseigner'],['Contact','À renseigner']]),
-                    $faq('Questions fréquentes',[['L’événement est-il accessible ?','Ajoutez les modalités d’accessibilité.'],['Comment participer ?','Expliquez les conditions de participation.']]),
+                    $info('À savoir',[['Adresse','À renseigner'],['Horaires','À renseigner'],['Accessibilité','À renseigner'],['Contact','À renseigner']]),
+                    $faq('Questions fréquentes',[['Le projet est-il accessible ?','Ajoutez les modalités d’accessibilité.'],['Comment prendre part aux activités ?','Expliquez les modalités de participation.']]),
                 ],'Infos pratiques'),
                 $page('contact','Contact',[$text('Indiquez un contact pour les visiteurs et les partenaires.')],'Contact'),
             ],
             'editorial' => [
-                $page('home','À la une : prendre le temps de comprendre',[
-                    $text('Présentez votre ligne éditoriale et les sujets que vous traitez. Cet espace ne publie aucun article automatiquement.'),
-                    $cta('Lire nos analyses','/analyses'),
-                    $cards('À la une',[['Enquête principale','Mettez ici un article majeur.','/analyses'],['Comprendre','Éclairer un sujet de fond.','/dossiers'],['Décrypter','Comparer les discours et les faits.','/rubriques']]),
-                    $info('Nos engagements',[['Sources','Vérifier et attribuer les informations'],['Clarté','Expliquer les méthodes et les limites'],['Indépendance','Préciser le fonctionnement du média']]),
+                $page('home','À la une',[
+                    $text('Présentez vos publications, vos sujets et votre manière de les aborder. Aucun article n’est publié automatiquement.'),
+                    $cta('Lire les publications','/publications'),
+                    $cards('À découvrir',[['Publication à la une','Mettez ici un contenu important.','/publications'],['Dossiers','Approfondissez un sujet.','/dossiers'],['Thèmes','Parcourez les catégories.','/themes']]),
+                    $info('En bref',[['Sujets','Présentez les catégories de publication'],['Méthode','Expliquez votre démarche'],['Contact','Indiquez comment vous joindre']]),
                 ],'Accueil'),
-                $page('analyses','Analyses',[
-                    $text('Organisez vos analyses longues : contexte, faits, arguments, sources et conclusions.'),
-                    $cards('Sujets à développer',[['Analyse 1','Un premier dossier à rédiger.'],['Analyse 2','Une autre perspective à documenter.']]),
-                ],'Analyses'),
-                $page('dossiers','Dossiers et comparatifs',[
-                    $text('Regroupez vos documents, entretiens et comparatifs par thème. Chaque sujet peut disposer de sa propre page.'),
-                    $steps('Notre méthode',[['Identifier le sujet','Définir la question étudiée.'],['Recouper','Examiner plusieurs sources.'],['Comparer','Présenter les éléments de façon transparente.'],['Publier','Préciser les corrections et les limites.']]),
+                $page('publications','Publications',[
+                    $text('Présentez vos articles, actualités, études ou publications.'),
+                    $cards('Publications à venir',[['Publication 1','Un contenu à rédiger.'],['Publication 2','Une autre publication à préparer.']]),
+                ],'Publications'),
+                $page('dossiers','Dossiers',[
+                    $text('Regroupez vos contenus, ressources et documents autour de sujets communs.'),
+                    $steps('Votre méthode',[['Choisir le sujet','Définir le thème.'],['Préparer','Rassembler les éléments utiles.'],['Organiser','Présenter les informations clairement.'],['Publier','Relire et mettre à disposition.']]),
                 ],'Dossiers'),
-                $page('rubriques','Rubriques',[
-                    $cards('Explorer le média',[['Société','Articles et entretiens.'],['Écologie','Informations et analyses.'],['Numérique','Droits et usages.'],['Politique','Discours et décisions publiques.']]),
-                    $cta('Consulter les analyses','/analyses'),
-                ],'Rubriques'),
-                $page('entretiens','Entretiens',[
-                    $text('Présentez des entretiens écrits ou enregistrés et expliquez leur contexte. N’affichez un contenu externe qu’après consentement.'),
-                    $cards('Rencontres',[['Entretien à venir','Ajoutez l’entretien et les intervenants autorisés.']]),
-                ],'Entretiens'),
-                $page('a-propos','À propos et charte éditoriale',[
-                    $text('Présentez les personnes impliquées, les objectifs éditoriaux, le financement, la méthode et les corrections possibles.'),
-                    $faq('Notre fonctionnement',[['Comment sont vérifiées les informations ?','Précisez les vérifications et les sources.'],['Comment demander une correction ?','Indiquez un canal de contact et une méthode de traitement.']]),
+                $page('themes','Thèmes',[
+                    $cards('Explorer les sujets',[['Thème 1','Présentez une première catégorie.'],['Thème 2','Ajoutez un autre sujet.'],['Thème 3','Regroupez vos contenus.'],['Thème 4','Une autre sélection.']]),
+                    $cta('Consulter les publications','/publications'),
+                ],'Thèmes'),
+                $page('rencontres','Rencontres',[
+                    $text('Présentez vos échanges, entretiens, événements ou collaborations, avec leur contexte.'),
+                    $cards('À découvrir',[['Rencontre à venir','Ajoutez une publication ou un événement.']]),
+                ],'Rencontres'),
+                $page('a-propos','À propos',[
+                    $text('Présentez votre organisation, les personnes impliquées et les objectifs du projet.'),
+                    $faq('Questions fréquentes',[['Comment sont préparés les contenus ?','Expliquez votre démarche.'],['Comment vous contacter ?','Indiquez les moyens de contact.']]),
                 ],'À propos'),
-                $page('contact','Contact et contributions',[
-                    $text('Indiquez une adresse pour les lecteurs, les sources, les propositions d’articles et les demandes de rectification.'),
+                $page('contact','Contact',[
+                    $text('Indiquez une adresse pour les questions, les propositions et les demandes de contact.'),
                 ],'Contact'),
             ],
         };

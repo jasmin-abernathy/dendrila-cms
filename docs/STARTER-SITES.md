@@ -12,12 +12,12 @@ Les blocs génériques Étapes et Tarifs sont disponibles dans le back-office et
 
 | Thème | Référence et source | Pages |
 |---|---|---|
-| Simple illustré | Matercéleste, identité neutralisée | Accueil, prestations, approche, rendez-vous, galerie, FAQ, contact |
-| Sobre et élégant | Démonstration de maison d'hôtes (pas de client identifié) | Accueil, maison, chambres, séjour, environs, contact |
-| Centré sur les images | Oscura / Vues Imprenables | Accueil, galeries, séries, ateliers, sténopé, démarche, contact |
-| Très minimal | Prestadmin, structure de site de services | Accueil, prestations, méthode, interlocuteur, facturation, outils, contact |
-| Dynamique et graphique | Démonstration d'événement collectif (pas de client identifié) | Accueil, programme, ateliers, collectif, partenaires, infos pratiques, contact |
-| Éditorial | advarP, structure éditoriale neutralisée | Accueil, analyses, dossiers, rubriques, entretiens, à propos, contact |
+| Simple illustré | Matercéleste, identité neutralisée | Accueil, services, à propos, informations, galerie, FAQ, contact |
+| Sobre et élégant | Démonstration de maison d'hôtes (pas de client identifié) | Accueil, présentation, espaces, informations, à découvrir, contact |
+| Centré sur les images | Oscura / Vues Imprenables | Accueil, galerie, projets, actualités, à propos, contact |
+| Très minimal | Prestadmin, structure de site de services | Accueil, services, méthode, à propos, offres, ressources, contact |
+| Dynamique et graphique | Démonstration d'événement collectif (pas de client identifié) | Accueil, agenda, activités, à propos, partenaires, infos pratiques, contact |
+| Éditorial | advarP, structure éditoriale neutralisée | Accueil, publications, dossiers, thèmes, rencontres, à propos, contact |
 
 Les sections des sites pilotes sont ramenées à des blocs réutilisables sans imposer leurs marques, leurs tarifs, leurs données personnelles ni leurs opinions à une installation publique. Pas de blog automatique sur un thème non éditorial.
 
