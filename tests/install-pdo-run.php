@@ -197,8 +197,8 @@ if(($publish['status']??null)==='applied') {
         'Only an explicit publish action makes the mobile changes public.');
 }
 $mobileSnapshot=$readModel->snapshot($actor);
-verifyInstall(isset($mobileSnapshot['data']['pages']['items'])
-    && is_array($mobileSnapshot['data']['pages']['items']),
+verifyInstall(isset($mobileSnapshot['data']->pages['items'])
+    && is_array($mobileSnapshot['data']->pages['items']),
     'MMW receives a native editable page collection in its snapshot.');
 
 if(getenv('INSTALL_BACKUP_MANIFEST')){
