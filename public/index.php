@@ -12,6 +12,19 @@ use Dendrila\Cms\Http\Response;
 require dirname(__DIR__) . '/bootstrap.php';
 $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
 if (!getenv('DENDRILA_SITE_ID') && $path === '/') { header('Location: /install.php', true, 302); exit; }
+if ($path === '/.well-known/lepotager-site-manager.json') {
+    try {
+        $manifest=\Dendrila\Cms\Api\MmwDiscoveryManifest::fromEnvironment(
+            static fn(string $key):?string => getenv($key)===false?null:getenv($key)
+        );
+        header('Cache-Control: no-store');
+        header('X-Content-Type-Options: nosniff');
+        Response::json($manifest)->emit();
+    } catch (\RuntimeException $e) {
+        Response::json(['error'=>['code'=>'not_found','message'=>'Discovery is unavailable.']],404)->emit();
+    }
+    exit;
+}
 
 try {
     $dsn = getenv('DB_DSN') ?: '';
