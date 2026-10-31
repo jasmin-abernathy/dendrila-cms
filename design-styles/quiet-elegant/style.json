@@ -2,7 +2,7 @@
   "schema_version": 1,
   "id": "quiet-elegant",
   "label": "Sobre et élégant",
-  "description": "Beaucoup d’espace, hiérarchie typographique soignée, détails discrets et très peu d’effets décoratifs.",
+  "description": "Composition chaleureuse et aérée, portrait ou image organique, typographie raffinée et sections douces, dans l’esprit d’un site de bien-être.",
   "keywords": [
     "sobre",
     "élégant",
@@ -13,7 +13,7 @@
     "layout": {
       "content_width": "medium",
       "section_spacing": "airy",
-      "hero": "text_first",
+      "hero": "split",
       "text_column": "narrow",
       "alignment": "left"
     },
@@ -24,13 +24,13 @@
     },
     "media": {
       "prominence": "medium",
-      "crop": "natural",
+      "crop": "mixed",
       "gallery": "editorial",
       "full_bleed": false
     },
     "illustration": {
-      "frequency": "none",
-      "style": "none"
+      "frequency": "occasional",
+      "style": "organic"
     },
     "surfaces": {
       "radius": "none",

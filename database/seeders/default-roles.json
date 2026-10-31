@@ -2,26 +2,132 @@
   {
     "id": "owner",
     "label": "Propriétaire",
-    "permissions": ["content.read","content.read_draft","content.create","content.update","content.delete","content.submit_for_review","content.publish","content.publish_without_review","content.schedule","content.archive","content.unpublish","content.preview","content.restore_revision","content_types.manage","media.read","media.upload","media.update","media.delete","navigation.read","navigation.manage","seo.manage","users.read","users.manage","devices.read","devices.revoke","audit.read","privacy.read","privacy.manage","privacy.scan"]
+    "permissions": [
+      "content.read",
+      "content.read_draft",
+      "content.create",
+      "content.update",
+      "content.delete",
+      "content.submit_for_review",
+      "content.publish",
+      "content.publish_without_review",
+      "content.schedule",
+      "content.archive",
+      "content.unpublish",
+      "content.preview",
+      "content.restore_revision",
+      "content_types.manage",
+      "media.read",
+      "media.upload",
+      "media.update",
+      "media.delete",
+      "navigation.read",
+      "navigation.manage",
+      "seo.manage",
+      "users.read",
+      "users.manage",
+      "devices.read",
+      "devices.revoke",
+      "audit.read",
+      "privacy.read",
+      "privacy.manage",
+      "privacy.scan",
+      "forum.post",
+      "forum.moderate"
+    ]
   },
   {
     "id": "admin",
     "label": "Administrateur",
-    "permissions": ["content.read","content.read_draft","content.create","content.update","content.delete","content.submit_for_review","content.publish","content.publish_without_review","content.schedule","content.archive","content.unpublish","content.preview","content.restore_revision","content_types.manage","media.read","media.upload","media.update","media.delete","navigation.read","navigation.manage","seo.manage","users.read","users.manage","devices.read","devices.revoke","audit.read","privacy.read","privacy.manage","privacy.scan"]
+    "permissions": [
+      "content.read",
+      "content.read_draft",
+      "content.create",
+      "content.update",
+      "content.delete",
+      "content.submit_for_review",
+      "content.publish",
+      "content.publish_without_review",
+      "content.schedule",
+      "content.archive",
+      "content.unpublish",
+      "content.preview",
+      "content.restore_revision",
+      "content_types.manage",
+      "media.read",
+      "media.upload",
+      "media.update",
+      "media.delete",
+      "navigation.read",
+      "navigation.manage",
+      "seo.manage",
+      "users.read",
+      "users.manage",
+      "devices.read",
+      "devices.revoke",
+      "audit.read",
+      "privacy.read",
+      "privacy.manage",
+      "privacy.scan",
+      "forum.post",
+      "forum.moderate"
+    ]
   },
   {
     "id": "editor",
     "label": "Éditeur",
-    "permissions": ["content.read","content.read_draft","content.create","content.update","content.submit_for_review","content.publish","content.schedule","content.archive","content.unpublish","content.preview","content.restore_revision","media.read","media.upload","media.update","navigation.read","navigation.manage","seo.manage","privacy.read","privacy.scan"]
+    "permissions": [
+      "content.read",
+      "content.read_draft",
+      "content.create",
+      "content.update",
+      "content.submit_for_review",
+      "content.publish",
+      "content.schedule",
+      "content.archive",
+      "content.unpublish",
+      "content.preview",
+      "content.restore_revision",
+      "media.read",
+      "media.upload",
+      "media.update",
+      "navigation.read",
+      "navigation.manage",
+      "seo.manage",
+      "privacy.read",
+      "privacy.scan",
+      "forum.post"
+    ]
   },
   {
     "id": "contributor",
     "label": "Contributeur",
-    "permissions": ["content.read","content.read_own_draft","content.create","content.update_own","content.submit_for_review","content.preview","media.read","media.upload"]
+    "permissions": [
+      "content.read",
+      "content.read_own_draft",
+      "content.create",
+      "content.update_own",
+      "content.submit_for_review",
+      "content.preview",
+      "media.read",
+      "media.upload",
+      "forum.post"
+    ]
   },
   {
     "id": "viewer",
     "label": "Lecteur",
-    "permissions": ["content.read","media.read","navigation.read"]
+    "permissions": [
+      "content.read",
+      "media.read",
+      "navigation.read"
+    ]
+  },
+  {
+    "id": "member",
+    "label": "Membre",
+    "permissions": [
+      "forum.post"
+    ]
   }
 ]

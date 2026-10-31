@@ -1,0 +1,70 @@
+name: Bundle CC0 installer preview photographs
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - work/usable-cms-20261030
+    paths:
+      - bin/prepare-install-preview-images.py
+      - .github/workflows/installer-demo-images.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: dendrila-cc0-preview-photos
+  cancel-in-progress: false
+
+jobs:
+  import-image-assets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements-image-preview.txt
+      - name: Install image processing
+        run: python -m pip install -r requirements-image-preview.txt
+      - name: Download and optimize verified CC0 photographs
+        run: python bin/prepare-install-preview-images.py
+      - name: Check all four offline images
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          for name in ("mountains", "forest", "architecture", "flowers"):
+              path = Path("public/assets/install-demo") / f"{name}.webp"
+              assert 1024 < path.stat().st_size < 320000, path
+              with Image.open(path) as image:
+                  assert image.format == "WEBP", path
+                  assert image.width > 400 and image.height > 250, path
+          print("Four locally packaged CC0 preview photos verified")
+          PY
+      - name: Persist local assets to the PR branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -- public/assets/install-demo/*.webp
+          if git diff --cached --quiet; then
+            echo 'Images already in branch.'
+            exit 0
+          fi
+          git config user.name 'Dendrila asset packager'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'assets(installer): package optimized CC0 Commons photos'
+          # An upstream commit to this branch must not be discarded.
+          for attempt in 1 2 3; do
+            git fetch origin "${GITHUB_REF_NAME}"
+            if git rebase "origin/${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}"; then
+              exit 0
+            fi
+            sleep 2
+          done
+          echo '::error::Could not publish image assets safely.'
+          exit 1

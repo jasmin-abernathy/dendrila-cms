@@ -6,6 +6,9 @@ on:
   pull_request:
     paths:
       - 'src/Design/**'
+      - 'src/Runtime/Presentation.php'
+      - 'public/design-kits/**'
+      - 'tests/themes-run.php'
       - 'src/Front/**'
       - 'src/Navigation/**'
       - 'src/Seo/**'
@@ -46,7 +49,7 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.5'
-          extensions: mbstring
+          extensions: mbstring, pdo_mysql, gd, fileinfo
           tools: composer:v2
           coverage: none
           ini-values: error_reporting=E_ALL, display_errors=On
@@ -60,9 +63,11 @@ jobs:
           php tests/navigation-run.php
           php tests/seo-run.php
           php tests/design-run.php
+          php tests/themes-run.php
           php tests/front-run.php
           php tests/reference-site-run.php
       - name: JSON syntax
         run: |
           python3 -m json.tool schemas/site-composition.schema.json >/dev/null
           python3 -m json.tool examples/site-composition.json >/dev/null
+

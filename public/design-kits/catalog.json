@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "themes": [
+    {
+      "id": "simple-illustrated",
+      "design_style_id": "simple-illustrated",
+      "version": "0.4.0",
+      "path": "themes/simple-illustrated",
+      "manifest": "theme.json"
+    },
+    {
+      "id": "image-centered",
+      "design_style_id": "image-forward",
+      "version": "0.3.0",
+      "path": "themes/image-centered",
+      "manifest": "theme.json"
+    },
+    {
+      "id": "very-minimal",
+      "design_style_id": "ultra-minimal",
+      "version": "0.2.0",
+      "path": "themes/very-minimal",
+      "manifest": "theme.json"
+    },
+    {
+      "id": "dynamic-graphic",
+      "design_style_id": "graphic-rhythm",
+      "version": "0.3.0",
+      "path": "themes/dynamic-graphic",
+      "manifest": "theme.json"
+    },
+    {
+      "id": "quiet-elegant",
+      "design_style_id": "quiet-elegant",
+      "version": "0.2.0",
+      "path": "themes/quiet-elegant",
+      "manifest": "theme.json"
+    },
+    {
+      "id": "editorial",
+      "design_style_id": "editorial",
+      "version": "0.2.0",
+      "path": "themes/editorial",
+      "manifest": "theme.json"
+    }
+  ]
+}

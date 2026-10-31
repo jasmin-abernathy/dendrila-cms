@@ -33,6 +33,7 @@ final readonly class PublicPageRenderer
         array $navigation = [],
         string $privacyMarkup = '',
         array $seo = [],
+        array $mediaAlts = [],
     ): string {
         $siteName = self::shortText($site['name'] ?? null, 'site name', 190);
         $language = in_array($site['language'] ?? 'fr', ['fr', 'en'], true) ? (string) ($site['language'] ?? 'fr') : 'fr';
@@ -85,6 +86,7 @@ final readonly class PublicPageRenderer
             if (!is_array($block)) {
                 throw new InvalidArgumentException('Every page block must be an object.');
             }
+            if (($block['type'] ?? null) === 'gallery') $block['media_alts'] = $mediaAlts;
             $bodyMarkup .= $this->renderBlock(
                 $block,
                 (int) $index,
@@ -121,7 +123,9 @@ final readonly class PublicPageRenderer
             . '<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
             . $this->seoHead->render($site, $page, $seo)
             . '<link rel="stylesheet" href="' . self::escape($themeCssUrl) . '">'
+            . (isset($presentation['support_css_url']) ? '<link rel="stylesheet" href="'.self::escape(self::safeAssetUrl($presentation['support_css_url'])).'">' : '')
             . '<style data-dendrila-presentation>' . $compiledCss . '</style>'
+            . '<link rel="stylesheet" href="/assets/accessibility.css?v=1"><script src="/assets/accessibility.js?v=1" defer></script>'
             . '</head><body ' . $attributes . '>'
             . '<a class="d-skip-link" href="#contenu">' . ($language === 'en' ? 'Skip to content' : 'Aller au contenu') . '</a>'
             . '<header class="d-header"><div class="d-shell d-header__inner">'
@@ -129,7 +133,11 @@ final readonly class PublicPageRenderer
             . $this->renderNavigation($navigation, $language)
             . '</div></header><main id="contenu">'
             . $this->renderHero($title, $tagline, $hero, $mediaUrls, $supportedShapes, $structure)
+            // Minimal kit has a real two-column index, not a faux grid spread over
+            // many implicit rows. Other themes keep their existing DOM structure.
+            . ($theme['id'] === 'very-minimal' ? '<div class="d-main-content">' : '')
             . $bodyMarkup
+            . ($theme['id'] === 'very-minimal' ? '</div>' : '')
             . '</main>'
             . $this->renderFooter($siteName, $navigation, $language)
             . $privacyMarkup
@@ -266,7 +274,7 @@ final readonly class PublicPageRenderer
         $items = [];
         foreach ($ids as $index => $mediaId) {
             $items[] = '<figure class="d-gallery__item">' . $this->renderMediaFrame([
-                'media_id' => $mediaId, 'alt' => $index === 0 ? $groupAlt : '', 'shape' => 'rounded', 'focal_x' => 50, 'focal_y' => 50,
+                'media_id' => $mediaId, 'alt' => $block['media_alts'][$mediaId] ?? ($index === 0 ? $groupAlt : ''), 'shape' => 'rounded', 'focal_x' => 50, 'focal_y' => 50,
             ], $mediaUrls, $supportedShapes) . '</figure>';
         }
         return '<div class="d-gallery">' . implode('', $items) . '</div>';
@@ -429,3 +437,4 @@ final readonly class PublicPageRenderer
         return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
     }
 }
+

@@ -2,7 +2,7 @@
   "schema_version": 1,
   "id": "editorial",
   "label": "Éditorial",
-  "description": "Titres affirmés, colonne de lecture maîtrisée, images intercalées et rythme proche d’un magazine ou d’un essai.",
+  "description": "Présentation institutionnelle : couverture asymétrique, image verticale, expertises et repères. Aucun flux d’articles imposé.",
   "keywords": [
     "éditorial",
     "lecture",
@@ -13,7 +13,7 @@
     "layout": {
       "content_width": "medium",
       "section_spacing": "balanced",
-      "hero": "text_first",
+      "hero": "split",
       "text_column": "narrow",
       "alignment": "left"
     },

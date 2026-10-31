@@ -168,7 +168,7 @@ final readonly class PdoCmsStore implements CmsStore
                        published_slug, published_version, published_revision_id,
                        version, current_revision_id, publish_at, review_approved_at, published_at, created_at, updated_at
                 FROM contents WHERE ' . implode(' AND ', $where)
-            . ' ORDER BY updated_at DESC LIMIT ' . $limit . ' OFFSET ' . $offset;
+            . ' ORDER BY updated_at DESC, content_id DESC LIMIT ' . $limit . ' OFFSET ' . $offset;
         $statement = $this->pdo->prepare($sql);
         $statement->execute($parameters);
         return array_map(fn (array $row): array => $this->decodeContent($row), $statement->fetchAll());
@@ -176,6 +176,8 @@ final readonly class PdoCmsStore implements CmsStore
 
     public function insertContent(array $content): void
     {
+        \Dendrila\Cms\Media\MediaReferences::guardContent($this->pdo, $content,
+            $this->findContentType($content['site_id'], $content['type_id']) ?? []);
         $statement = $this->pdo->prepare(
             'INSERT INTO contents
               (site_id, content_id, created_by_id, type_id, slug, status, values_json, published_values_json,
@@ -191,6 +193,8 @@ final readonly class PdoCmsStore implements CmsStore
 
     public function saveContent(array $content, int $expectedVersion): void
     {
+        \Dendrila\Cms\Media\MediaReferences::guardContent($this->pdo, $content,
+            $this->findContentType($content['site_id'], $content['type_id']) ?? []);
         $parameters = $this->contentParameters($content);
         unset($parameters['created_at']);
         unset($parameters['created_by_id']);
@@ -378,3 +382,4 @@ final readonly class PdoCmsStore implements CmsStore
         return json_encode($value, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 }
+

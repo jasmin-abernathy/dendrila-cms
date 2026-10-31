@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' https: blob:; style-src 'self'; script-src 'self'; connect-src 'self'; form-action 'self'; base-uri 'none'">
+  <meta name="dendrila-api-base" content="../../">
+  <title>Médiathèque — Dendrila CMS</title>
+  <link rel="stylesheet" href="media-library.css">
+<link rel="stylesheet" href="/assets/accessibility.css?v=1"><script src="/assets/accessibility.js?v=1" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Aller au contenu</a>
+  <main id="main" class="shell">
+    <header class="page-header">
+      <div>
+        <p class="eyebrow">Dendrila CMS</p>
+        <h1>Médiathèque</h1>
+        <p class="lede">Gérez les images du site sans modifier les originaux.</p>
+      </div>
+      <div id="session-actions" class="session-actions" hidden>
+        <span id="site-name" class="site-name"></span>
+        <button id="logout-button" class="button button-secondary" type="button">Se déconnecter</button>
+      </div>
+    </header>
+
+    <div id="global-message" class="message" role="status" aria-live="polite" hidden></div>
+
+    <section id="auth-panel" class="auth-panel" aria-label="Connexion au site">
+      <div id="password-panel" class="panel">
+        <h2 id="auth-title">Connexion</h2>
+        <p>Utilisez la connexion du site. Aucun mot de passe n’est conservé dans le navigateur.</p>
+        <form id="password-form" class="stack">
+          <label>Identifiant
+            <input id="username" name="username" autocomplete="username" required maxlength="254">
+          </label>
+          <label>Mot de passe
+            <input id="password" name="password" type="password" autocomplete="current-password" required maxlength="1024">
+          </label>
+          <label>Nom de cet appareil
+            <input id="device-name" name="device_name" autocomplete="off" required maxlength="120">
+          </label>
+          <button class="button" type="submit">Continuer</button>
+        </form>
+
+        <form id="totp-form" class="stack" hidden>
+          <label>Code à 6 chiffres
+            <input id="totp-code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required>
+          </label>
+          <div class="actions">
+            <button class="button" type="submit">Valider</button>
+            <button id="cancel-totp" class="button button-secondary" type="button">Revenir</button>
+          </div>
+        </form>
+      </div>
+
+      <div id="pair-panel" class="panel">
+        <h2>Code d’association</h2>
+        <p>Vous pouvez aussi utiliser un code généré depuis un back-office déjà authentifié.</p>
+        <form id="pair-form" class="stack">
+          <label>Code
+            <input id="pair-code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6,12}" maxlength="12" required>
+          </label>
+          <label>Nom de cet appareil
+            <input id="pair-device-name" autocomplete="off" required maxlength="120">
+          </label>
+          <button class="button" type="submit">Associer cet appareil</button>
+        </form>
+      </div>
+    </section>
+
+    <section id="library-panel" hidden aria-labelledby="library-title">
+      <div class="library-heading">
+        <div>
+          <h2 id="library-title">Images</h2>
+          <p id="library-summary" class="muted"></p>
+        </div>
+        <button id="upload-open" class="button" type="button">Ajouter une image</button>
+      </div>
+
+      <form id="filters" class="filters" aria-label="Filtrer la médiathèque">
+        <label class="wide">Recherche
+          <input name="query" type="search" placeholder="Titre, fichier, description ou crédit" maxlength="200">
+        </label>
+        <label>Format
+          <select name="mime">
+            <option value="">Tous</option>
+            <option value="image/jpeg">JPEG</option>
+            <option value="image/png">PNG</option>
+            <option value="image/webp">WebP</option>
+          </select>
+        </label>
+        <label>Utilisation
+          <select name="usage">
+            <option value="all">Tous</option>
+            <option value="used">Utilisés</option>
+            <option value="unused">Non utilisés</option>
+          </select>
+        </label>
+        <label>Description alternative
+          <select name="alt">
+            <option value="all">Toutes</option>
+            <option value="missing">Manquante</option>
+            <option value="present">Renseignée</option>
+          </select>
+        </label>
+        <label>Depuis le
+          <input name="created_from" type="date">
+        </label>
+        <label>Jusqu’au
+          <input name="created_to" type="date">
+        </label>
+        <label>Taille min. (Mo)
+          <input name="min_mb" type="number" min="0" step="0.1" inputmode="decimal">
+        </label>
+        <label>Taille max. (Mo)
+          <input name="max_mb" type="number" min="0" step="0.1" inputmode="decimal">
+        </label>
+        <label>Trier par
+          <select name="sort">
+            <option value="date">Date</option>
+            <option value="title">Titre</option>
+            <option value="size">Taille</option>
+          </select>
+        </label>
+        <label>Ordre
+          <select name="direction">
+            <option value="desc">Décroissant</option>
+            <option value="asc">Croissant</option>
+          </select>
+        </label>
+        <div class="filter-actions">
+          <button class="button" type="submit">Appliquer</button>
+          <button id="reset-filters" class="button button-secondary" type="button">Réinitialiser</button>
+        </div>
+      </form>
+
+      <div class="results-bar">
+        <div class="view-switch" role="group" aria-label="Mode d’affichage">
+          <button id="grid-view" class="button button-secondary is-active" type="button" aria-pressed="true">Grille</button>
+          <button id="list-view" class="button button-secondary" type="button" aria-pressed="false">Liste</button>
+        </div>
+        <p id="results-status" class="muted" role="status" aria-live="polite"></p>
+      </div>
+
+      <div id="media-results" class="media-grid" aria-busy="false"></div>
+
+      <nav class="pagination" aria-label="Pagination">
+        <button id="previous-page" class="button button-secondary" type="button">Précédent</button>
+        <span id="page-label" class="muted"></span>
+        <button id="next-page" class="button button-secondary" type="button">Suivant</button>
+      </nav>
+    </section>
+  </main>
+
+  <dialog id="edit-dialog" class="media-dialog" aria-labelledby="edit-title">
+    <form id="edit-form" method="dialog" class="dialog-layout">
+      <header class="dialog-header">
+        <div>
+          <p class="eyebrow">Image</p>
+          <h2 id="edit-title">Modifier</h2>
+        </div>
+        <button id="edit-close" class="icon-button" type="button" aria-label="Fermer">×</button>
+      </header>
+      <div id="edit-conflict" class="conflict" role="alert" hidden>
+        <strong>Cette image a changé depuis son ouverture.</strong>
+        <p>Vos saisies sont conservées. Relisez la version actuelle avant de décider.</p>
+        <div class="actions">
+          <button id="conflict-adopt" class="button button-secondary" type="button">Recharger les valeurs du serveur</button>
+          <button id="conflict-keep" class="button" type="button">Garder mes saisies sur la version actuelle</button>
+        </div>
+      </div>
+      <div id="edit-message" class="message" role="status" aria-live="polite" hidden></div>
+      <div class="dialog-body">
+        <figure class="preview-frame">
+          <img id="edit-image" alt="">
+        </figure>
+        <div>
+          <dl id="edit-details" class="details"></dl>
+          <div id="edit-fields" class="stack"></div>
+        </div>
+      </div>
+      <footer class="dialog-footer">
+        <div class="actions">
+          <button id="rotate-left" class="button button-secondary" type="button">Pivoter à gauche</button>
+          <button id="rotate-right" class="button button-secondary" type="button">Pivoter à droite</button>
+        </div>
+        <div class="actions">
+          <button id="delete-media" class="button button-danger" type="button">Supprimer</button>
+          <button id="save-media" class="button" type="submit">Enregistrer</button>
+        </div>
+      </footer>
+    </form>
+  </dialog>
+
+  <dialog id="upload-dialog" class="media-dialog" aria-labelledby="upload-title">
+    <form id="upload-form" method="dialog" class="dialog-layout">
+      <header class="dialog-header">
+        <div>
+          <p class="eyebrow">Nouvelle image</p>
+          <h2 id="upload-title">Ajouter une image</h2>
+        </div>
+        <button id="upload-close" class="icon-button" type="button" aria-label="Fermer">×</button>
+      </header>
+      <div id="upload-message" class="message" role="status" aria-live="polite" hidden></div>
+      <label class="file-picker">Choisir d’abord un fichier
+        <input id="upload-file" type="file" accept="image/jpeg,image/png,image/webp" required>
+      </label>
+      <div id="upload-after-file" hidden>
+        <div class="dialog-body">
+          <figure class="preview-frame">
+            <img id="upload-preview" alt="">
+          </figure>
+          <div id="upload-fields" class="stack"></div>
+        </div>
+        <div id="upload-progress-wrap" class="progress-wrap" hidden>
+          <label for="upload-progress">Envoi en cours</label>
+          <progress id="upload-progress" max="100" value="0"></progress>
+          <span id="upload-progress-text">0 %</span>
+        </div>
+      </div>
+      <footer class="dialog-footer">
+        <span class="muted">JPEG, PNG ou WebP selon les limites annoncées par le site.</span>
+        <button id="upload-submit" class="button" type="submit" disabled>Envoyer l’image</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <script src="media-library-core.js"></script>
+  <script src="media-library.js"></script>
+</body>
+</html>
+

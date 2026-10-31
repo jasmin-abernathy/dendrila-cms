@@ -6,6 +6,33 @@ on:
   workflow_dispatch:
   pull_request:
     paths:
+      - 'src/Auth/**'
+      - 'src/Installation/**'
+      - 'src/Runtime/**'
+      - 'src/BackOffice/**'
+      - 'public/**'
+      - 'bootstrap.php'
+      - 'bin/prepare-install.php'
+      - 'database/migrations/**'
+      - 'tests/install*'
+      - 'tests/restore*'
+      - 'tests/themes*'
+      - 'bin/sync-design-kits.py'
+      - 'src/Media/**'
+      - 'src/Http/**'
+      - 'src/Api/**'
+      - 'src/Storage/PdoCmsStore.php'
+      - 'public/media.php'
+      - 'public/index.php'
+      - 'public/admin/media-library/**'
+      - 'database/migrations/007_media.sql'
+      - 'database/migrations/008_media_revision.sql'
+      - 'database/migrations/009_auth_rate_limits.sql'
+      - 'tests/media*'
+      - 'tests/media-web-ui.js'
+      - 'tests/identity-pdo-run.php'
+      - 'bin/identity-preflight.php'
+      - 'bin/*media*.php'
       - 'src/Navigation/**'
       - 'src/Front/PdoPublicNavigationSource.php'
       - 'src/Front/PublicNavigationSource.php'
@@ -58,7 +85,7 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.5'
-          extensions: mbstring, pdo_mysql
+          extensions: mbstring, pdo_mysql, gd, fileinfo, sodium, ctype
           tools: composer:v2
           coverage: none
           ini-values: error_reporting=E_ALL, display_errors=On
@@ -84,6 +111,8 @@ jobs:
         run: php tests/navigation-pdo-run.php
       - name: SEO PDO contract
         run: php tests/seo-pdo-run.php
+      - name: Forum PDO and photo checks
+        run: php tests/forum-pdo-run.php
       - name: Bootstrap WordPress import test site
         run: php bin/bootstrap-site.php site-import "Imported Privacy" owner-import false
       - name: Import WordPress Dendrila Privacy twice
@@ -92,5 +121,65 @@ jobs:
           php bin/import-wordpress-privacy.php site-import owner-import tests/fixtures/wordpress-privacy-export.json
       - name: WordPress privacy import persistence tests
         run: php tests/privacy-wordpress-import-pdo-run.php
+      - name: Media PDO and multipart contracts
+        run: php tests/media-pdo-run.php
+      - name: Media web interface contracts
+        run: |
+          node --check public/admin/media-library/media-library-core.js
+          node --check public/admin/media-library/media-library.js
+          node tests/media-web-ui.js
+      - name: Pilot identity bridge contracts
+        run: php tests/identity-pdo-run.php
       - name: Verify migrations are idempotent
         run: php bin/migrate.php
+
+      - name: Prepare isolated installation databases
+        env:
+          DB_USERNAME: root
+        run: |
+          php -r '$p=new PDO("mysql:host=127.0.0.1;port=3306", "root", getenv("DB_PASSWORD")); $p->exec("CREATE DATABASE cms_install_test CHARACTER SET utf8mb4; CREATE DATABASE cms_browser_test CHARACTER SET utf8mb4");'
+      - name: Native installation, accounts and publication PDO tests
+        env:
+          DB_USERNAME: root
+          INSTALL_BACKUP_MANIFEST: build/test-private/backup.json
+          INSTALL_DB_NAME: cms_install_test
+          INSTALL_DB_PORT: '3306'
+        run: php tests/install-pdo-run.php
+      - name: Restore database and private files into an isolated copy
+        env:
+          INSTALL_BACKUP_MANIFEST: build/test-private/backup.json
+          RESTORE_PRIVATE_ROOT: /tmp/dendrila-restored
+          RESTORE_DB_DSN: mysql:host=127.0.0.1;port=3306;dbname=cms_restore_test;charset=utf8mb4
+        run: |
+          set -euo pipefail
+          umask 077
+          private_root=$(php -r 'echo json_decode(file_get_contents(getenv("INSTALL_BACKUP_MANIFEST")),true)["root"];')
+          tar -czf /tmp/dendrila-private-test.tar.gz -C "$private_root" config storage
+          docker exec -e MYSQL_PWD="$DB_PASSWORD" ${{ job.services.mariadb.id }} mariadb-dump -uroot --single-transaction cms_install_test > /tmp/dendrila-db-test.sql
+          docker exec -e MYSQL_PWD="$DB_PASSWORD" ${{ job.services.mariadb.id }} mariadb -uroot -e 'CREATE DATABASE cms_restore_test CHARACTER SET utf8mb4'
+          docker exec -i -e MYSQL_PWD="$DB_PASSWORD" ${{ job.services.mariadb.id }} mariadb -uroot cms_restore_test < /tmp/dendrila-db-test.sql
+          mkdir -p "$RESTORE_PRIVATE_ROOT"
+          tar -xzf /tmp/dendrila-private-test.tar.gz -C "$RESTORE_PRIVATE_ROOT"
+          php tests/restore-pdo-run.php
+          rm -f /tmp/dendrila-private-test.tar.gz /tmp/dendrila-db-test.sql
+      - name: Install browser for end-to-end checks
+        run: |
+          npm install --no-save --package-lock=false playwright@1.51.1
+          npx playwright install --with-deps chromium
+      - name: Installation and editing in a real browser
+        env:
+          APP_ENV: local
+          DB_USERNAME: root
+          INSTALL_DB_PORT: '3306'
+        run: |
+          env -u DB_DSN -u DB_USERNAME -u DB_PASSWORD php -S 127.0.0.1:8080 -t public public/router.php > /tmp/dendrila-http.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid"; cat /tmp/dendrila-http.log' EXIT
+          node tests/install-browser.cjs
+      - name: Upload browser screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: installation-browser
+          path: build/test-artifacts/*.png
+          if-no-files-found: ignore

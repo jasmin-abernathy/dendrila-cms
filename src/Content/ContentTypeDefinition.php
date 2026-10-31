@@ -168,7 +168,7 @@ final readonly class ContentTypeDefinition
                 && !$this->optionalText($block, 'heading')) {
                 return false;
             }
-            if ($type === 'cta' && (!is_string($block['label'] ?? null) || !$this->safeUrl($block['url'] ?? null))) {
+            if ($type === 'cta' && (!is_string($block['label'] ?? null) || !$this->safeBlockLink($block['url'] ?? null))) {
                 return false;
             }
             if ($type === 'cta' && strlen($block['label']) > 300) {
@@ -206,7 +206,7 @@ final readonly class ContentTypeDefinition
                 if (!is_string($value) || strlen($value) > 100000) {
                     return false;
                 }
-                if ($key === 'url' && !$this->safeUrl($value)) {
+                if ($key === 'url' && !$this->safeBlockLink($value)) {
                     return false;
                 }
                 if ($key === 'media_id' && !$this->validReference(['multiple' => false], $value)) {
@@ -248,6 +248,15 @@ final readonly class ContentTypeDefinition
     {
         return !array_key_exists($key, $value)
             || (is_string($value[$key]) && strlen($value[$key]) <= 2000);
+    }
+
+    private function safeBlockLink(mixed $url): bool
+    {
+        if(!is_string($url)||$url===''||preg_match('/[\\\\\x00-\x20]/',$url)||str_starts_with($url,'//'))return false;
+        if(str_starts_with($url,'/')||str_starts_with($url,'#'))return true;
+        if(str_starts_with($url,'mailto:'))return filter_var(substr($url,7),FILTER_VALIDATE_EMAIL)!==false;
+        // Existing HTTP content remains readable; native forms require HTTPS for new links.
+        return $this->safeUrl($url);
     }
 
     private function safeUrl(mixed $value): bool

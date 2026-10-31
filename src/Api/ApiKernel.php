@@ -23,8 +23,33 @@ final class ApiKernel
         private readonly SiteReadModel $readModel,
         private readonly ?AuthenticationService $authentication = null,
         private readonly ?SiteChangeHandler $changes = null,
+        private readonly ?\Dendrila\Cms\Media\MediaService $media = null,
     ) {
         $this->router = new Router();
+        $this->router->add('POST', '/v1/media', function (Request $request): Response {
+            $actor = $this->authenticator->authenticate($request);
+            if ($this->media === null) throw new HttpException(503, 'media_unavailable', 'Media storage is not configured.');
+            $file = $request->uploadedMedia();
+            return Response::json($this->media->upload($actor, $request->form, $file));
+        });
+        $this->router->add('GET', '/v1/media', function (Request $request): Response {
+            $actor = $this->authenticator->authenticate($request);
+            if ($this->media === null) throw new HttpException(503, 'media_unavailable', 'Media storage is not configured.');
+            $filters = $request->query;
+            $id = $filters['module_id'] ?? '';
+            if (!is_string($id)) throw new \InvalidArgumentException('Invalid module_id.');
+            unset($filters['module_id']);
+            $allowed = ['id', 'query', 'mime', 'usage', 'limit', 'offset', 'created_from', 'created_to',
+                'min_bytes', 'max_bytes', 'alt', 'sort', 'direction'];
+            if (array_diff(array_keys($filters), $allowed) !== []) throw new \InvalidArgumentException('Invalid filters.');
+            foreach (['limit', 'offset', 'min_bytes', 'max_bytes'] as $key) {
+                if (isset($filters[$key])) {
+                    if (!is_string($filters[$key]) || !ctype_digit($filters[$key])) throw new \InvalidArgumentException('Invalid numeric filter.');
+                    $filters[$key] = (int) $filters[$key];
+                }
+            }
+            return Response::json($this->media->search($actor, $this->media->module($actor, $id), $filters));
+        });
         $this->router->add('GET', '/v1/config', fn (Request $request): Response =>
             Response::json($this->readModel->configuration($this->authenticator->authenticate($request))));
         $this->router->add('GET', '/v1/snapshot', fn (Request $request): Response =>
@@ -66,7 +91,7 @@ final class ApiKernel
             return self::error(409, 'conflict', $error->getMessage());
         } catch (InvalidTransition $error) {
             return self::error(409, 'invalid_transition', $error->getMessage());
-        } catch (\InvalidArgumentException $error) {
+        } catch (\JsonException|\InvalidArgumentException $error) {
             return self::error(422, 'validation_failed', $error->getMessage());
         } catch (Throwable $error) {
             error_log('MMW API error: ' . $error::class . ': ' . $error->getMessage());
@@ -96,3 +121,4 @@ final class ApiKernel
         return Response::json(['error' => ['code' => $code, 'message' => $message]], $status, $headers);
     }
 }
+

@@ -1,0 +1,31 @@
+/* Shared by the public site, installer and administration. */
+#d-reading-tools{padding:1rem;clear:both;font:1rem/1.5 system-ui,sans-serif;color:#111;background:#fff;text-align:center}
+#d-reading-tools *,#d-reading-tools *::before,#d-reading-tools *::after{box-sizing:border-box}
+#d-reading-tools button,#d-reading-tools select{font:inherit;color:#111;background:#fff;border:2px solid #111;border-radius:.3rem;min-height:44px;padding:.5rem .8rem;white-space:normal;cursor:pointer;max-width:100%}
+#d-reading-open{display:inline-flex;gap:.5rem;align-items:center}
+#d-reading-open svg{flex-shrink:0}
+#d-reading-dialog{color:#111;background:#fff;border:2px solid #111;border-radius:.5rem;padding:1.25rem;width: min(32rem,calc(100% - 2rem));max-height:calc(100dvh - 2rem);overflow:auto;text-align:left;font:1rem/1.5 system-ui,sans-serif}
+#d-reading-dialog::backdrop{background:rgb(0 0 0 / .6)}
+#d-reading-dialog h2{font:700 1.5rem/1.3 system-ui,sans-serif;margin:0 0 1rem;letter-spacing:normal}
+#d-reading-dialog p{margin:1rem 0}
+#d-reading-dialog label{display:block;margin-block:1rem .5rem}
+#d-reading-dialog .d-reading-option{display:flex;align-items:flex-start;gap:.75rem;min-height:44px}
+#d-reading-dialog input{appearance:auto;width:1.25rem;height:1.25rem;flex-shrink:0;margin:.15rem 0 0;accent-color:#111}
+#d-reading-tools :focus-visible{outline:3px solid #005fcc;outline-offset:3px}
+html[data-reading-size="125"]{font-size:125%}
+html[data-reading-size="150"]{font-size:150%}
+html[data-reading-size="200"]{font-size:200%}
+html[class*="d-reading-"] :is(h1,h2,h3,p,a,label,button){overflow-wrap:anywhere}
+html.d-reading-spacing :is(p,li,dt,dd,label,input,textarea,button,a,h1,h2,h3){line-height:1.5!important;letter-spacing:.12em!important;word-spacing:.16em!important}
+html.d-reading-spacing p{margin-block-end:2em!important}
+html.d-reading-links a{text-decoration:underline!important;text-underline-offset:.2em!important}
+/* Simplified mode deliberately removes theme decoration, without hiding content/media. */
+html.d-reading-readable body,html.d-reading-readable body :not(svg):not(svg *){background-color:#fff!important;background-image:none!important;color:#111!important;border-color:#111!important;box-shadow:none!important;text-shadow:none!important;filter:none!important;backdrop-filter:none!important;mix-blend-mode:normal!important;font-family:Arial,Helvetica,sans-serif!important}
+html.d-reading-readable :is(.d-hero,.d-hero__grid,.d-hero__copy,.d-hero__media,.d-section,.d-section__heading,.d-media,.d-card,.d-header,.d-footer,.d-brand__mark,.d-eyebrow,.d-cta-band,.d-nav a)::before,html.d-reading-readable :is(.d-hero,.d-hero__grid,.d-hero__copy,.d-hero__media,.d-section,.d-section__heading,.d-media,.d-card,.d-header,.d-footer,.d-brand__mark,.d-eyebrow,.d-cta-band,.d-nav a)::after{display:none!important}
+html.d-reading-readable :is(p,li,dt,dd){line-height:1.6!important}
+html.d-reading-readable :is(button,.button,.d-button,input[type=submit]){background:#111!important;color:#fff!important;border:2px solid #111!important}
+html.d-reading-readable a{text-decoration:underline!important}
+html.d-reading-readable :focus-visible{outline:3px solid #005fcc!important;outline-offset:3px!important}
+html.d-reading-motion *,html.d-reading-motion *::before,html.d-reading-motion *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+@media print{#d-reading-tools{display:none!important}}

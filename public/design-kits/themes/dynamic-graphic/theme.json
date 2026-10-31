@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "id": "dynamic-graphic",
+  "design_style_id": "graphic-rhythm",
+  "label": "Dynamique et graphique",
+  "version": "0.3.0",
+  "description": "Thème expressif fondé sur de grandes compositions, des aplats contrastés, des découpes géométriques et une forte hiérarchie éditoriale.",
+  "entrypoint": "theme.css",
+  "preview": "preview/index.html",
+  "components": [
+    "header",
+    "hero",
+    "section",
+    "card-grid",
+    "media",
+    "gallery",
+    "statistics",
+    "key-values",
+    "faq",
+    "embed",
+    "cta-band",
+    "footer"
+  ],
+  "media_shapes": [
+    "auto",
+    "rounded",
+    "arch",
+    "circle",
+    "none"
+  ],
+  "brand_tokens": [
+    "--dendrila-color-bg",
+    "--dendrila-color-surface",
+    "--dendrila-color-text",
+    "--dendrila-color-muted",
+    "--dendrila-color-primary",
+    "--dendrila-color-primary-strong",
+    "--dendrila-color-secondary",
+    "--dendrila-color-accent-soft",
+    "--dendrila-color-border",
+    "--dendrila-font-heading",
+    "--dendrila-font-body"
+  ],
+  "accessibility": {
+    "focus_visible": true,
+    "reduced_motion": true,
+    "no_autoplay_media": true
+  },
+  "required_style_tokens": [
+    "--dendrila-content-max",
+    "--dendrila-section-gap",
+    "--dendrila-text-max",
+    "--dendrila-radius",
+    "--dendrila-border-width",
+    "--dendrila-shadow",
+    "--dendrila-heading-scale",
+    "--dendrila-media-emphasis",
+    "--dendrila-accent-strength",
+    "--dendrila-motion-duration"
+  ],
+  "decorative_system": {
+    "no_upload_required": true,
+    "motifs": [
+      "none",
+      "geometric",
+      "diagonal"
+    ],
+    "default_motif": "geometric",
+    "image_shapes": [
+      "auto",
+      "rounded",
+      "arch",
+      "circle",
+      "none"
+    ],
+    "implementation": "theme-owned-css-svg"
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "id": "editorial",
+  "design_style_id": "editorial",
+  "label": "Éditorial",
+  "version": "0.2.0",
+  "description": "Une grammaire de presse inspirée de la composition de l’advarP : hiérarchie typographique, filets de séparation, une principale, lecture longue et colonnes secondaires. Aucune identité du média n'est incluse.",
+  "entrypoint": "theme.css",
+  "preview": "preview/index.html",
+  "components": [
+    "header",
+    "hero",
+    "section",
+    "card-grid",
+    "media",
+    "gallery",
+    "statistics",
+    "key-values",
+    "faq",
+    "embed",
+    "cta-band",
+    "footer"
+  ],
+  "media_shapes": [
+    "auto",
+    "rounded",
+    "arch",
+    "organic-soft",
+    "circle",
+    "none"
+  ],
+  "brand_tokens": [
+    "--dendrila-color-bg",
+    "--dendrila-color-surface",
+    "--dendrila-color-text",
+    "--dendrila-color-muted",
+    "--dendrila-color-primary",
+    "--dendrila-color-primary-strong",
+    "--dendrila-color-secondary",
+    "--dendrila-color-accent-soft",
+    "--dendrila-color-border",
+    "--dendrila-font-heading",
+    "--dendrila-font-body"
+  ],
+  "accessibility": {
+    "focus_visible": true,
+    "reduced_motion": true,
+    "no_autoplay_media": true
+  },
+  "required_style_tokens": [
+    "--dendrila-content-max",
+    "--dendrila-section-gap",
+    "--dendrila-text-max",
+    "--dendrila-radius",
+    "--dendrila-border-width",
+    "--dendrila-shadow",
+    "--dendrila-heading-scale",
+    "--dendrila-media-emphasis",
+    "--dendrila-accent-strength",
+    "--dendrila-motion-duration"
+  ],
+  "decorative_system": {
+    "no_upload_required": true,
+    "motifs": [
+      "none",
+      "editorial-rule"
+    ],
+    "default_motif": "editorial-rule",
+    "image_shapes": [
+      "auto",
+      "rounded",
+      "arch",
+      "organic-soft",
+      "circle",
+      "none"
+    ],
+    "implementation": "theme-owned-css-svg"
+  }
+}

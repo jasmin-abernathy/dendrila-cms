@@ -21,7 +21,7 @@ final readonly class PdoSiteChangeService implements SiteChangeHandler
     private ContentService $content;
     private PrivacyService $privacy;
 
-    public function __construct(private PDO $pdo, private ?BusinessActionExecutor $businessActions = null)
+    public function __construct(private PDO $pdo, private ?BusinessActionExecutor $businessActions = null, private ?\Dendrila\Cms\Media\MediaService $media = null)
     {
         $this->store = new PdoCmsStore($pdo);
         $authorization = new AuthorizationService($this->store);
@@ -44,6 +44,12 @@ final readonly class PdoSiteChangeService implements SiteChangeHandler
             throw new \InvalidArgumentException('client_request_id must be 8–128 safe characters.');
         }
 
+        if ($moduleId === NativePagesModule::ID) {
+            NativePagesModule::assertReservedIdAvailable($this->storedModuleIds($actor->siteId));
+            if($this->store->findContentType($actor->siteId,'page')===null)
+                throw new ContentNotFound('Pages are not enabled on this site.');
+            return NativePagesModule::apply($this->content,$actor,$action,$payload,$requestId);
+        }
         if ($moduleId === PrivacySettingsModule::ID) {
             return $this->updatePrivacySettings($actor, $action, $payload, $requestId);
         }
@@ -57,6 +63,10 @@ final readonly class PdoSiteChangeService implements SiteChangeHandler
         [$module, $safeModule] = $this->module($actor->siteId, $moduleId);
         if (($module['writable'] ?? false) !== true) {
             throw new AccessDenied('This module is read-only.');
+        }
+        if ($module['kind'] === 'media_library') {
+            if ($this->media === null) throw new \Dendrila\Cms\Http\HttpException(503, 'media_unavailable', 'Media storage is not configured.');
+            return $this->media->change($actor, $moduleId, $action, $payload, $requestId);
         }
         $content = match ($action) {
             'update_fields' => $this->updateForm($actor, $module, $safeModule, $payload, $requestId),
@@ -502,6 +512,18 @@ final readonly class PdoSiteChangeService implements SiteChangeHandler
         throw new ContentNotFound('MMW module does not exist.');
     }
 
+    /** @return list<array<string,mixed>> */
+    private function storedModuleIds(string $siteId): array
+    {
+        $q=$this->pdo->prepare('SELECT modules_json FROM site_api_settings WHERE site_id=?');
+        $q->execute([$siteId]);
+        $raw=$q->fetchColumn();
+        if(!is_string($raw))throw new ContentNotFound('Site modules missing.');
+        $list=json_decode($raw,true,64,JSON_THROW_ON_ERROR);
+        if(!is_array($list)||!array_is_list($list))throw new \RuntimeException('Invalid site modules.');
+        return $list;
+    }
+
     /** @param array<string, mixed> $payload */
     private function itemId(array $payload): string
     {
@@ -566,3 +588,4 @@ final readonly class PdoSiteChangeService implements SiteChangeHandler
         return trim($value);
     }
 }
+
