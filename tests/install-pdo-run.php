@@ -153,6 +153,54 @@ $core->changeBlock($actor,$blockPage,$version++,'add',0,'embed_safe','',0,['prov
 $core->publishPage($actor,$blockPage,$version);
 $html=(new PublicSite($pdo))->render('/tous-les-blocs/');
 verifyInstall(str_contains($html,'dendrila-privacy-consent-config')&&str_contains($html,'data-dendrila-src='),'Every offered block persists and publishes with working consent markup');
+
+$readModel=new \Dendrila\Cms\Api\PdoSiteReadModel($pdo,$media);
+$mobileConfig=$readModel->configuration($actor);
+$pageModules=array_values(array_filter($mobileConfig['modules'],
+    static fn(array $module):bool=>($module['id']??'')==='pages'));
+verifyInstall(count($pageModules)===1 && ($pageModules[0]['kind']??'')==='records'
+    && ($pageModules[0]['writable']??false)===true
+    && ($pageModules[0]['options']['require_version']??false)===true,
+    'New Dendrila sites expose versioned, editable pages to MMW by default.');
+$viewerConfig=$readModel->configuration(new ActorContext('default','test-viewer'));
+$viewerPages=array_values(array_filter($viewerConfig['modules'],
+    static fn(array $module):bool=>($module['id']??'')==='pages'));
+verifyInstall(count($viewerPages)===1 && ($viewerPages[0]['writable']??true)===false,
+    'Viewer accounts can read pages but cannot edit them.');
+$beforeMobile=$content->get($actor,$blockPage);
+$mobileVersion=(int)$beforeMobile['version'];
+$mobileResult=\Dendrila\Cms\Api\NativePagesModule::apply($content,$actor,'update_item',[
+    'item_id'=>$blockPage,'expected_version'=>$mobileVersion,
+    'title'=>'Page modifiée depuis MMW','body'=>'Texte édité depuis Android',
+], 'mmw-mobile-edit-20261031');
+verifyInstall(($mobileResult['status']??null)==='applied'
+    && !str_contains((new PublicSite($pdo))->render('/tous-les-blocs/'),'Texte édité depuis Android'),
+    'MMW saves a working draft, never silently overwriting the public page.');
+$edited=$content->get($actor,$blockPage);
+verifyInstall(count($edited['values']['blocks'])===count($beforeMobile['values']['blocks'])
+    && ($edited['values']['title']??'')==='Page modifiée depuis MMW',
+    'Mobile text editing preserves all other blocks, including galleries.');
+try{
+    \Dendrila\Cms\Api\NativePagesModule::apply($content,$actor,'update_item',[
+        'item_id'=>$blockPage,'expected_version'=>$mobileVersion,
+        'title'=>'Modification obsolète','body'=>'Stale',
+    ], 'mmw-mobile-stale-20261031');
+    throw new RuntimeException('Stale mobile page edit was accepted.');
+}catch(\Dendrila\Cms\Content\VersionConflict){}
+$publish=\Dendrila\Cms\Api\NativePagesModule::apply($content,$actor,'item_action',[
+    'item_id'=>$blockPage,'expected_version'=>(int)$edited['version'],'action_id'=>'publish',
+], 'mmw-mobile-publish-20261031');
+verifyInstall(in_array($publish['status']??null,['applied','pending_review'],true),
+    'Publication respects the CMS approval workflow.');
+if(($publish['status']??null)==='applied') {
+    verifyInstall(str_contains((new PublicSite($pdo))->render('/tous-les-blocs/'),'Texte édité depuis Android'),
+        'Only an explicit publish action makes the mobile changes public.');
+}
+$mobileSnapshot=$readModel->snapshot($actor);
+verifyInstall(isset($mobileSnapshot['data']['pages']['items'])
+    && is_array($mobileSnapshot['data']['pages']['items']),
+    'MMW receives a native editable page collection in its snapshot.');
+
 if(getenv('INSTALL_BACKUP_MANIFEST')){
     $manifest=getenv('INSTALL_BACKUP_MANIFEST');if(!is_dir(dirname($manifest)))mkdir(dirname($manifest),0700,true);
     $old=umask(0077);file_put_contents($manifest,json_encode(['root'=>$base,'totp_hash'=>hash('sha256',$secret)],JSON_THROW_ON_ERROR));umask($old);
