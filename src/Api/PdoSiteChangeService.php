@@ -44,6 +44,12 @@ final readonly class PdoSiteChangeService implements SiteChangeHandler
             throw new \InvalidArgumentException('client_request_id must be 8–128 safe characters.');
         }
 
+        if ($moduleId === NativePagesModule::ID) {
+            NativePagesModule::assertReservedIdAvailable($this->storedModuleIds($actor->siteId));
+            if($this->store->findContentType($actor->siteId,'page')===null)
+                throw new ContentNotFound('Pages are not enabled on this site.');
+            return NativePagesModule::apply($this->content,$actor,$action,$payload,$requestId);
+        }
         if ($moduleId === PrivacySettingsModule::ID) {
             return $this->updatePrivacySettings($actor, $action, $payload, $requestId);
         }
@@ -504,6 +510,18 @@ final readonly class PdoSiteChangeService implements SiteChangeHandler
             }
         }
         throw new ContentNotFound('MMW module does not exist.');
+    }
+
+    /** @return list<array<string,mixed>> */
+    private function storedModuleIds(string $siteId): array
+    {
+        $q=$this->pdo->prepare('SELECT modules_json FROM site_api_settings WHERE site_id=?');
+        $q->execute([$siteId]);
+        $raw=$q->fetchColumn();
+        if(!is_string($raw))throw new ContentNotFound('Site modules missing.');
+        $list=json_decode($raw,true,64,JSON_THROW_ON_ERROR);
+        if(!is_array($list)||!array_is_list($list))throw new \RuntimeException('Invalid site modules.');
+        return $list;
     }
 
     /** @param array<string, mixed> $payload */
