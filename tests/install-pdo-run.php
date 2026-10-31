@@ -71,6 +71,47 @@ $future=Totp::code($secret,intdiv(time(),30)+1);
 verifyInstall(!$identity->login('owner@example.test','wrong',$future,'127.0.0.1'),'Wrong password rejected');
 verifyInstall($identity->login('owner@example.test',$password,$future,'127.0.0.1'),'Two factors authenticate');
 verifyInstall($identity->currentActor()?->actorId==='owner','Session actor resolved');
+
+verifyInstall(($settings['DENDRILA_IDENTITY_PROVIDER']??'')==='native',
+    'Fresh installs enable native Mon Manager Web association without a site adapter.');
+$manifest=\Dendrila\Cms\Api\MmwDiscoveryManifest::fromEnvironment(
+    static fn(string $key):?string=>isset($settings[$key])?(string)$settings[$key]:null
+);
+verifyInstall($manifest['api_base_url']==='https://example.test'
+    && $manifest['auth_methods']===['pairing_code']
+    && $manifest['site_id']==='default',
+    'Fresh CMS publishes a site-specific MMW discovery manifest.');
+$runtime=\Dendrila\Cms\Api\IdentityRuntimeFactory::fromEnvironment($pdo,
+    static fn(string $key):?string=>isset($settings[$key])?(string)$settings[$key]:null
+);
+verifyInstall($runtime->authentication instanceof \Dendrila\Cms\Api\AuthenticationService
+    && $runtime->authenticator instanceof \Dendrila\Cms\Api\NativeMmwDeviceAuthenticator,
+    'Native MMW identity is wired automatically by the installer.');
+$mmw=new \Dendrila\Cms\Api\NativeMmwPairing($pdo,'default',$settings['DENDRILA_AUTH_KEY']);
+$code=$mmw->issueCode($actor);
+verifyInstall(preg_match('/^[0-9]{8}$/D',$code)===1,'Pairing code is eight digits.');
+$known=$pdo->prepare('SELECT code_hash FROM native_mmw_pair_codes WHERE site_id=? AND actor_id=?');
+$known->execute(['default','owner']);
+verifyInstall($known->fetchColumn()!==$code,'Plaintext pairing codes are never stored.');
+$paired=$runtime->authentication->pair(['code'=>$code,'device_name'=>'Test Android']);
+verifyInstall($paired['status']==='authenticated'
+    && preg_match('/^[a-f0-9]{64}$/D',$paired['device_token'])===1,
+    'Native MMW code issues a revocable device token.');
+$request=new \Dendrila\Cms\Http\Request('GET','/v1/config',[
+    'x-lepotager-device-token'=>$paired['device_token'],
+    'x-lepotager-protocol'=>'1',
+], '');
+$mobileActor=$runtime->authenticator->authenticate($request);
+verifyInstall($mobileActor->siteId==='default'&&$mobileActor->actorId==='owner',
+    'Device token restores real CMS membership and permissions.');
+$devices=$mmw->devices($actor);
+verifyInstall(count($devices)===1,'Paired Android device is visible in the back-office.');
+$mmw->revoke($actor,$devices[0]['device_id']);
+try{$runtime->authenticator->authenticate($request);throw new RuntimeException('Revoked device was accepted.');}
+catch(\Dendrila\Cms\Api\Unauthorized){}
+try{$mmw->pair($code);throw new RuntimeException('Pairing code was reusable.');}
+catch(\Dendrila\Cms\Api\AuthenticationFailure){}
+
 verifyInstall(!$identity->login('owner@example.test',$password,$future,'127.0.0.1'),'Login code cannot replay');
 $accounts=new Accounts($pdo,'default',$settings['DENDRILA_AUTH_KEY']);$token=$accounts->invite($actor,'member@example.test','member');$memberSecret=Totp::secret();
 $accounts->redeem($token,$password,$memberSecret,Totp::code($memberSecret,intdiv(time(),30)));
