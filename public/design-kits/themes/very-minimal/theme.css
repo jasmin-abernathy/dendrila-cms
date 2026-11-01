@@ -1239,3 +1239,18 @@ body[data-dendrila-theme="very-minimal"] .d-hero__copy .d-actions .d-button:nth-
 html.d-reading-readable body[data-dendrila-theme="very-minimal"] .d-hero__copy .d-actions .d-button:nth-child(2){
   color:#111!important;background:#fff!important;border:2px solid #111!important;
 }
+
+/* V16 adaptive business-card grid: two featured notices fill the width,
+   four offerings fill a four-column row, no empty placeholder tracks. */
+body[data-dendrila-theme="very-minimal"] .d-home-tile--cards .d-card-grid{
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,15.5rem),1fr))!important;
+}
+body[data-dendrila-theme="very-minimal"] .d-header{
+  position:sticky!important;top:0;
+  box-shadow:0 2px 14px rgba(0,0,0,.045);
+}
+@media(max-width:48rem){
+  body[data-dendrila-theme="very-minimal"] .d-home-tile--cards .d-card-grid{
+    grid-template-columns:minmax(0,1fr)!important;
+  }
+}
