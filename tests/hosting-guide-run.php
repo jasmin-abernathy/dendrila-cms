@@ -35,7 +35,8 @@ guideCheck(str_contains(HostingGuide::databaseGuide('unknown'),'Chez Autre / Je 
 
 $install=(string)file_get_contents(dirname(__DIR__).'/public/install.php');
 guideCheck(str_contains($install,'HostingGuide::render($provider)')
-    && str_contains($install,'HostingGuide::databaseGuide('),'Installation uses guides on both file and database steps');
+    && str_contains($install,'$state[\'db\']=[\'driver\'=>\'sqlite\']'),
+    'Installation uses the host file guide and selects private SQLite without SQL credentials.');
 guideCheck(str_contains($install,'session_regenerate_id(true)')
     && str_contains($install,'WebOwnerProof::confirm('),'Owner verification still gates wizard progression');
 guideCheck(str_contains($install,'obligatoire si vous installez Dendrila')

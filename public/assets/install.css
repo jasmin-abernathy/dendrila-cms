@@ -94,3 +94,7 @@
 @media(prefers-reduced-motion:reduce){
  .setup *, .setup *::before, .setup *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
 }
+
+.setup-steps{grid-template-columns:repeat(4,minmax(0,1fr))}
+.addon-card--unavailable{display:grid;gap:.6rem;background:#eff0ed;border:1px dashed #87978b;border-radius:.8rem;padding:1.15rem;margin:.75rem 0;color:#36433a}
+.addon-card--unavailable .setup-addon-status{display:inline-block;width:max-content;max-width:100%;font-size:.88rem;font-weight:700;color:#596a5c;line-height:1.5}

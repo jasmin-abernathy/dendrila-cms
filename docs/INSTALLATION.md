@@ -8,8 +8,8 @@ La vérification de propriété de l’étape « Accès » est obligatoire lorsq
 
 ## Hébergement
 
-- PHP 8.5 ou ultérieur et Composer 2 ; extensions PDO MySQL, mbstring, ctype, sodium, fileinfo et GD.
-- MariaDB 11.4 recommandée et une base **vide**, dédiée à ce site, en utf8mb4. Le compte SQL doit pouvoir créer les tables et modifier leurs données.
+- PHP 8.5 ou ultérieur et Composer 2 ; extensions PDO SQLite, mbstring, ctype, sodium, fileinfo et GD. PDO MySQL reste utile uniquement aux anciennes installations MariaDB.
+- SQLite est le stockage local par défaut, automatiquement créé dans `storage/site.sqlite`. Aucune base externe ni aucun compte SQL ne sont requis pour une nouvelle vitrine.
 - HTTPS et une application d’authentification TOTP (6 chiffres, 30 secondes).
 - Racine web strictement dirigée vers `public/`. `config/`, `storage/`, `vendor/` et le code serveur doivent rester hors de la racine publique.
 - Le processus PHP doit pouvoir écrire dans `config/` et `storage/`, ainsi que dans son répertoire de sessions. Ces dossiers ne doivent pas être accessibles aux autres utilisateurs du serveur.
@@ -21,10 +21,10 @@ Un paquet prêt à extraire est généré par le workflow GitHub Actions **Build
 1. Téléchargez l'artifact `dendrila-cms-web-install` du workflow GitHub, puis extrayez l'archive dans un **dossier privé** accessible depuis le gestionnaire de fichiers (par exemple `/home/compte/apps/dendrila-cms/`), sans remplacer de site existant.
 2. Dans la gestion de domaines de l'hébergeur, configurez le **DocumentRoot du domaine** vers le sous-dossier `dendrila-cms/public/` uniquement. **Ne placez jamais** `config/`, `src/`, `vendor/` ou `storage/` dans la racine publique. Si l'hébergeur ne permet pas cette configuration, arrêtez ici : il faut une autre méthode de déploiement, pas un contournement de protection.
 3. Activez PHP 8.5+, HTTPS et les extensions requises. Ouvrez `https://votre-domaine/preflight.php` pour vérifier les prérequis et les permissions.
-4. Créez dans l'interface de l'hébergeur une base MariaDB **vide** et son compte SQL avec les droits nécessaires. L'assistant ne crée pas de base à votre place.
+4. Aucun raccordement à une base externe : vérifiez simplement que le dossier privé `storage/` est inscriptible. SQLite sera initialisé automatiquement après validation du compte administrateur.
 5. Ouvrez `https://votre-domaine/` : l'accueil redirige vers `/install.php`. Dans « Accès », choisissez votre hébergeur (o2switch, Infomaniak, Hostinger, IONOS, OVHcloud ou « Autre / Je ne sais pas ») : l'aide affiche automatiquement les instructions du fournisseur et un lien vers sa documentation.
 6. Cliquez sur « Télécharger le fichier prêt à déposer ». Dans le gestionnaire de fichiers de l'hébergeur, placez `ownership-proof.txt` dans **`dendrila-cms/config/` hors de la racine publique**, à côté de `public/`, jamais dedans. Cliquez sur « Vérifier et continuer ». Dendrila lit puis supprime ce fichier. La preuve n'est jamais stockée en clair côté navigateur au-delà de la session nécessaire ; le téléchargement n'est pas mis en cache. Le contrôle refuse toute preuve absente, erronée ou réutilisée. Pour les personnes expérimentées, l'ancienne clé CLI reste disponible derrière « Option avancée ».
-7. Choisissez le thème et ses aperçus, les modules, puis connectez une base MariaDB vide. Le tutoriel de création de base s'adapte lui aussi à l'hébergeur sélectionné au début. Créez enfin votre compte avec TOTP. La fin de l'installation verrouille le parcours, publie une page d'accueil et crée le menu.
+7. Choisissez le thème, les modules utiles et votre compte avec TOTP : **l'étape de raccordement MariaDB est supprimée** pour les sites SQLite. Le fichier SQLite et son schéma sont créés automatiquement dans le stockage privé. La fin de l'installation verrouille le parcours, publie une page d'accueil et crée le menu.
 
 **Pourquoi choisir l'hébergeur ?** Le sélecteur n'envoie aucune information à un tiers et ne change pas les contrôles de sécurité. Il adapte simplement les noms des menus du panneau d'hébergement et les liens d'aide. En cas d'hébergement non listé ou de JavaScript désactivé, « Autre / Je ne sais pas » reste utilisable ; le bouton sans JavaScript permet aussi d'afficher le guide choisi. L'outil ne peut pas configurer lui-même les permissions, le DocumentRoot, ni créer automatiquement une base dans le compte de l'hébergeur. En particulier, OVHcloud n'offre plus l'ancien explorateur FTP depuis le navigateur : son guide ne le présente pas comme disponible.
 
@@ -45,12 +45,12 @@ Conserver la clé affichée, valable une heure, puis ouvrir `https://votre-domai
 
 1. Saisir la clé d’installation.
 2. Choisir parmi les six thèmes, avec leurs aperçus du même contenu.
-3. Cocher les modules utiles : médiathèque et/ou forum.
-4. Indiquer l’accès à la base dédiée. L’écran explique les besoins du noyau et des modules choisis.
+3. Cocher les modules utiles : médiathèque et/ou forum. Le module externe Booking est indiqué comme non encore raccordé : il n'est pas installable via ce formulaire.
+4. Le stockage SQLite privé est créé automatiquement ; aucun identifiant SQL n'est demandé.
 5. Donner un nom et une origine HTTPS au site, créer le compte propriétaire et enregistrer la clé TOTP dans une application d’authentification. Conserver aussi cette clé dans un gestionnaire de mots de passe.
 6. Valider le code courant. Attendre le code suivant pour ouvrir `/admin/`.
 
-La base reste obligatoire même sans module : pages, révisions, comptes, permissions et navigation sont relationnels. Les modules partagent cette base ; le schéma complet est installé mais les fonctionnalités optionnelles restent désactivées si elles ne sont pas cochées. Cette version ne propose pas de mode sans base.
+SQLite reste une base de données relationnelle : elle conserve les pages, révisions, comptes, permissions et navigation **sans serveur ni identifiants SQL externes**. Les modules cochés partagent le même fichier local privé. Il ne faut pas le placer dans le dossier public.
 
 Une page d’accueil publiée et un menu sont créés. La configuration privée est écrite dans `config/local.php` et l’installation est verrouillée. Les variables du serveur prévalent sur ce fichier : ne pas laisser d’anciennes variables DB_DSN/DB_USERNAME/DB_PASSWORD sur un nouvel hébergement.
 
@@ -103,7 +103,7 @@ Si le forum est activé, `/forum/` affiche les discussions publiées. Les membre
 
 ## Sauvegarder et mettre à jour
 
-Sauvegarder ensemble la base MariaDB, `storage/` et `config/local.php` dans un emplacement privé. La clé d’authentification du fichier de configuration est nécessaire pour lire les secrets TOTP chiffrés. Tester une restauration sur un hébergement séparé avant la première mise en production.
+Sauvegarder ensemble le dossier `storage/` (qui contient `site.sqlite`), et `config/local.php` dans un emplacement privé. Une sauvegarde cohérente du fichier SQLite se réalise sans écrire en parallèle dans la base ou par l'API de sauvegarde SQLite. La clé d’authentification du fichier de configuration est nécessaire pour lire les secrets TOTP chiffrés. Tester une restauration sur un hébergement séparé avant la première mise en production.
 
 Pour une mise à jour : sauvegarder, suspendre les écritures, déployer la version de code retenue, exécuter Composer, lancer `php bin/migrate.php`. Le script charge la configuration privée du site ; les variables du serveur restent prioritaires. Vérifier le site public, la connexion et la publication avant réouverture. Ne jamais relancer l’installation sur une base existante.
 
@@ -113,18 +113,20 @@ Les contrats MMW v1 restent disponibles. L’association d’un client MMW et le
 
 `composer lint` et `composer test` exécutent les contrôles sans base. Les tests PDO exigent des bases de test dédiées ; ne jamais leur fournir une base de production. `tests/install-pdo-run.php` utilise `INSTALL_DB_NAME` et les accès DB. `tests/install-browser.cjs` attend une base vide `cms_browser_test`, PHP, Playwright et le serveur local sur le port 8080. Le workflow Native privacy core prépare ces conditions sous PHP 8.5 / MariaDB 11.4.
 
-## Périmètre de stockage de la V1
+## Stockage local SQLite
 
-Le choix retenu est un noyau MariaDB unique, même pour une vitrine : les transactions, les révisions publiées, les permissions et les révocations reposent sur ce stockage. Retirer seulement l’écran de connexion ne créerait pas un mode sans base fiable. Un stockage de fichiers ou SQLite demanderait un adaptateur, des migrations et les mêmes tests de concurrence et de restauration ; ce mode reste une évolution distincte, non disponible dans cette V1. L’installateur affiche donc toujours la base, avec les raisons correspondant aux modules cochés.
+Le CMS accepte désormais SQLite pour les nouvelles installations, avec schéma versionné, transactions et connexion PDO dédiée. Le fichier est conservé dans `storage/site.sqlite`, jamais sous `public/`. Les tests isolés valident l’installation, l’authentification native mot de passe + TOTP, la publication et la relecture d’une page. Le code de l’ancienne installation MariaDB reste présent pour les sites concernés ; les anciens sites ne sont pas migrés automatiquement.
+
+Le module externe Dendrila Booking existe dans son propre dépôt, mais son adaptateur d’installation et d’interface CMS n’est pas raccordé. Il figure en **non disponible** dans le sélecteur pour éviter l’activation trompeuse de réservation ou paiements. Aucune connexion MariaDB n’est donc demandée par l’installation actuelle. Le support complet du booking avec son propre schéma, ses webhooks et ses services fait l’objet d’un travail distinct.
 
 Les galeries ne sont proposées que si la médiathèque est raccordée. Dans une collection (cartes, FAQ, informations, chiffres), enregistrer les champs avant d’ajouter, déplacer ou retirer un élément. Le maximum est de 50 éléments par collection. Les types texte et rich_text conservent les retours à la ligne mais échappent le HTML : il ne s’agit pas d’un éditeur HTML libre. Les contenus externes acceptent les adresses d’intégration HTTPS YouTube sans cookies, Vimeo et OpenStreetMap et restent bloqués avant consentement.
 
 ## Restaurer sur un autre hébergement
 
 1. Sur une copie isolée, déployer la même version du code et installer ses dépendances.
-2. Créer une base dédiée vide, puis y importer le dump SQL complet avec le client MariaDB.
-3. Restaurer ensemble `config/local.php` et `storage/`, hors du répertoire public. Restreindre `local.php` à son propriétaire (0600).
-4. Adapter DB_DSN, DB_USERNAME, DB_PASSWORD, APP_BASE_URL, MEDIA_PRIVATE_ROOT, MEDIA_PUBLIC_ENDPOINT et FORUM_PRIVATE_ROOT aux nouveaux emplacements ; conserver DENDRILA_AUTH_KEY. Si des variables serveur existent, les adapter également.
+2. Pour SQLite, restaurer `storage/site.sqlite` avec `config/local.php` et les autres données de `storage/` dans les emplacements privés. Ne jamais publier le fichier SQLite.
+3. Pour une ancienne installation MariaDB uniquement, créer une base vide et y importer un dump SQL complet.
+4. Adapter DB_DSN (chemin absolu du fichier SQLite), APP_BASE_URL, MEDIA_PRIVATE_ROOT, MEDIA_PUBLIC_ENDPOINT et FORUM_PRIVATE_ROOT aux nouveaux emplacements ; conserver DENDRILA_AUTH_KEY. Pour MariaDB, adapter aussi les identifiants SQL. Si des variables serveur existent, les adapter également.
 5. Vérifier accueil, pages publiées, invisibilité des brouillons, images, TOTP et comptes désactivés avant toute bascule. Ne pas lancer l’assistant d’installation sur cette restauration.
 
 La CI exécute un dump MariaDB et une archive des fichiers privés de test, les restaure dans une autre base et un autre répertoire, puis vérifie ces propriétés. Les archives privées de test ne sont pas publiées comme artifacts.

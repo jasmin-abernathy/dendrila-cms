@@ -10,9 +10,7 @@ try {
     if (!is_string($_GET['site'] ?? null) || !is_string($_GET['token'] ?? null)) {
         throw new Dendrila\Cms\Content\ContentNotFound('Image not found.');
     }
-    $pdo = new PDO(getenv('DB_DSN') ?: '', getenv('DB_USERNAME') ?: '', getenv('DB_PASSWORD') ?: '', [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_EMULATE_PREPARES => false,
-    ]);
+    $pdo=\Dendrila\Cms\Runtime\Application::database();
     $media = Dendrila\Cms\Media\MediaFactory::fromEnvironment($pdo);
     if ($media === null) throw new Dendrila\Cms\Content\ContentNotFound('Image not found.');
     $path = $media->publicImage($_GET['site'], $_GET['token']);

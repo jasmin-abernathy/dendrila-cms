@@ -27,16 +27,7 @@ if ($path === '/.well-known/lepotager-site-manager.json') {
 }
 
 try {
-    $dsn = getenv('DB_DSN') ?: '';
-    $username = getenv('DB_USERNAME') ?: '';
-    if ($dsn === '' || $username === '') {
-        throw new RuntimeException('API database configuration is missing.');
-    }
-    $pdo = new PDO($dsn, $username, getenv('DB_PASSWORD') ?: '', [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        PDO::ATTR_EMULATE_PREPARES => false,
-    ]);
+    $pdo=\Dendrila\Cms\Runtime\Application::database();
     if (getenv('DENDRILA_SITE_ID') && !str_starts_with($path, '/v1/') && !str_starts_with($path, '/.well-known/')) {
         // Contact POST: synchronize CSRF validation, simple honeypot, and a
         // bounded per-IP rate limit before using the server's mail transport.

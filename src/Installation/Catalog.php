@@ -14,8 +14,8 @@ final class Catalog
     }
     public static function addons():array {
         return [
-            'media'=>['label'=>'Photos et galeries','description'=>'Photothèque, images optimisées et galeries dans vos pages.','requires'=>['gd','fileinfo'],'database'=>true],
-            'forum'=>['label'=>'Forum modéré','description'=>'Discussions et réponses de membres invités, publiées après validation.','requires'=>['gd','fileinfo'],'database'=>true],
+            'media'=>['label'=>'Photos et galeries','description'=>'Photothèque, images optimisées et galeries dans vos pages.','requires'=>['gd','fileinfo'],'database'=>false],
+            'forum'=>['label'=>'Forum modéré','description'=>'Discussions et réponses modérées, avec stockage local SQLite.','requires'=>['gd','fileinfo'],'database'=>false],
         ];
     }
     public static function selection(mixed $ids):array {
@@ -24,9 +24,12 @@ final class Catalog
         return array_values(array_unique($ids));
     }
     public static function requirements(array $ids):array {
-        $ids=self::selection($ids);$extensions=['pdo_mysql','mbstring','sodium'];
-        $reasons=['Le noyau conserve les pages, comptes et révisions dans MariaDB.'];
-        foreach($ids as $id){$extensions=array_merge($extensions,self::addons()[$id]['requires']);if(self::addons()[$id]['database'])$reasons[]=self::addons()[$id]['label'].' utilise cette même base.';}
-        return ['database'=>true,'database_reasons'=>$reasons,'extensions'=>array_values(array_unique($extensions))];
+        $ids=self::selection($ids);$extensions=['pdo_sqlite','mbstring','sodium'];
+        foreach($ids as $id) $extensions=array_merge($extensions,self::addons()[$id]['requires']);
+        return [
+            'database'=>false,'driver'=>'sqlite',
+            'database_reasons'=>['Les contenus, les comptes et les modules sélectionnés utilisent un fichier SQLite privé créé automatiquement.'],
+            'extensions'=>array_values(array_unique($extensions)),
+        ];
     }
 }

@@ -6,7 +6,10 @@ use Dendrila\Cms\Auth\NativeIdentity;
 final class Application
 {
     public static function database(): PDO {
-        return new PDO(getenv('DB_DSN')?:'',getenv('DB_USERNAME')?:'',getenv('DB_PASSWORD')?:'',[
+        $dsn=getenv('DB_DSN')?:'';
+        if(str_starts_with($dsn,'sqlite:'))
+            return new \Dendrila\Cms\Storage\SqliteConnection($dsn);
+        return new PDO($dsn,getenv('DB_USERNAME')?:'',getenv('DB_PASSWORD')?:'',[
             PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC,PDO::ATTR_EMULATE_PREPARES=>false]);
     }
     public static function session(): void {

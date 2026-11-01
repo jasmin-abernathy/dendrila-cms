@@ -31,20 +31,20 @@ def package_info() -> str:
    Si cette opération est impossible, ne lancez pas l'installation.
 3. Activez PHP 8.5 minimum, HTTPS, et les extensions PHP requises.
    Ouvrez https://VOTRE-DOMAINE/preflight.php pour le contrôle.
-4. Créez une base MariaDB VIDE et un utilisateur autorisé dans le panneau
-   de votre hébergeur. Notez hôte, port, nom, identifiant et mot de passe.
+4. Aucune base externe à créer : SQLite sera stocké dans storage/ hors du Web.
 5. Ouvrez https://VOTRE-DOMAINE/. La page redirige vers /install.php.
 6. Dans l'écran « Accès », choisissez votre hébergeur pour afficher son guide.
    Téléchargez ownership-proof.txt et déposez-le dans le dossier privé
    config/ (à côté de public/, JAMAIS dans public/). Cliquez ensuite sur
    « Vérifier et continuer ». Le fichier sera effacé après contrôle.
-7. Choisissez le thème, les modules, la base et le compte propriétaire.
+7. Choisissez le thème, les modules et le compte propriétaire : le fichier
+   SQLite privé sera créé automatiquement.
    Enregistrez la clé TOTP dans une application d'authentification.
 8. L'administration est accessible sur /admin/ après installation.
 
 Sans Composer, SSH ou terminal côté hébergement. Le paquet comprend l'autoloader
 de production. Les mises à jour exigent une sauvegarde des fichiers privés et de
-MariaDB, puis une migration et une vérification distinctes.
+SQLite (fichier privé) ou MariaDB pour les sites anciens, puis une migration.
 
 NE PAS UTILISER ce paquet pour écraser un site existant : installation neuve seulement.
 Informations détaillées : docs/INSTALLATION.md dans le dépôt GitHub.
