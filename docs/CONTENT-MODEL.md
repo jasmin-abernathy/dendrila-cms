@@ -54,3 +54,10 @@ Un bloc `image` peut conserver des métadonnées de présentation **non destruct
 Les blocs de collection `cards`, `gallery`, `faq`, `key_values`, `statistics` et `embed_safe` peuvent porter un champ facultatif `heading`.
 
 Ce champ reste du texte simple : le renderer public l'échappe et le transforme en intertitre de section. Il permet au contenu de conserver sa hiérarchie indépendamment du design kit, sans autoriser de HTML arbitraire.
+
+## Blocs génériques de mise en avant
+
+- highlights : heading optionnel, items avec eyebrow, text, label et url. Chaque encart est un lien complet.
+- benefits : heading optionnel, items avec title et text.
+
+Les mêmes limites de nombre, les vérifications d'URL et l'échappement du texte s'appliquent.

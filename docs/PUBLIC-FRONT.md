@@ -45,3 +45,9 @@ Les blocs de collection peuvent fournir des intertitres optionnels via `heading`
 Ces hooks permettent aux design kits d'espacer et différencier cartes, statistiques, galeries, FAQ et embeds sans embarquer de logique métier dans le thème.
 
 Un CTA autonome n'affiche son libellé qu'une seule fois : le bouton constitue l'action et le texte visible.
+
+## Composants de services et entrée de contact
+
+Les blocs highlights (encarts cliquables) et benefits (bénéfices) sont validés et réutilisables. Une carte avec URL est désormais entièrement cliquable, sans lien imbriqué. Le style service-showcase est optionnel et ne contient aucune marque client.
+
+L'entrée contact_entry est absente par défaut. Elle accepte les modes none / direct / form / guided et les présentations button / link / card / banner / floating. Le nom d'interface neutre est « Parcours guidé » : « Le Jardinier » reste un nom propre au Potager du Web. Le parcours réel doit être installé indépendamment, et aucun service externe n'est chargé automatiquement.

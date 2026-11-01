@@ -294,10 +294,12 @@ final readonly class PublicPageRenderer
                 $media = '<div class="d-card__media"><img src="' . self::escape(self::safeAssetUrl($mediaUrls[$item['media_id']])) . '" alt="" loading="lazy" decoding="async"></div>';
             }
             $text = isset($item['text']) ? '<p>' . nl2br(self::escape(self::longText($item['text'], 'card text')), false) . '</p>' : '';
-            $titleMarkup = isset($item['url'])
-                ? '<h2 class="d-card__title"><a href="' . self::escape(self::safeLinkUrl((string) $item['url'])) . '">' . self::escape($title) . '</a></h2>'
-                : '<h2 class="d-card__title">' . self::escape($title) . '</h2>';
-            $markup[] = '<article class="d-card">' . $media . $titleMarkup . $text . '</article>';
+            $heading = '<h2 class="d-card__title">' . self::escape($title) . '</h2>';
+            $content = $media . $heading . $text;
+            $markup[] = isset($item['url'])
+                ? '<a class="d-card d-card--linked" href="' . self::escape(self::safeLinkUrl((string) $item['url']))
+                    . '">' . $content . '</a>'
+                : '<article class="d-card">' . $content . '</article>';
         }
         return '<div class="d-card-grid">' . implode('', $markup) . '</div>';
     }

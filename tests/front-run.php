@@ -78,6 +78,7 @@ $html = $renderer->render(
     '<div data-test-privacy="1"></div>',
 );
 
+frontCheck(!str_contains($html, 'data-dendrila-contact-mode='), 'Contact not forced for existing sites.');
 frontCheck(str_contains($html, 'data-dendrila-theme="simple-illustrated"'), 'Public renderer selects the design kit.');
 frontCheck(str_contains($html, 'data-dendrila-hero="split"'), 'Public renderer applies the hero structure token.');
 frontCheck(str_contains($html, 'data-dendrila-gallery="grid"'), 'Public renderer applies the gallery token.');
@@ -93,6 +94,43 @@ frontCheck(str_contains($html, '<h2 class="d-heading">Des repères simples</h2>'
 frontCheck(str_contains($html, 'd-section--block-gallery'), 'Public blocks expose stable styling hooks.');
 frontCheck(substr_count($html, 'Action finale') === 1, 'Standalone CTA labels are not duplicated.');
 frontCheck(str_contains($html, 'data-test-privacy="1"'), 'Native privacy markup can be mounted by the front.');
+
+$service = $fixture['page'];
+$service['blocks'][] = ['type' => 'highlights', 'heading' => 'Ressources', 'items' => [
+    ['eyebrow' => 'Démarches', 'text' => 'Des démarches expliquées.', 'label' => 'Consulter', 'url' => '/ressources/'],
+]];
+$service['blocks'][] = ['type' => 'benefits', 'heading' => 'Bénéfices', 'items' => [
+    ['title' => 'Clarté', 'text' => 'Une information structurée.'],
+]];
+$pageType->validateValues($service);
+$withContact = $presentation;
+$withContact['layout_variant'] = 'service-showcase';
+$withContact['contact_entry'] = [
+    'mode' => 'guided', 'presentation' => 'card', 'label' => 'Préparer mon besoin',
+    'description' => 'Quelques questions utiles.', 'url' => '/projet/',
+];
+$serviceHtml = $renderer->render(
+    $fixture['site'], $service, $withContact, $themeCssUrl,
+    $fixture['media_urls'], $fixture['navigation'],
+);
+frontCheck(str_contains($serviceHtml, 'data-dendrila-layout="service-showcase"'), 'Service layout is opt-in.');
+frontCheck(str_contains($serviceHtml, 'class="d-highlights"'), 'Reusable highlights render.');
+frontCheck(str_contains($serviceHtml, 'class="d-benefits"'), 'Reusable benefits render.');
+frontCheck(str_contains($serviceHtml, 'd-card--linked'), 'Card links cover the entire card.');
+frontCheck(str_contains($serviceHtml, 'data-dendrila-contact-mode="guided"'), 'Guided contact is opt-in.');
+frontCheck(str_contains($serviceHtml, 'Préparer mon besoin'), 'Guided entry label is customizable.');
+frontCheck(str_contains($serviceHtml, 'href="/projet/"'), 'Guided contact points at its route.');
+frontCheck(!str_contains($serviceHtml, 'Le Jardinier'), 'No forced Potager branding.');
+$badHighlights = $fixture['page'];
+$badHighlights['blocks'][] = ['type' => 'highlights', 'items' => [
+    ['eyebrow' => 'Test', 'text' => 'Texte', 'label' => 'Visiter', 'url' => 'javascript:alert(1)'],
+]];
+frontExpect(InvalidArgumentException::class, fn () => $pageType->validateValues($badHighlights));
+frontExpect(InvalidArgumentException::class, fn () => $renderer->render(
+    $fixture['site'], $fixture['page'], array_replace($presentation, [
+        'contact_entry' => ['mode' => 'guided', 'url' => 'javascript:alert(1)'],
+    ]), $themeCssUrl, $fixture['media_urls'], $fixture['navigation'],
+));
 
 $seoSite = $fixture['site'];
 $seoSite['canonical_base_url'] = 'https://example.test';

@@ -125,6 +125,31 @@ designExpect(InvalidArgumentException::class, fn () => new SiteCompositionDefini
     'brand_overrides' => ['logo_url' => 'http://example.test/logo.svg'],
 ]));
 
+$contactComposition = new SiteCompositionDefinition([
+    'schema_version' => 1, 'functional_kit' => 'pme-services',
+    'design_style' => 'simple-illustrated',
+    'enabled_modules' => ['content', 'guided_assistant'],
+    'layout_variant' => 'service-showcase',
+    'contact_entry' => ['mode' => 'guided', 'presentation' => 'card',
+        'label' => 'Préparer mon besoin', 'url' => '/projet/'],
+]);
+$contactPresentation = (new PresentationResolver(
+    dirname(__DIR__) . '/design-styles', new DesignKitCatalog($catalogPath),
+))->resolve($contactComposition);
+designCheck($contactPresentation['contact_entry']['mode'] === 'guided', 'Guided journey is configurable.');
+designCheck($contactPresentation['layout_variant'] === 'service-showcase', 'Service layout is optional.');
+designCheck($presentation['contact_entry'] === [], 'Default site has no guided entry.');
+designExpect(InvalidArgumentException::class, fn () => new SiteCompositionDefinition([
+    'schema_version' => 1, 'functional_kit' => 'association',
+    'design_style' => 'simple-illustrated',
+    'contact_entry' => ['mode' => 'guided', 'url' => '/projet/'],
+]));
+designExpect(InvalidArgumentException::class, fn () => new SiteCompositionDefinition([
+    'schema_version' => 1, 'functional_kit' => 'association',
+    'design_style' => 'simple-illustrated',
+    'contact_entry' => ['mode' => 'direct', 'url' => 'javascript:alert(1)'],
+]));
+
 $manifest = json_decode(file_get_contents($themeRoot . '/theme.json'), true, 64, JSON_THROW_ON_ERROR);
 $manifest['required_style_tokens'][] = '--dendrila-unknown-token';
 file_put_contents($themeRoot . '/theme.json', json_encode($manifest, JSON_THROW_ON_ERROR));

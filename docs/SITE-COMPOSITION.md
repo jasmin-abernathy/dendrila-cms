@@ -38,3 +38,9 @@ Test local :
 ```sh
 php bin/resolve-site-presentation.php examples/site-composition.json /chemin/vers/dendrila-design-kits/catalog.json
 ```
+
+## Mise en forme des services et contact à la carte
+
+La variante facultative layout_variant=service-showcase permet un bandeau texte-image, des encarts de mise en avant et des bénéfices sans identité client figée. Le thème et le parcours guidé sont deux choix indépendants.
+
+Le mode contact_entry est none par défaut. Les autres modes sont direct, form et guided ; guided exige le module guided_assistant et une URL de parcours existant. L'affichage peut être button, link, card, banner ou floating. L'interface appelle ce choix « Parcours guidé » et autorise un libellé propre à chaque site. Aucun Jardinier n'est imposé aux autres installations, et aucune base ou intelligence artificielle n'est requise par ce simple point d'entrée.
