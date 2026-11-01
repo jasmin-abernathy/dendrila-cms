@@ -16,7 +16,7 @@ $styles=['simple-illustrated'=>'simple-illustrated','quiet-elegant'=>'quiet-eleg
 foreach($styles as $style=>$theme){
     $empty=InstallThemePreview::page('empty',$style);
     $full=InstallThemePreview::page('demo',$style);
-    $starter=\Dendrila\Cms\Installation\StarterSiteCatalog::validatedPages($style);
+    $starter=\Dendrila\Cms\Installation\StarterSiteCatalog::installationPages($style);
     themeCheck($empty['blocks'] === $starter[0]['blocks'],'Starter preview matches real installation homepage');
     themeCheck(count($starter)>=6,'Every style seeds a complete multi-page website');
     themeCheck(count($empty['blocks'])>=3,'Homepage includes real reusable sections');

@@ -114,7 +114,11 @@ case 4:
                     $account[$key]=is_string($_POST[$key]??null)?$_POST[$key]:'';
                 // The site origin comes from the already-verified HTTPS host,
                 // not from a freely editable URL form field.
-                $https=($_SERVER['HTTPS']??'')==='on'||(string)($_SERVER['SERVER_PORT']??'')==='443';
+                $local=getenv('APP_ENV')==='local'
+                    && in_array($_SERVER['REMOTE_ADDR']??'',['127.0.0.1','::1'],true);
+                // PHP's built-in development server is HTTP, but only localhost
+                // in explicit APP_ENV=local may exercise the installer tests.
+                $https=($_SERVER['HTTPS']??'')==='on'||(string)($_SERVER['SERVER_PORT']??'')==='443'||$local;
                 $host=strtolower((string)($_SERVER['HTTP_HOST']??''));
                 $host=preg_replace('/:443$/','',$host);
                 if(!$https||!is_string($host)||strlen($host)>253
