@@ -70,11 +70,19 @@ const php=process.env.PHP_BINARY||'php';
 
   await page.goto('http://127.0.0.1:8080/admin/appearance.php');
   assert(await page.getByRole('heading',{name:'Apparence du site'}).count(),'Owner can open appearance panel');
+  assert.equal(await page.locator('[data-color-group]').count(),3,'Colors are grouped by use, not a flat field list');
+  assert.equal(await page.locator('[data-color-key]').count(),9,'Nine existing theme tokens remain editable');
+  assert.equal(await page.locator('[data-color-preview]').count(),1,'Live page preview is present');
   await page.locator('select[name=theme]').selectOption('editorial');
-  await page.locator('input[name="enabled[]"][value="primary"]').check();
   await page.locator('input[name="color[primary]"]').fill('#9d2941');
+  assert(await page.locator('input[name="enabled[]"][value="primary"]').isChecked(),
+    'Changing the swatch activates the override automatically');
+  assert.equal(await page.locator('[data-color-preview] .appearance-mini-button').evaluate(
+    e=>getComputedStyle(e).backgroundColor),'rgb(157, 41, 65)',
+    'Live preview updates button color before save');
+  await page.locator('.appearance-details summary').click();
   await page.locator('input[name=logo_url]').fill('https://atelier.example.test/assets/logo.svg');
-  await page.getByRole('button',{name:'Enregistrer l’apparence'}).click();
+  await page.getByRole('button',{name:'Enregistrer les changements'}).click();
   assert(await page.getByText('Apparence enregistrée.',{exact:false}).count(),'Successful appearance persistence');
   const branded=await (await page.request.get('http://127.0.0.1:8080/')).text();
   assert(branded.includes('data-dendrila-theme="editorial"')&&branded.includes('#9d2941'),'Public site uses saved theme and brand');
@@ -82,18 +90,20 @@ const php=process.env.PHP_BINARY||'php';
   await page.locator('input[name="color[text]"]').fill('#ffffff');
   await page.locator('input[name="enabled[]"][value="background"]').check();
   await page.locator('input[name="color[background]"]').fill('#ffffff');
-  await page.getByRole('button',{name:'Enregistrer l’apparence'}).click();
+  await page.getByRole('button',{name:'Enregistrer les changements'}).click();
   assert(await page.getByRole('alert').count(),'WCAG contrast rejection is visible');
   const afterRejection=await (await page.request.get('http://127.0.0.1:8080/')).text();
   assert(afterRejection.includes('data-dendrila-theme="editorial"'),'Unsafe appearance rejected without public changes');
   await page.setViewportSize({width:390,height:844});
   assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Appearance mobile has no horizontal overflow');
+  assert(await page.locator('[data-color-preview]').isVisible(),'Preview remains visible on mobile');
   await page.screenshot({path:'build/test-artifacts/appearance-mobile.png',fullPage:true});
   // Restore the originally installed theme before the independent six-theme parity suite.
   await page.locator('select[name=theme]').selectOption('quiet-elegant');
   await page.locator('input[name="enabled[]"][value="primary"]').uncheck();
+  await page.locator('.appearance-details summary').click();
   await page.locator('input[name=logo_url]').fill('');
-  await page.getByRole('button',{name:'Enregistrer l’apparence'}).click();
+  await page.getByRole('button',{name:'Enregistrer les changements'}).click();
   const reverted=await (await page.request.get('http://127.0.0.1:8080/')).text();
   assert(reverted.includes('data-dendrila-theme="quiet-elegant"'),'Appearance can revert without losing content');
   await page.goto('http://127.0.0.1:8080/admin/?section=textes');

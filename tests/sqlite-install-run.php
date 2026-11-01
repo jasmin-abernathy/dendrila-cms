@@ -44,6 +44,25 @@ try {
     $content->transition($actor,$id['content']['id'],'published',1,'sqlite-test-publish');
     if(!str_contains((string)(new PublicSite($pdo))->render('/sqlite-test/'),'Vérification réelle SQLite'))
         throw new RuntimeException('SQLite published page not visible.');
+    // Appearance editor must work on the default SQLite installation too.
+    $startAppearance=\Dendrila\Cms\Runtime\AppearanceSettings::read($pdo,'default');
+    $brand=['primary'=>'#9d2941','text'=>'#161616','background'=>'#ffffff'];
+    \Dendrila\Cms\Runtime\AppearanceSettings::save($pdo,'default',
+        hash('sha256',$startAppearance['raw']),'ultra-minimal',$brand);
+    $savedAppearance=\Dendrila\Cms\Runtime\AppearanceSettings::read($pdo,'default');
+    if($savedAppearance['brand']!==$brand)
+        throw new RuntimeException('SQLite appearance choices did not persist.');
+    if(!str_contains((string)(new PublicSite($pdo))->render('/'),'#9d2941'))
+        throw new RuntimeException('Saved SQLite palette does not reach the public site.');
+    try {
+        \Dendrila\Cms\Runtime\AppearanceSettings::save($pdo,'default',
+            hash('sha256',$startAppearance['raw']),'editorial',[]);
+        throw new RuntimeException('Stale SQLite appearance form accepted.');
+    }catch(\DomainException $expected){}
+    \Dendrila\Cms\Runtime\AppearanceSettings::save($pdo,'default',
+        hash('sha256',$savedAppearance['raw']),'ultra-minimal',[]);
+    if(\Dendrila\Cms\Runtime\AppearanceSettings::read($pdo,'default')['brand']!==[])
+        throw new RuntimeException('Reset to native theme colors failed on SQLite.');
     session_start();
     $identity=new \Dendrila\Cms\Auth\NativeIdentity($pdo,'default',$settings['DENDRILA_AUTH_KEY']);
     if($identity->login('owner@example.test','invalid-password',

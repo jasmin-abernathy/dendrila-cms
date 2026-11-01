@@ -67,9 +67,14 @@ final class AppearanceSettings
     {
         self::validate($theme,$brand);
         if(!preg_match('/^[a-f0-9]{64}$/D',$expectedHash))throw new \InvalidArgumentException('Version de formulaire invalide.');
-        $pdo->beginTransaction();
+        $sqlite=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='sqlite';
+        // SQLite has no SELECT ... FOR UPDATE; acquire the write lock before
+        // checking the optimistic form version, without changing MySQL behavior.
+        if($sqlite)$pdo->exec('BEGIN IMMEDIATE');
+        else $pdo->beginTransaction();
         try {
-            $q=$pdo->prepare('SELECT branding_json FROM site_api_settings WHERE site_id=? FOR UPDATE');
+            $q=$pdo->prepare('SELECT branding_json FROM site_api_settings WHERE site_id=?'
+                .($sqlite?'':' FOR UPDATE'));
             $q->execute([$siteId]);$raw=$q->fetchColumn();
             if(!is_string($raw)||!hash_equals(hash('sha256',$raw),$expectedHash))throw new \DomainException('Les réglages ont changé dans un autre onglet. Rechargez la page.');
             $previous=json_decode($raw,true,32,JSON_THROW_ON_ERROR);
@@ -80,7 +85,8 @@ final class AppearanceSettings
             foreach($brand as $k=>$v)$new[$k]=$v;
             $json=json_encode((object)$new,JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
             if($json!==$raw) {
-                $q=$pdo->prepare('UPDATE site_api_settings SET branding_json=?,updated_at=UTC_TIMESTAMP(6) WHERE site_id=?');
+                $q=$pdo->prepare('UPDATE site_api_settings SET branding_json=?,updated_at='
+                    .($sqlite?"strftime('%Y-%m-%d %H:%M:%f','now')":'UTC_TIMESTAMP(6)').' WHERE site_id=?');
                 $q->execute([$json,$siteId]);
                 $q=$pdo->prepare('UPDATE sites SET config_version=config_version+1 WHERE site_id=?');
                 $q->execute([$siteId]);
