@@ -1534,3 +1534,11 @@ body[data-dendrila-theme="very-minimal"] .d-header__inner>.d-nav a {
     animation:none!important;transition:none!important;
   }
 }
+
+/* V18.1 — extend hero photography to the viewport edge, not the content shell. */
+@media(min-width:48.001rem) {
+  body[data-dendrila-theme="very-minimal"] main>.d-hero .d-hero__media {
+    left:47%!important;
+    right:calc((min(calc(100vw - 2.5rem),73.75rem) - 100vw)/2)!important;
+  }
+}

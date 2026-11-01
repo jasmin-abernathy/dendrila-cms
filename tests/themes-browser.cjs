@@ -38,6 +38,11 @@ module.exports=async function reviewThemes(browser,php){
     const css=await page.locator('link[rel=stylesheet]').first().getAttribute('href');assert(css.startsWith('/design-kits/themes/'+theme+'/theme.css?v='));
     if(style==='ultra-minimal') {
       assert.equal(await page.locator('.d-hero__media--kit img').count(),1,'Native service theme shows its local hero photo');
+      if(width===1280) {
+        const right=await page.locator('.d-hero__media--kit').evaluate(el=>el.getBoundingClientRect().right);
+        assert(right>=width-2,'Service photo reaches viewport right edge at desktop: '+right);
+        assert(await page.locator('.d-mobile-menu').isVisible(),'Long service navigation must collapse before links overflow');
+      }
       assert.equal(await page.locator('.d-card-grid[data-card-count="2"] .d-card').count(),2,'Two featured highlights stay separate');
       assert.equal(await page.locator('.d-card-grid[data-card-count="4"] .d-card').count(),4,'Four service cards stay editable');
       assert.equal(await page.locator('.d-brand__mark').innerText(),'B','Brand uses actual site initial');
