@@ -156,5 +156,21 @@ try{InstallThemePreview::page('unknown');throw new RuntimeException('Unknown pre
 foreach(['../editorial','missing'] as $id){try{Presentation::forTheme($id,[]);throw new RuntimeException('Unknown style accepted');}catch(InvalidArgumentException){}}
 try{Presentation::forTheme('editorial',['primary'=>'red; background:url(https://evil.test)']);throw new RuntimeException('CSS injection accepted');}catch(InvalidArgumentException){}
 try{Presentation::forTheme('editorial',['logo_url'=>'javascript:alert(1)']);throw new RuntimeException('Unsafe logo accepted');}catch(InvalidArgumentException){}
+// Regression: business-service presentation keeps the reference hierarchy in the actual theme.
+$service=\\Dendrila\\Cms\\Installation\\StarterSiteCatalog::installationPages('ultra-minimal')[0];
+$serviceHtml=(new PublicPageRenderer())->render(
+  ['name'=>'Entreprise démo'], ['title'=>$service['title'],'slug'=>'home','blocks'=>$service['blocks']],
+  Presentation::forTheme('ultra-minimal'), Presentation::forTheme('ultra-minimal')['css_url']
+);
+themeCheck(str_contains($serviceHtml,'class="d-hero__media d-hero__media--kit"'), 'Service hero uses bundled reusable local photo');
+themeCheck(str_contains($serviceHtml,'data-card-count="2"') && str_contains($serviceHtml,'data-card-count="4"'),
+  'Service highlights and offerings remain separately editable native cards');
+themeCheck(str_contains($serviceHtml,'class="d-brand__mark" aria-hidden="true">E</span>'),
+  'Brand monogram derives from the site owner name');
+$serviceCss=(string)file_get_contents(Presentation::forTheme('ultra-minimal')['design_kit']['entrypoint_path']);
+foreach(['V17 — Native small-business reference','data-card-count="2"','data-card-count="4"',
+  'd-hero__media--kit','prefers-reduced-motion:reduce'] as $rule)
+  themeCheck(str_contains($serviceCss,$rule), 'Missing reusable service theme contract: '.$rule);
+
 echo "Six real design kits: mappings, pinned assets, rendering, brand and input validation passed.\n";
 

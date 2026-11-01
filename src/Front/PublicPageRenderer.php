@@ -111,7 +111,8 @@ final readonly class PublicPageRenderer
         $logoUrl = $presentation['brand_assets']['logo_url'] ?? null;
         $logo = is_string($logoUrl) && $logoUrl !== ''
             ? '<img src="' . self::escape(self::safeAssetUrl($logoUrl)) . '" alt="" width="40" height="40">'
-            : '<span class="d-brand__mark" aria-hidden="true">✦</span>';
+            : '<span class="d-brand__mark" aria-hidden="true">' . ($theme['id'] === 'very-minimal'
+                ? self::escape(mb_strtoupper(mb_substr($siteName, 0, 1, 'UTF-8'), 'UTF-8')) : '✦') . '</span>';
 
         $attributes = sprintf(
             'data-dendrila-theme="%s" data-dendrila-hero="%s" data-dendrila-alignment="%s" '
@@ -228,6 +229,14 @@ final readonly class PublicPageRenderer
             $media='<div class="d-hero__media d-hero__media--brand">'
                 .'<img class="d-hero__brand-image" src="'.self::escape($src).'"'
                 .' alt="" loading="eager" decoding="async"></div>';
+        }
+        // The native service theme has a real image-led hero from the first install,
+        // even before the owner uploads a photograph. A configured brand hero or
+        // an actual hero image always takes priority over this bundled asset.
+        if ($media === '' && $isHome && $themeId === 'very-minimal') {
+            $media = '<div class="d-hero__media d-hero__media--kit">'
+                . '<img src="/design-kits/themes/very-minimal/assets/office.webp"'
+                . ' alt="" loading="eager" decoding="async"></div>';
         }
         if ($media === '' && $isHome) {
             // Explicitly licensed local photos belonging to the theme kit, not
@@ -451,7 +460,7 @@ final readonly class PublicPageRenderer
                 : '<h2 class="d-card__title">' . self::escape($title) . '</h2>';
             $markup[] = '<article class="d-card">' . $media . $titleMarkup . $text . '</article>';
         }
-        return '<div class="d-card-grid">' . implode('', $markup) . '</div>';
+        return '<div class="d-card-grid" data-card-count="' . count($markup) . '">' . implode('', $markup) . '</div>';
     }
 
     private function renderFaq(array $block): string

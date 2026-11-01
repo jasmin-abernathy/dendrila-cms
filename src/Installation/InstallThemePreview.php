@@ -16,7 +16,7 @@ final class InstallThemePreview
         if ($mode === 'empty') return ['name'=>'Mon site'];
         return ['name'=>match($style) {
             'simple-illustrated'=>'La maison commune', 'quiet-elegant'=>'Maison Sillage',
-            'image-forward'=>'Horizons', 'ultra-minimal'=>'Studio Forme',
+            'image-forward'=>'Horizons', 'ultra-minimal'=>'Bureau Clair',
             'graphic-rhythm'=>'Les possibles', 'editorial'=>'Institut des territoires',
         }, 'tagline'=>'Démonstration · contenu fictif'];
     }
@@ -55,10 +55,25 @@ final class InstallThemePreview
                 $gallery(['architecture','forest','flowers','mountains']),
                 $text('Chaque série explore un lieu et son atmosphère. Les photographies occupent le premier plan ; le texte les accompagne.'),
             ]],
-            'ultra-minimal'=>['title'=>'Des idées claires. Des formes utiles.','blocks'=>[
-                $text('Un studio indépendant pour concevoir des identités, des objets et des espaces durables.'),$cta('Parlons de votre projet'),
-                $info([['label'=>'01 — Identité','value'=>'Direction artistique et systèmes graphiques'],['label'=>'02 — Édition','value'=>'Livres, documents et signalétique'],['label'=>'03 — Espace','value'=>'Lieux et parcours'],['label'=>'Disponibilité','value'=>'Nouveaux projets sur demande']]),
-                $text('Une équipe courte, des échanges directs et des décisions expliquées. Du premier croquis à la réalisation.'),
+            'ultra-minimal'=>['title'=>'Votre activité avance. Votre organisation suit.','blocks'=>[
+                $text('Une équipe de proximité pour organiser vos démarches, clarifier vos priorités et gagner du temps.'),
+                $cta('Découvrir les prestations'),
+                $cards('Des solutions concrètes',[
+                    ['title'=>'Un besoin ponctuel','text'=>'Un renfort quand votre activité en a besoin.','url'=>'#contenu'],
+                    ['title'=>'Un suivi régulier','text'=>'Un accompagnement clair, adapté à votre rythme.','url'=>'#contenu'],
+                ]),
+                $cards('Comment pouvons-nous vous aider ?',[
+                    ['title'=>'Mettre en ordre','text'=>'Rassembler les informations et retrouver des repères.'],
+                    ['title'=>'Suivre les échéances','text'=>'Garder une vision simple des tâches et des dates.'],
+                    ['title'=>'Renforcer une équipe','text'=>'Faire face aux périodes chargées.'],
+                    ['title'=>'Préparer un changement','text'=>'Avancer étape par étape vers un nouvel outil.'],
+                ]),
+                $info([['label'=>'Clarté','value'=>'Des priorités lisibles'],['label'=>'Régularité','value'=>'Un suivi adapté'],['label'=>'Proximité','value'=>'Des échanges directs'],['label'=>'Souplesse','value'=>'Des missions ajustables'],['label'=>'Sérénité','value'=>'Une organisation partagée']]),
+                ['type'=>'image_text','heading'=>'Un accompagnement humain',
+                 'text'=>'Un seul interlocuteur, des méthodes simples et des décisions expliquées.',
+                 'image_url'=>'/design-kits/themes/very-minimal/assets/office.webp',
+                 'alt'=>'Documents et fournitures organisés sur un bureau'],
+                $cta('Parlons de votre projet'),
             ]],
             'graphic-rhythm'=>['title'=>'FAIRE. ENSEMBLE.','blocks'=>[
                 $text('Trois jours pour construire, essayer et partager. Un rendez-vous ouvert à toutes les curiosités.'),$cta('Découvrir le programme'),

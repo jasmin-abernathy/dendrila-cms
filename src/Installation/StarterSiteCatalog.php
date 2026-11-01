@@ -172,6 +172,12 @@ final class StarterSiteCatalog
                     $text('Présentez votre activité, vos projets et vos principaux atouts.'),
                     $cta('Découvrir les services','/services'),
                     $cta('Être guidé dans mon besoin','/#assistant'),
+                    // Two native service notices become full-width highlights;
+                    // they are ordinary editable cards, never Prestadmin-specific.
+                    $cards('En ce moment',[
+                        ['Une intervention ciblée','Présentez une mission ponctuelle ou une nouveauté utile.','/offres'],
+                        ['Un accompagnement régulier','Expliquez comment vous pouvez aider dans la durée.','/services'],
+                    ]),
                     $cards('À découvrir',[['Service 1','Présentez votre offre principale.','/services'],['Service 2','Expliquez une autre proposition.','/services'],['Votre approche','Présentez vos méthodes.','/methode'],['Les offres','Découvrez les formules disponibles.','/offres']]),
                     $info('Ce qui compte pour vos visiteurs',[
                         ['Clarté','Présentez les étapes de manière simple.'],

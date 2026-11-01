@@ -36,6 +36,14 @@ module.exports=async function reviewThemes(browser,php){
       structures.add(sections);
     }
     const css=await page.locator('link[rel=stylesheet]').first().getAttribute('href');assert(css.startsWith('/design-kits/themes/'+theme+'/theme.css?v='));
+    if(style==='ultra-minimal') {
+      assert.equal(await page.locator('.d-hero__media--kit img').count(),1,'Native service theme shows its local hero photo');
+      assert.equal(await page.locator('.d-card-grid[data-card-count="2"] .d-card').count(),2,'Two featured highlights stay separate');
+      assert.equal(await page.locator('.d-card-grid[data-card-count="4"] .d-card').count(),4,'Four service cards stay editable');
+      assert.equal(await page.locator('.d-brand__mark').innerText(),'B','Brand uses actual site initial');
+      if(width===390) assert.equal(await page.locator('.d-hero__media--kit').evaluate(el=>getComputedStyle(el).clipPath),'none',
+        'Mobile hero never clips the image');
+    }
     assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`Theme ${style} fits ${width}px`);
     const buttonContrasts=await page.locator('.d-button').evaluateAll(buttons=>buttons.map(button=>{
      const css=getComputedStyle(button);
