@@ -136,3 +136,7 @@ Les six thèmes exécutables et leurs ressources locales sont inclus dans le dé
 ## Choix indépendant du parcours de contact
 
 Le choix « Parcours guidé » se fait dans l'étape Modules, indépendamment du thème. Le formulaire classique reste le choix par défaut et ne crée aucune dépendance externe. L'assistant proposé est un outil natif à choix éditables : la présentation cartes / liste / compacte est modifiable ensuite depuis le back-office. Cette fonction n'est pas la reproduction intégrale du Jardinier conditionnel du Potager.
+
+## Adresse du site automatiquement détectée
+
+L'installateur n'exige plus que le propriétaire recopie l'adresse du site. Après preuve de propriété et contrôle de l'hébergement HTTPS, il déduit l'origine depuis le nom d'hôte de la requête. La valeur n'est pas acceptée depuis un champ de formulaire modifiable. Si le site ne sert pas une origine HTTPS admissible, l'installation s'arrête avant la création du compte.

@@ -13,6 +13,8 @@ installCheck(Totp::verify($secret,Totp::code($secret,100),100,3000)===null,'Repl
 installCheck(count(Catalog::themes())===6,'Six themes are installable');
 installCheck(str_contains(file_get_contents(dirname(__DIR__).'/public/install.php'),'name="guided_journey"'),'Installer exposes the guided choice.');
 installCheck(str_contains(file_get_contents(dirname(__DIR__).'/public/install.php'),'Formulaire classique uniquement'),'Installer defaults to a classic contact form.');
+installCheck(!str_contains(file_get_contents(dirname(__DIR__).'/public/install.php'),"\$input('Adresse HTTPS du site'"),'The site address is not asked of the owner.');
+installCheck(str_contains(file_get_contents(dirname(__DIR__).'/public/install.php'),"\$account['url']='https://'.\$host"),'Origin is derived server-side from HTTPS host.');
 installCheck(!in_array('gd',Catalog::requirements([])['extensions'],true),'No image requirement without module');
 installCheck(in_array('gd',Catalog::requirements(['media'])['extensions'],true),'Media requirements resolved');
 installCheck(Catalog::requirements([])['driver']==='sqlite'

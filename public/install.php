@@ -110,7 +110,18 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
     $body.='<h2>Stockage local automatique</h2><p>SQLite sera créé dans le dossier privé du CMS. '
         .'Aucune base externe ni connexion SQL n’est nécessaire.</p>';break;
 case 4:
-                $account=[];foreach(['name','email','password','code','url'] as $key)$account[$key]=is_string($_POST[$key]??null)?$_POST[$key]:'';
+                $account=[];foreach(['name','email','password','code'] as $key)
+                    $account[$key]=is_string($_POST[$key]??null)?$_POST[$key]:'';
+                // The site origin comes from the already-verified HTTPS host,
+                // not from a freely editable URL form field.
+                $https=($_SERVER['HTTPS']??'')==='on'||(string)($_SERVER['SERVER_PORT']??'')==='443';
+                $host=strtolower((string)($_SERVER['HTTP_HOST']??''));
+                $host=preg_replace('/:443$/','',$host);
+                if(!$https||!is_string($host)||strlen($host)>253
+                    ||preg_match('/^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z](?:[a-z0-9-]{0,61}[a-z0-9])?$/D',$host)!==1) {
+                    throw new InvalidArgumentException('Impossible de déterminer une adresse HTTPS valide pour ce site.');
+                }
+                $account['url']='https://'.$host;
                 Installer::install($state,$account,$directory);unset($_SESSION['install']);session_regenerate_id(true);
                 echo App::page('Votre site est prêt','<p>Le thème et les modules choisis sont installés. Les pages inspirées du modèle du thème sont créées : seul l’accueil est publié, les autres attendent votre relecture dans les brouillons. Activez ensuite leurs liens de menu.</p><p><a class="button" href="/admin/">Ouvrir l’administration</a></p><p>Attendez le prochain code de votre application d’authentification pour vous connecter.</p>');exit;
         }
@@ -214,7 +225,7 @@ case 3:
         .HostingGuide::databaseGuide((string)($state['hosting_provider']??'other'))
         .'<p>Complétez les informations indiquées par votre hébergeur :</p>'.$input('Serveur','host','text',$state['db']['host']??'localhost').$input('Port','port','number',$state['db']['port']??'3306').$input('Nom de la base','name','text',$state['db']['name']??'').$input('Utilisateur de la base','user','text',$state['db']['user']??'').$input('Mot de passe de la base','password','password');break;
 case 4:
-    $body.='<h2>Votre site et votre compte</h2><p><strong>Votre stockage SQLite sera créé automatiquement.</strong> Vous n’avez aucun raccordement MariaDB à effectuer.</p>'.$input('Nom du site','name').$input('Adresse HTTPS du site','url','url').$input('Votre e-mail','email','email').$input('Votre mot de passe (12 caractères minimum)','password','password').'<h3>Protéger votre compte</h3><p>Ajoutez un compte dans votre application d’authentification : clé ci-dessous, codes à 6 chiffres, période de 30 secondes.</p><p><code class="secret">'.App::h($state['secret']).'</code></p><p>Conservez cette clé dans votre gestionnaire de mots de passe : elle permet de rétablir votre second facteur.</p>'.$input('Code actuel à 6 chiffres','code');break;
+    $body.='<h2>Votre site et votre compte</h2><p><strong>Votre stockage SQLite sera créé automatiquement.</strong> Vous n’avez aucun raccordement MariaDB à effectuer.</p>'.$input('Nom du site','name').$input('Votre e-mail','email','email').$input('Votre mot de passe (12 caractères minimum)','password','password').'<h3>Protéger votre compte</h3><p>Ajoutez un compte dans votre application d’authentification : clé ci-dessous, codes à 6 chiffres, période de 30 secondes.</p><p><code class="secret">'.App::h($state['secret']).'</code></p><p>Conservez cette clé dans votre gestionnaire de mots de passe : elle permet de rétablir votre second facteur.</p>'.$input('Code actuel à 6 chiffres','code');break;
 }
 $body.='<div class="setup-actions">';if($state['step']>1)$body.='<button class="button secondary" name="back" value="1" formnovalidate>Retour</button>';
 if($state['step']===0){
