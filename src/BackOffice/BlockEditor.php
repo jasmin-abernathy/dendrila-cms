@@ -17,7 +17,7 @@ final class BlockEditor
         'key_values'=>['heading'=>'Titre'],'statistics'=>['heading'=>'Titre'],
         'steps'=>['heading'=>'Titre'],'pricing'=>['heading'=>'Titre'],
     ];
-    public const ITEMS=['cards'=>['title'=>'Titre','text'=>'Texte','url'=>'Lien','media_id'=>'Photo'],
+    public const ITEMS=['cards'=>['title'=>'Titre','text'=>'Texte','url'=>'Lien','label'=>'Texte de l’action','media_id'=>'Photo'],
         'guided_assistant'=>['title'=>'Choix','text'=>'Conseil affiché','url'=>'Lien conseillé'],
         'faq'=>['question'=>'Question','answer'=>'Réponse'],
         'key_values'=>['label'=>'Libellé','value'=>'Valeur'],

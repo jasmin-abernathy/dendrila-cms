@@ -220,7 +220,7 @@ final readonly class ContentTypeDefinition
     {
         [$required, $allowed] = match ($type) {
             'guided_assistant' => [['title','text','url'], ['title','text','url']],
-            'cards' => [['title'], ['title', 'text', 'url', 'media_id']],
+            'cards' => [['title'], ['title', 'text', 'url', 'media_id', 'label']],
             'faq' => [['question', 'answer'], ['question', 'answer']],
             'key_values' => [['label', 'value'], ['label', 'value']],
             'statistics' => [['label', 'value'], ['label', 'value', 'note']],
@@ -234,6 +234,9 @@ final readonly class ContentTypeDefinition
             }
             foreach ($item as $key => $value) {
                 if (!is_string($value) || strlen($value) > 100000) {
+                    return false;
+                }
+                if ($type === 'cards' && $key === 'label' && strlen($value) > 300) {
                     return false;
                 }
                 if ($key === 'url' && !$this->safeBlockLink($value)) {

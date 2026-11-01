@@ -48,5 +48,27 @@ $escaped=(new PublicPageRenderer())->render(['name'=>'Prestadmin','language'=>'f
  ['title'=>'Test','blocks'=>$unsafe], $presentation, $presentation['css_url']);
 assertCheck(!str_contains($escaped,'<script>alert(1)</script>'), 'HTML injection escaped');
 assertCheck(str_contains($escaped,'&lt;script&gt;'), 'Escaped content preserved');
+
+$linkedCards=[['type'=>'cards','heading'=>'Prestations','items'=>[
+ ['title'=>'Un service','text'=>'Informations utiles','url'=>'https://example.org/projet/','label'=>'Préparer ma demande'],
+ ['title'=>'Une explication','text'=>'Sans action']
+]]];
+$type->validateValues(['title'=>'Essai','slug'=>'test','blocks'=>$linkedCards]);
+$cardHtml=(new PublicPageRenderer())->render(['name'=>'Site exemple'],
+ ['title'=>'Essai','slug'=>'home','blocks'=>$linkedCards],$presentation,$presentation['css_url']);
+assertCheck(str_contains($cardHtml,'class="d-card d-card--linked"') && str_contains($cardHtml,'Préparer ma demande'),
+ 'Clickable cards visibly show their native editable action label');
+assertCheck(str_contains($cardHtml,'href="https://example.org/projet/"'),
+ 'Linked cards retain the intended destination');
+assertCheck(substr_count($cardHtml,'class="d-card__action" aria-hidden="true"')===1,
+ 'Unlinked cards do not suggest an action');
+assertCheck(str_contains($cardHtml,'class="d-card__action-arrow"'),
+ 'Action has a visible directional cue');
+$edited=BlockEditor::update($linkedCards,[0=>['items'=>[0=>['label'=>'Voir les détails']]]],[])[0];
+assertCheck($edited['items'][0]['label']==='Voir les détails','Editor can change card action text');
+$tooLong=$linkedCards;$tooLong[0]['items'][0]['label']=str_repeat('x',301);
+try{$type->validateValues(['title'=>'Test','slug'=>'test','blocks'=>$tooLong]);
+ throw new RuntimeException('Oversized card label accepted');
+}catch(InvalidArgumentException){}
 echo "Reusable services blocks: schema, editor, renderer, safe URL and escaped text OK\n";
 

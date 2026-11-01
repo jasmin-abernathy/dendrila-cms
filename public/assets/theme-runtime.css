@@ -57,3 +57,38 @@ html.d-reading-readable .d-orientation__select{color:#111!important;background:#
 /* Override the professional theme's opt-in grid when another layout is selected. */
 body[data-dendrila-theme] .d-home-tile--guided-assistant .d-orientation[data-orientation-presentation="list"] .d-orientation__choices{grid-template-columns:1fr!important}
 body[data-dendrila-theme] .d-home-tile--guided-assistant .d-orientation[data-orientation-presentation="compact"] .d-orientation__choices{grid-template-columns:repeat(auto-fit,minmax(min(100%,12rem),1fr))!important}
+
+/* Native clickable cards: visible actions without a second link or underline. */
+[data-dendrila-theme] .d-card--linked{position:relative;cursor:pointer}
+[data-dendrila-theme] .d-card--linked .d-card__title a{
+  color:inherit;text-decoration:none!important
+}
+[data-dendrila-theme] .d-card--linked .d-card__title a::after{
+  content:"";position:absolute;inset:0;z-index:2
+}
+[data-dendrila-theme] .d-card--linked:focus-within{
+  outline:3px solid var(--dendrila-color-primary,#253f31);outline-offset:3px
+}
+[data-dendrila-theme] .d-card__action{
+  display:inline-flex;align-items:center;justify-content:flex-start;gap:.6rem;
+  align-self:end;max-width:100%;font-weight:750;font-size:.95rem;line-height:1.4;
+  color:var(--dendrila-color-primary,#253f31);
+  border:0;border-top:1px solid var(--dendrila-color-border,#ddd);
+  margin-top:auto;padding-top:.9rem;text-decoration:none!important;
+  pointer-events:none;overflow-wrap:anywhere
+}
+[data-dendrila-theme] .d-card__action-arrow{font-size:1.2em;line-height:1}
+[data-dendrila-theme="very-minimal"] .d-home-tile--cards .d-card-grid[data-card-count="2"] .d-card__action{
+  grid-column:2;justify-self:start;margin-top:0;border:0;padding:0
+}
+[data-dendrila-theme="very-minimal"] .d-home-tile--cards .d-card-grid[data-card-count="4"] .d-card__action{
+  justify-content:center;align-self:end;width:100%
+}
+@media(max-width:48rem){
+ [data-dendrila-theme="very-minimal"] .d-home-tile--cards .d-card-grid[data-card-count="2"] .d-card__action{
+   grid-column:1;justify-self:stretch;margin-top:.4rem;border-top:1px solid var(--dendrila-color-border,#ddd);padding-top:.8rem
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ [data-dendrila-theme] .d-card--linked{scroll-behavior:auto}
+}

@@ -455,10 +455,18 @@ final readonly class PublicPageRenderer
                 $media = '<div class="d-card__media"><img src="' . self::escape(self::safeAssetUrl($mediaUrls[$item['media_id']])) . '" alt="" loading="lazy" decoding="async"></div>';
             }
             $text = isset($item['text']) ? '<p>' . nl2br(self::escape(self::longText($item['text'], 'card text')), false) . '</p>' : '';
-            $titleMarkup = isset($item['url'])
-                ? '<h2 class="d-card__title"><a href="' . self::escape(self::safeLinkUrl((string) $item['url'])) . '">' . self::escape($title) . '</a></h2>'
+            $linked = isset($item['url']) && is_string($item['url']) && $item['url'] !== '';
+            $titleMarkup = $linked
+                ? '<h2 class="d-card__title"><a href="' . self::escape(self::safeLinkUrl($item['url'])) . '">' . self::escape($title) . '</a></h2>'
                 : '<h2 class="d-card__title">' . self::escape($title) . '</h2>';
-            $markup[] = '<article class="d-card">' . $media . $titleMarkup . $text . '</article>';
+            // Visible action is a non-interactive label: the heading link is
+            // stretched over the card, so there is only one keyboard target.
+            $label = $linked && is_string($item['label'] ?? null) && trim($item['label']) !== ''
+                ? self::shortText($item['label'], 'card action label', 300) : 'En savoir plus';
+            $action = $linked ? '<span class="d-card__action" aria-hidden="true">' . self::escape($label)
+                . '<span class="d-card__action-arrow">→</span></span>' : '';
+            $markup[] = '<article class="d-card' . ($linked ? ' d-card--linked' : '') . '">'
+                . $media . $titleMarkup . $text . $action . '</article>';
         }
         return '<div class="d-card-grid" data-card-count="' . count($markup) . '">' . implode('', $markup) . '</div>';
     }
