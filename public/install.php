@@ -106,8 +106,17 @@ case 0:
         && HostingGuide::valid($state['hosting_provider'])
             ? $state['hosting_provider'] : 'other';
     $body.='<section class="setup-welcome"><h2>Bienvenue ! Préparons votre site.</h2>'
-        .'<p>Il nous faut d’abord confirmer que vous avez accès à votre hébergement. '
-        .'Ce contrôle protège votre site contre une installation par quelqu’un d’autre.</p>'
+        .'<p><strong>Cette vérification est obligatoire si vous installez Dendrila '
+        .'sur votre propre hébergement</strong> (o2switch, OVHcloud, Infomaniak, etc.). '
+        .'Elle permet de confirmer que vous êtes autorisé à installer le site.</p>'
+        .'<p>Vous ne gérez pas vous-même le compte de votre hébergeur ? '
+        .'<strong>Demandez au gestionnaire du compte ou à la personne qui administre '
+        .'votre hébergement</strong> de déposer le fichier de vérification à votre place. '
+        .'Vous pouvez lui transmettre les instructions indiquées ci-dessous, '
+        .'mais pas votre mot de passe.</p>'
+        .'<p>Une offre de site hébergé directement par Dendrila sur une adresse de type '
+        .'<code>nom.dendrila.org</code> relève d’un autre parcours : '
+        .'ce formulaire est destiné à l’installation sur votre propre hébergement.</p>'
         .'<p><strong>Vous n’avez besoin ni de programmer ni de saisir de commandes.</strong> '
         .'Choisissez votre hébergeur : nous vous guidons pas à pas.</p></section>';
     $body.=HostingGuide::render($provider);

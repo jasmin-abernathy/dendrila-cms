@@ -2,6 +2,10 @@
 
 Cette version réunit le noyau, l’administration native, les médias et le forum dans une installation autonome. Elle ne modifie pas les sites existants et ne remplace pas leurs adaptateurs d’identité.
 
+### Assistance pour les installations sur hébergement tiers
+
+La vérification de propriété de l’étape « Accès » est obligatoire lorsque Dendrila est installé chez l’hébergeur du propriétaire (o2switch, OVHcloud, Infomaniak, Hostinger, IONOS, etc.). Si le propriétaire ne dispose pas lui-même du gestionnaire de fichiers, il peut demander à la personne qui administre son compte d’hébergement de déposer le fichier temporaire dans le dossier privé `config/`, sans lui demander de révéler son mot de passe. L’installateur n’a pas pour vocation de vérifier une future installation dans une offre hébergée directement par Dendrila sous une adresse telle que `nom.dendrila.org` : ce parcours reste distinct et ne doit pas être présenté ici comme déjà opérationnel.
+
 ## Hébergement
 
 - PHP 8.5 ou ultérieur et Composer 2 ; extensions PDO MySQL, mbstring, ctype, sodium, fileinfo et GD.

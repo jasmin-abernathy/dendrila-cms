@@ -24,7 +24,7 @@ final class HostingGuide
                     'Retrouvez le dossier où Dendrila a été déposé : il contient côte à côte les dossiers « public » et « config ». Ne placez rien dans « public ».',
                     $save,
                 ],
-                'note' => 'Vous ne savez pas qui héberge le site ? Retrouvez l’e-mail de souscription ou la facture de votre hébergement. Si vous ne pouvez pas accéder aux fichiers privés, demandez l’aide de la personne qui a installé Dendrila.',
+                'note' => 'Vous ne savez pas qui héberge le site ? Retrouvez l’e-mail de souscription ou la facture. Si une autre personne gère le compte d’hébergement, demandez-lui de déposer le fichier de vérification dans le dossier privé config : vous n’avez pas besoin de ses identifiants.',
                 'docs' => '',
             ],
             'o2switch' => [

@@ -38,6 +38,11 @@ guideCheck(str_contains($install,'HostingGuide::render($provider)')
     && str_contains($install,'HostingGuide::databaseGuide('),'Installation uses guides on both file and database steps');
 guideCheck(str_contains($install,'session_regenerate_id(true)')
     && str_contains($install,'WebOwnerProof::confirm('),'Owner verification still gates wizard progression');
+guideCheck(str_contains($install,'obligatoire si vous installez Dendrila')
+    && str_contains($install,'gestionnaire du compte')
+    && str_contains($install,'nom.dendrila.org'),
+    'Installer must explain mandatory self-hosted verification, delegated host account manager and separate hosted offer.');
+
 guideCheck(str_contains($install,"header('Cache-Control: no-store, private')")
     && str_contains($install,'download_proof'),'Proof downloaded without caching');
 guideCheck(str_contains((string)file_get_contents(dirname(__DIR__).'/public/assets/install-help.js'),'selector.addEventListener'),
