@@ -14,14 +14,54 @@ try {
     // No database or installed site, admin session or optional module required.
     $presentation=Presentation::forTheme($id);
     $previewPage=InstallThemePreview::page($mode,$id);
+    $legalPreviews=[
+        'mentions-legales'=>[
+            'title'=>'Mentions légales — exemple',
+            'intro'=>'Page de démonstration : ce texte ne constitue pas des mentions légales prêtes à publier. Renseignez des informations exactes avant la mise en ligne.',
+            'items'=>[
+                ['label'=>'Éditeur du site','value'=>'Nom ou dénomination sociale, forme juridique et coordonnées à compléter.'],
+                ['label'=>'Publication','value'=>'Responsable de la publication : à renseigner.'],
+                ['label'=>'Hébergement','value'=>'Nom, adresse et coordonnées de l’hébergeur à renseigner.'],
+                ['label'=>'Activité','value'=>'Précisions éventuelles selon la nature et les obligations de votre activité.'],
+            ],
+        ],
+        'confidentialite'=>[
+            'title'=>'Confidentialité — exemple',
+            'intro'=>'Page de démonstration : adaptez la politique aux traitements réellement effectués par votre site. Ce modèle ne certifie aucune conformité.',
+            'items'=>[
+                ['label'=>'Responsable du traitement','value'=>'Identité et coordonnées à renseigner.'],
+                ['label'=>'Finalités et bases légales','value'=>'Documentez les traitements réellement nécessaires au fonctionnement du site.'],
+                ['label'=>'Durées et destinataires','value'=>'Précisez la conservation et les sous-traitants éventuels.'],
+                ['label'=>'Droits des personnes','value'=>'Indiquez un contact pour les demandes d’accès, de rectification ou d’effacement.'],
+            ],
+        ],
+        'cookies'=>[
+            'title'=>'Cookies et traceurs — exemple',
+            'intro'=>'Page de démonstration : décrivez vos cookies et services tiers après inventaire. N’annoncez aucun recueil de consentement qui ne serait pas activé.',
+            'items'=>[
+                ['label'=>'Cookies nécessaires','value'=>'Indiquez les cookies techniques réellement utilisés.'],
+                ['label'=>'Services facultatifs','value'=>'Décrivez les mesures d’audience, médias externes et autres traceurs éventuels.'],
+                ['label'=>'Consentement','value'=>'Précisez comment recueillir, retirer ou modifier les choix, si des services concernés sont activés.'],
+            ],
+        ],
+    ];
     if($mode==='empty'){
         $requested=is_string($_GET['page']??null)?$_GET['page']:'home';
         $found=false;
-        foreach(\Dendrila\Cms\Installation\StarterSiteCatalog::validatedPages($id) as $candidate){
-            if($candidate['slug']!==$requested) continue;
-            $previewPage=['title'=>$candidate['title'],'slug'=>$candidate['slug'],'blocks'=>$candidate['blocks']];
+        if(isset($legalPreviews[$requested])){
+            $example=$legalPreviews[$requested];
+            $previewPage=['title'=>$example['title'],'slug'=>$requested,'blocks'=>[
+                ['type'=>'text','text'=>$example['intro']],
+                ['type'=>'key_values','heading'=>'À personnaliser avant publication','items'=>$example['items']],
+            ]];
             $found=true;
-            break;
+        } else {
+            foreach(\Dendrila\Cms\Installation\StarterSiteCatalog::validatedPages($id) as $candidate){
+                if($candidate['slug']!==$requested) continue;
+                $previewPage=['title'=>$candidate['title'],'slug'=>$candidate['slug'],'blocks'=>$candidate['blocks']];
+                $found=true;
+                break;
+            }
         }
         if(!$found) throw new InvalidArgumentException('Unknown starter page.');
         // In a read-only installer preview, internal CTA and card links must
@@ -81,8 +121,23 @@ try {
         }
         unset($block);
     }
+    $previewSite=InstallThemePreview::site($mode,$id);
+    $previewSite['preview_theme']=$id;
+    $previewSite['preview_kit']=$presentation['design_kit']['id'];
+    $previewSite['footer_links']=[];
+    foreach ([
+        'mentions-legales'=>'Mentions légales',
+        'confidentialite'=>'Confidentialité',
+        'cookies'=>'Cookies et traceurs',
+    ] as $slug=>$label) {
+        $previewSite['footer_links'][]=[
+            'label'=>$label,
+            'url'=>'/theme-preview.php?theme='.rawurlencode($id)
+                .'&mode=empty&page='.rawurlencode($slug),
+        ];
+    }
     $html=(new PublicPageRenderer())->render(
-        InstallThemePreview::site($mode,$id),
+        $previewSite,
         $previewPage,
         $presentation,
         $presentation['css_url'],

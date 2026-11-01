@@ -106,6 +106,18 @@ foreach($required as $style=>$expected) {
    assertStarter(str_contains($html,'class="d-home-composition d-home-composition--'),
       'Homepage must compose sections as a visual layout: '.$style);
   }
+  if ($slug==='home') {
+   $ctaBlocks=array_values(array_filter($page['blocks'],
+       static fn(array $block):bool=>($block['type']??null)==='cta'));
+   assertStarter(count($ctaBlocks)===2,
+       'Every homepage has a hero CTA and a visible concluding CTA: '.$style);
+   assertStarter(($page['blocks'][count($page['blocks'])-1]['type']??null)==='cta',
+       'Concluding CTA must be the final editable section: '.$style);
+   assertStarter(str_contains($html,'class="d-home-tile d-home-tile--cta"'),
+       'Concluding CTA is rendered in the visual homepage layout: '.$style);
+   assertStarter(str_contains($html,'href="'.$ctaBlocks[1]['url'].'"'),
+       'Final CTA destination must be present in real HTML: '.$style);
+  }
   $blocksTotal+=count($page['blocks']);
   $pagesTotal++;
  }
@@ -115,6 +127,6 @@ foreach($required as $style=>$expected) {
  $renderedNav=InstallThemePreview::navigation('empty',$style);
  assertStarter(count($renderedNav)===count($pages),'All starter routes previewable');
 }
-assertStarter($pagesTotal===40&&$blocksTotal===99,'The six starters contain exactly 40 editable pages and 99 sections');
+assertStarter($pagesTotal===40&&$blocksTotal===105,'The six starters contain exactly 40 editable pages and 105 sections');
 echo "Starter sites: $pagesTotal CMS pages, $blocksTotal sections, six styles; draft/public states, links and renders OK\n";
 

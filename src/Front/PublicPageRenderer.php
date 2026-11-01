@@ -117,7 +117,7 @@ final readonly class PublicPageRenderer
             'data-dendrila-theme="%s" data-dendrila-hero="%s" data-dendrila-alignment="%s" '
             . 'data-dendrila-gallery="%s" data-dendrila-media-crop="%s" data-dendrila-full-bleed="%s" '
             . 'data-dendrila-illustration-frequency="%s" data-dendrila-illustration-style="%s" '
-            . 'data-dendrila-heading-style="%s" data-dendrila-body-style="%s"',
+            . 'data-dendrila-heading-style="%s" data-dendrila-body-style="%s" data-dendrila-page="%s"',
             self::escape($theme['id']),
             self::escape($structure['hero']),
             self::escape($structure['alignment']),
@@ -128,6 +128,7 @@ final readonly class PublicPageRenderer
             self::escape($structure['illustration_style']),
             self::escape($structure['heading_style']),
             self::escape($structure['body_style']),
+            self::escape(is_string($page['slug'] ?? null) && preg_match('/^[a-z0-9][a-z0-9-]{0,189}$/D', $page['slug']) ? $page['slug'] : 'home'),
         );
 
         return '<!doctype html><html lang="' . self::escape($language) . '"><head>'
@@ -136,13 +137,14 @@ final readonly class PublicPageRenderer
             . '<link rel="stylesheet" href="' . self::escape($themeCssUrl) . '">'
             . (isset($presentation['support_css_url']) ? '<link rel="stylesheet" href="'.self::escape(self::safeAssetUrl($presentation['support_css_url'])).'">' : '')
             . '<style data-dendrila-presentation>' . $compiledCss . '</style>'
-            . '<link rel="stylesheet" href="/assets/accessibility.css?v=1"><script src="/assets/accessibility.js?v=1" defer></script>'
+            . '<link rel="stylesheet" href="/assets/accessibility.css?v=2"><script src="/assets/accessibility.js?v=2" defer></script>'
             . '</head><body ' . $attributes . '>'
             . '<a class="d-skip-link" href="#contenu">' . ($language === 'en' ? 'Skip to content' : 'Aller au contenu') . '</a>'
             . '<header class="d-header"><div class="d-shell d-header__inner">'
             . '<a class="d-brand" href="' . self::escape($homeUrl) . '">' . $logo . '<span>' . self::escape($siteName) . '</span></a>'
             . $this->renderNavigation($navigation, $language)
             . $this->renderMobileNavigation($navigation, $language)
+            . '<div id="d-reading-toolbar-anchor" class="d-reading-header-anchor"></div>'
             . '</div></header><main id="contenu">'
             . $this->renderHero($title, $tagline, $hero, $mediaUrls, $supportedShapes, $structure, $theme['id'], ($page['slug'] ?? 'home') === 'home')
             // Minimal kit has a real two-column index, not a faux grid spread over
@@ -151,7 +153,7 @@ final readonly class PublicPageRenderer
             . $bodyMarkup
             . ($theme['id'] === 'very-minimal' ? '</div>' : '')
             . '</main>'
-            . $this->renderFooter($siteName, $navigation, $language)
+            . $this->renderFooter($siteName, $navigation, $language, $site['footer_links'] ?? [], $theme['id'], $site)
             . $privacyMarkup
             . '</body></html>';
     }
@@ -445,17 +447,68 @@ final readonly class PublicPageRenderer
             . '</div></details>';
     }
 
-    private function renderFooter(string $siteName, array $navigation, string $language): string
+    /**
+     * Footer is for verified legal/privacy information, not a second site map.
+     * Legal links are supplied only by the front controller when the document
+     * is actually published and current. Contact remains a useful exception.
+     * @param list<array{label:string,url:string}> $legalLinks
+     */
+    private function renderFooter(string $siteName, array $navigation, string $language, array $legalLinks, string $themeId, array $site): string
     {
+        if (!array_is_list($legalLinks) || count($legalLinks) > 3) {
+            throw new InvalidArgumentException('Footer legal links must be a bounded list.');
+        }
+        $allowed = ['/mentions-legales', '/confidentialite', '/cookies'];
+        $previewTheme = $site['preview_theme'] ?? null;
+        if (is_string($previewTheme)
+            && preg_match('/^[a-z][a-z0-9-]{0,50}$/D', $previewTheme) === 1
+            && ($site['preview_kit'] ?? null) === $themeId) {
+            foreach (['mentions-legales','confidentialite','cookies'] as $slug) {
+                $allowed[] = '/theme-preview.php?theme='.$previewTheme.'&mode=empty&page='.$slug;
+            }
+        }
         $links = [];
-        // Do not silently omit the last pages (often Contact) on sites with
-        // more than six menu entries. The public navigation is already bounded.
+        $seen = [];
+        foreach ($legalLinks as $item) {
+            if (!is_array($item)) throw new InvalidArgumentException('Invalid footer entry.');
+            $url = self::safeLinkUrl(self::shortText($item['url'] ?? null, 'footer URL', 2000));
+            if (!in_array($url, $allowed, true)) {
+                throw new InvalidArgumentException('Footer legal destinations must use approved document paths.');
+            }
+            if (isset($seen[$url])) continue;
+            $seen[$url] = true;
+            $links[] = '<a href="' . self::escape($url) . '">'
+                . self::escape(self::shortText($item['label'] ?? null, 'footer label', 190)) . '</a>';
+        }
+        $contactUrl = null;
         foreach ($navigation as $item) {
-            if (!is_array($item) || !isset($item['label'], $item['url'])) continue;
-            $links[] = '<a href="' . self::escape(self::safeLinkUrl((string) $item['url'])) . '">' . self::escape(self::shortText($item['label'], 'footer label', 190)) . '</a>';
+            if (!is_array($item) || !is_string($item['url'] ?? null)) continue;
+            $path = trim((string)parse_url($item['url'], PHP_URL_PATH), '/');
+            $query = [];
+            parse_str((string)parse_url($item['url'], PHP_URL_QUERY), $query);
+            if ($path === 'contact') {
+                $contactUrl = self::safeLinkUrl($item['url']);
+                break;
+            }
+            // Preview links route all pages through theme-preview.php, so
+            // check the query rather than the path for a contact page.
+            if ($path === 'theme-preview.php' && $previewTheme !== null
+                && ($query['theme'] ?? '') === $previewTheme
+                && ($query['page'] ?? '') === 'contact') {
+                $contactUrl = self::safeLinkUrl($item['url']);
+                break;
+            }
+        }
+        if ($contactUrl === null && $previewTheme !== null
+            && ($site['preview_kit'] ?? null) === $themeId) {
+            $contactUrl = '/theme-preview.php?theme='.$previewTheme.'&mode=empty&page=contact';
+        }
+        if ($contactUrl !== null && !isset($seen[$contactUrl])) {
+            $links[] = '<a href="' . self::escape($contactUrl) . '">'
+                . ($language === 'en' ? 'Contact' : 'Contact') . '</a>';
         }
         return '<footer class="d-footer"><div class="d-shell d-footer__grid"><div><strong>' . self::escape($siteName) . '</strong></div>'
-            . ($links !== [] ? '<nav class="d-footer__links" aria-label="' . ($language === 'en' ? 'Secondary navigation' : 'Navigation secondaire') . '">' . implode('', $links) . '</nav>' : '')
+            . ($links !== [] ? '<nav class="d-footer__links" aria-label="' . ($language === 'en' ? 'Legal information' : 'Informations légales et contact') . '">' . implode('', $links) . '</nav>' : '')
             . '</div></footer>';
     }
 

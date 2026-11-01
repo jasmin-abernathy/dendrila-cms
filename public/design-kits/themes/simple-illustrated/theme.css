@@ -1183,7 +1183,7 @@ body[data-dendrila-theme="simple-illustrated"] .d-footer__grid > div {
 }
 body[data-dendrila-theme="simple-illustrated"] .d-footer__links {
     display:grid!important;
-    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
     gap:.65rem clamp(.75rem,3.5vw,3.5rem)!important;
     align-items:start!important;
     width:100%!important;
@@ -1254,5 +1254,353 @@ body[data-dendrila-theme="simple-illustrated"] .d-footer__links a:focus-visible 
  body[data-dendrila-theme="simple-illustrated"] .d-mobile-menu__panel a:focus-visible {
     outline:3px solid #324a3b!important;
     outline-offset:3px!important;
+ }
+}
+
+
+/* V7 consistent organic masks and breathing space on all starter blocks. */
+body[data-dendrila-theme="simple-illustrated"] .d-hero__grid{
+    column-gap:clamp(1.8rem,4vw,4rem);
+    padding-block:clamp(2.25rem,5vw,4.5rem);
+}
+body[data-dendrila-theme="simple-illustrated"] .d-hero__art{
+    display:grid;
+    grid-template-columns:minmax(0,1.25fr) minmax(0,.72fr);
+    align-items:center;
+    gap:clamp(.65rem,1.7vw,1.35rem);
+    aspect-ratio:1.18;
+    overflow:visible;
+}
+body[data-dendrila-theme="simple-illustrated"] .d-hero__art img,
+body[data-dendrila-theme="simple-illustrated"] .d-hero__art img:nth-child(2){
+    display:block;
+    width:100%;
+    height:auto;
+    max-height:none;
+    aspect-ratio:4/5;
+    object-fit:cover;
+    object-position:center;
+    align-self:center;
+    border-radius:0;
+    -webkit-mask-image:url("assets/masks/organic-soft.svg");
+    mask-image:url("assets/masks/organic-soft.svg");
+    -webkit-mask-size:100% 100%;
+    mask-size:100% 100%;
+    -webkit-mask-repeat:no-repeat;
+    mask-repeat:no-repeat;
+    filter:saturate(.94);
+}
+body[data-dendrila-theme="simple-illustrated"] .d-hero__art img:nth-child(2){
+    aspect-ratio:3/4;
+    margin-top:clamp(1rem,4vw,3rem);
+}
+body[data-dendrila-theme="simple-illustrated"] .d-home-composition{
+    gap:clamp(1.35rem,2.8vw,2.5rem);
+}
+body[data-dendrila-theme="simple-illustrated"] .d-home-tile:first-child,
+body[data-dendrila-theme="simple-illustrated"] .d-home-tile:nth-child(2){
+    padding:clamp(1.65rem,3.1vw,3rem);
+    border-radius:clamp(1.2rem,2vw,2rem);
+}
+body[data-dendrila-theme="simple-illustrated"] .d-home-tile>.d-section,
+body[data-dendrila-theme="simple-illustrated"] .d-home-tile>.d-section>.d-shell{
+    min-width:0;
+}
+body[data-dendrila-theme="simple-illustrated"] .d-home-tile .d-section__heading{
+    margin-bottom:clamp(1.3rem,2.5vw,2.3rem);
+}
+body[data-dendrila-theme="simple-illustrated"] .d-home-tile .d-heading{
+    line-height:1.25;
+    margin:0 0 clamp(1rem,1.8vw,1.6rem);
+}
+body[data-dendrila-theme="simple-illustrated"] .d-home-tile:first-child .d-card-grid{
+    gap:clamp(1rem,2vw,1.5rem);
+}
+body[data-dendrila-theme="simple-illustrated"] .d-home-tile:first-child .d-card,
+body[data-dendrila-theme="simple-illustrated"] .d-home-tile:first-child .d-card:first-child{
+    padding:clamp(1.5rem,2.9vw,2.7rem);
+    min-height:13rem;
+    border-radius:1rem;
+}
+body[data-dendrila-theme="simple-illustrated"] .d-home-tile:first-child .d-card:first-child{
+    padding-right:clamp(8.75rem,29%,16rem);
+}
+body[data-dendrila-theme="simple-illustrated"] .d-home-tile:first-child .d-card__title{
+    margin:.3rem 0 .85rem;
+    line-height:1.25;
+}
+body[data-dendrila-theme="simple-illustrated"] .d-home-tile:first-child .d-card p{
+    margin:.45rem 0 0;
+    line-height:1.65;
+}
+body[data-dendrila-theme="simple-illustrated"] .d-home-tile:nth-child(2) .d-key-values{
+    gap:clamp(1.15rem,2vw,2rem);
+    margin-top:1rem;
+}
+body[data-dendrila-theme="simple-illustrated"] .d-home-tile:nth-child(2) .d-key-values__item{
+    padding:clamp(1rem,2vw,1.55rem);
+    border-radius:.85rem;
+    min-width:0;
+}
+body[data-dendrila-theme="simple-illustrated"] .d-home-tile:nth-child(2) .d-key-values dt{
+    margin-bottom:.65rem;
+    line-height:1.4;
+}
+body[data-dendrila-theme="simple-illustrated"] .d-home-tile:nth-child(2) .d-key-values dd{
+    margin:0;
+    line-height:1.6;
+}
+@media(max-width:46rem){
+ body[data-dendrila-theme="simple-illustrated"] .d-hero__grid{
+    padding-block:2rem 1.75rem;
+ }
+ body[data-dendrila-theme="simple-illustrated"] .d-hero__art{
+    width:min(100%,25rem);
+    aspect-ratio:auto;
+    min-height:0;
+    max-height:none;
+    margin:1rem auto 0;
+ }
+ body[data-dendrila-theme="simple-illustrated"] .d-home-composition{
+    gap:1.25rem;
+ }
+ body[data-dendrila-theme="simple-illustrated"] .d-home-tile:first-child,
+ body[data-dendrila-theme="simple-illustrated"] .d-home-tile:nth-child(2){
+    padding:clamp(1.3rem,5vw,2rem);
+ }
+ body[data-dendrila-theme="simple-illustrated"] .d-home-tile:first-child .d-card-grid{
+    gap:1rem;
+ }
+ body[data-dendrila-theme="simple-illustrated"] .d-home-tile:first-child .d-card{
+    min-height:10rem;
+ }
+ body[data-dendrila-theme="simple-illustrated"] .d-home-tile:first-child .d-card:first-child{
+    padding:1.5rem;
+    padding-right:clamp(7.5rem,31%,11rem);
+    min-height:12rem;
+ }
+}
+@media(max-width:24rem){
+ body[data-dendrila-theme="simple-illustrated"] .d-home-tile:first-child .d-card:first-child{
+    padding-right:1.35rem;
+    padding-bottom:10rem;
+ }
+ body[data-dendrila-theme="simple-illustrated"] .d-home-tile:first-child .d-card:first-child::after{
+    width:85%;
+    height:9rem;
+    top:auto;
+    right:0;
+    bottom:0;
+    border-radius:1rem 0 0 .6rem;
+ }
+}
+
+/* V8 concluding CTA across all six starter homepages. */
+body[data-dendrila-theme="simple-illustrated"] .d-home-composition>.d-home-tile--cta{
+    grid-column:1/-1!important;
+    grid-row:auto!important;
+    align-self:stretch;
+    min-width:0;
+    width:100%;
+    margin:0;
+}
+body[data-dendrila-theme="simple-illustrated"] .d-home-composition>.d-home-tile--cta .d-cta-band{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:clamp(8rem,14vw,12rem);
+    background:#315d49!important;
+    color:#ffffff!important;
+    border-radius:clamp(.55rem,2vw,1.3rem);
+    isolation:isolate;
+}
+body[data-dendrila-theme="simple-illustrated"] .d-home-composition>.d-home-tile--cta .d-cta-band__inner{
+    width:min(100% - 2rem,45rem);
+    min-height:0;
+    padding:clamp(1.75rem,3.8vw,3rem) 0;
+    justify-content:center;
+}
+body[data-dendrila-theme="simple-illustrated"] .d-home-composition>.d-home-tile--cta .d-cta-band__inner a{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-height:48px;
+    max-width:100%;
+    white-space:normal;
+    overflow-wrap:anywhere;
+    text-align:center;
+    padding:clamp(.85rem,2vw,1.1rem) clamp(1.35rem,3vw,2.2rem);
+    background:#ffffff!important;
+    color:#315d49!important;
+    font:700 clamp(1rem,1.5vw,1.2rem)/1.4 system-ui,sans-serif;
+    border:2px solid #ffffff!important;
+    border-radius:.5rem;
+    text-decoration:none!important;
+    box-shadow:none;
+}
+body[data-dendrila-theme="simple-illustrated"] .d-home-composition>.d-home-tile--cta .d-cta-band__inner a:is(:hover,:focus-visible){
+    background:#e1f0dd!important;color:#315d49!important;
+    border-color:#e1f0dd!important;outline:3px solid currentColor;
+    outline-offset:3px;
+}
+@media(max-width:46rem){
+ body[data-dendrila-theme="simple-illustrated"] .d-home-composition>.d-home-tile--cta .d-cta-band{
+    min-height:7rem;
+ }
+ body[data-dendrila-theme="simple-illustrated"] .d-home-composition>.d-home-tile--cta .d-cta-band__inner{
+    width:calc(100% - 2rem);
+    padding:1.5rem 0;
+ }
+ body[data-dendrila-theme="simple-illustrated"] .d-home-composition>.d-home-tile--cta .d-cta-band__inner a{
+    width:100%;
+ }
+}
+
+/* Four legal/contact links: 4 desktop / 2 tablet-phone without orphan rows. */
+@media(max-width:52rem){
+ body[data-dendrila-theme="simple-illustrated"] .d-footer__links{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:.75rem 1.25rem!important;
+ }
+}
+
+
+/* V9 consistent interior rhythm across all Simple illustré pages.
+   Outer gutters and inner padding are separate: readable at 320/375/430px. */
+body[data-dendrila-theme="simple-illustrated"]{
+    --d-simple-inset:clamp(1.5rem,3.5vw,3rem);
+    --d-simple-card-inset:clamp(1.35rem,3vw,2.25rem);
+    --d-simple-section-gap:clamp(1.3rem,3vw,2.4rem);
+}
+body[data-dendrila-theme="simple-illustrated"] .d-home-composition{
+    width:min(calc(100% - clamp(2rem,5vw,4rem)),var(--dendrila-content-max,80rem));
+    gap:var(--d-simple-section-gap);
+    box-sizing:border-box;
+}
+body[data-dendrila-theme="simple-illustrated"] .d-home-composition>.d-home-tile:not(.d-home-tile--cta){
+    padding:var(--d-simple-inset);
+    box-sizing:border-box;
+    min-width:0;
+}
+body[data-dendrila-theme="simple-illustrated"] .d-home-tile>.d-section{
+    padding:0;
+    box-sizing:border-box;
+}
+body[data-dendrila-theme="simple-illustrated"] .d-home-tile .d-section__heading{
+    margin:0 0 clamp(1.4rem,2.6vw,2.2rem);
+    padding:0;
+}
+body[data-dendrila-theme="simple-illustrated"] .d-home-tile .d-section__heading .d-heading{
+    margin:0;
+    line-height:1.22;
+}
+body[data-dendrila-theme="simple-illustrated"] .d-home-tile--cards .d-card-grid{
+    gap:clamp(1rem,2.3vw,1.6rem);
+    min-width:0;
+}
+body[data-dendrila-theme="simple-illustrated"] .d-card-grid>.d-card,
+body[data-dendrila-theme="simple-illustrated"] .d-home-tile--cards .d-card-grid>.d-card{
+    position:relative;
+    min-width:0;
+    box-sizing:border-box;
+    padding:var(--d-simple-card-inset);
+}
+body[data-dendrila-theme="simple-illustrated"] .d-home-tile--cards .d-card-grid>.d-card:first-child{
+    padding:var(--d-simple-card-inset);
+    padding-right:clamp(9rem,36%,18rem);
+}
+body[data-dendrila-theme="simple-illustrated"] .d-card-grid>.d-card .d-card__title{
+    margin:0 0 .75rem;
+    line-height:1.26;
+    overflow-wrap:anywhere;
+}
+body[data-dendrila-theme="simple-illustrated"] .d-card-grid>.d-card p{
+    margin:.5rem 0 0;
+    line-height:1.65;
+    overflow-wrap:break-word;
+}
+body[data-dendrila-theme="simple-illustrated"] .d-home-tile--key-values .d-key-values{
+    display:grid;
+    gap:clamp(1rem,2.2vw,1.6rem);
+    margin:0;
+}
+body[data-dendrila-theme="simple-illustrated"] .d-key-values__item,
+body[data-dendrila-theme="simple-illustrated"] .d-home-tile--key-values .d-key-values__item{
+    min-width:0;
+    box-sizing:border-box;
+    padding:var(--d-simple-card-inset);
+}
+body[data-dendrila-theme="simple-illustrated"] .d-key-values dt{
+    margin:0 0 .7rem;
+    line-height:1.35;
+}
+body[data-dendrila-theme="simple-illustrated"] .d-key-values dd{
+    margin:0;
+    line-height:1.6;
+}
+body[data-dendrila-theme="simple-illustrated"] main > .d-section{
+    padding-block:clamp(2.5rem,6vw,4.5rem);
+}
+body[data-dendrila-theme="simple-illustrated"] .d-section>.d-shell{
+    box-sizing:border-box;
+    min-width:0;
+}
+body[data-dendrila-theme="simple-illustrated"] .d-faq details{
+    padding:clamp(1.3rem,3vw,2rem);
+}
+body[data-dendrila-theme="simple-illustrated"] .d-step{
+    gap:clamp(.9rem,2vw,1.4rem);
+    padding-block:clamp(1.25rem,2.5vw,2rem);
+}
+body[data-dendrila-theme="simple-illustrated"] .d-pricing__card{
+    padding:var(--d-simple-card-inset);
+}
+body[data-dendrila-theme="simple-illustrated"] .d-cta-band__inner{
+    gap:1.5rem;
+}
+@media(max-width:46rem){
+ body[data-dendrila-theme="simple-illustrated"]{
+    --d-simple-inset:clamp(1.35rem,5vw,1.85rem);
+    --d-simple-card-inset:clamp(1.25rem,5vw,1.7rem);
+ }
+ body[data-dendrila-theme="simple-illustrated"] .d-home-composition{
+    width:calc(100% - 1.5rem);
+    gap:1.25rem;
+ }
+ body[data-dendrila-theme="simple-illustrated"] .d-home-tile--cards .d-card-grid{
+    grid-template-columns:minmax(0,1fr);
+    gap:1rem;
+ }
+ body[data-dendrila-theme="simple-illustrated"] .d-home-tile--cards .d-card-grid>.d-card,
+ body[data-dendrila-theme="simple-illustrated"] .d-home-tile--cards .d-card-grid>.d-card:first-child{
+    grid-column:1;
+    min-height:0;
+    padding:var(--d-simple-card-inset);
+ }
+ body[data-dendrila-theme="simple-illustrated"] .d-home-tile--cards .d-card-grid>.d-card:first-child{
+    padding-bottom:clamp(10rem,34vw,15rem);
+ }
+ body[data-dendrila-theme="simple-illustrated"] .d-home-tile--cards .d-card-grid>.d-card:first-child::after{
+    inset:auto 0 0 auto;
+    width:100%;
+    height:clamp(9rem,32vw,14rem);
+    border-radius:0 0 1rem 1rem;
+    background-position:center;
+    background-size:cover;
+ }
+ body[data-dendrila-theme="simple-illustrated"] .d-home-tile .d-section__heading{
+    margin-bottom:1.3rem;
+ }
+ body[data-dendrila-theme="simple-illustrated"] main > .d-section{
+    padding-block:2.5rem;
+ }
+}
+@media(max-width:24rem){
+ body[data-dendrila-theme="simple-illustrated"] .d-home-composition{
+    width:calc(100% - 1.25rem);
+ }
+ body[data-dendrila-theme="simple-illustrated"]{
+    --d-simple-inset:1.2rem;
+    --d-simple-card-inset:1.15rem;
  }
 }

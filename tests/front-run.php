@@ -185,10 +185,16 @@ $privacySource = new class implements PublicPrivacyDocumentSource {
     }
 };
 $privacyRouter = new PublicPrivacyDocumentRouter($privacySource);
+$approvedSite=$fixture['site'];
+$approvedSite['footer_links']=[
+    ['label'=>'Mentions légales','url'=>'/mentions-legales'],
+    ['label'=>'Confidentialité','url'=>'/confidentialite'],
+    ['label'=>'Cookies et traceurs','url'=>'/cookies'],
+];
 $legalHtml = $privacyRouter->render(
     'site-a',
     '/mentions-legales/',
-    $fixture['site'],
+    $approvedSite,
     $presentation,
     $themeCssUrl,
     $fixture['navigation'],
@@ -200,6 +206,18 @@ frontCheck(is_string($legalHtml)
     && str_contains($legalHtml, 'data-test-privacy="legal"')
     && str_contains($legalHtml, 'mailto:bonjour@example.test'),
     'Approved native privacy documents are routable through the public Dendrila front.');
+frontCheck(str_contains($legalHtml,'class="d-footer__links"')
+    && str_contains($legalHtml,'id="d-reading-toolbar-anchor"')
+    && str_contains($legalHtml,'/assets/accessibility.css?v=2'),
+    'Legal pages provide matching footer and accessible header eye.');
+$noLegalSite=$fixture['site'];
+$noLegalSite['footer_links']=[];
+$noLegalHtml=$privacyRouter->render(
+    'site-a','/mentions-legales/',$noLegalSite,$presentation,$themeCssUrl
+);
+frontCheck(is_string($noLegalHtml)
+    && !str_contains($noLegalHtml,'href="/confidentialite"'),
+    'Unapproved or absent legal links are not presented as validated.');
 frontCheck(PublicPrivacyDocumentRouter::pathForKind('cookies') === '/cookies',
     'Privacy document kinds have stable public routes.');
 frontCheck($privacyRouter->render(

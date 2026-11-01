@@ -62,9 +62,11 @@ foreach($styles as $style=>$theme){
     themeCheck(substr_count($menuHtml,'href="/galerie"')>=2,
         'The public gallery link is reachable in both menus: '.$style);
     themeCheck(str_contains($menuHtml,'class="d-footer__links"'),
-        'Shared footer has a navigation grid: '.$style);
-    themeCheck(substr_count($menuHtml,'href="/galerie"')===3,
-        'Gallery link is in main/mobile/footer menus: '.$style);
+        'Contact is available in the non-duplicative legal footer: '.$style);
+    themeCheck(substr_count($menuHtml,'href="/galerie"')===2,
+        'Gallery link should be in desktop/mobile menus, not repeated in footer: '.$style);
+    themeCheck(substr_count($menuHtml,'href="/contact"')===3,
+        'Contact remains in desktop/mobile navigation and legal footer: '.$style);
     themeCheck(!str_contains($menuHtml,'<br>'),
         'Shared footer does not stack links with break tags: '.$style);
     $longNav = array_map(
@@ -75,13 +77,15 @@ foreach($styles as $style=>$theme){
         ['name'=>'Test site'], ['title'=>'Test','slug'=>'home','blocks'=>[]],
         $p,$p['css_url'],[], $longNav
     );
-    themeCheck(str_contains($longHtml,'href="/page-8"'),
-        'Footer must not truncate later pages including Contact: '.$style);
-    themeCheck(substr_count($longHtml,'href="/page-8"')===3,
-        'Last link appears on desktop, mobile and in the footer: '.$style);
-    foreach(['.d-footer__links','grid-template-columns:repeat(3,minmax(0,1fr))'] as $footerRule) {
+    themeCheck(substr_count($longHtml,'href="/page-8"')===2,
+        'Last page is accessible from desktop and mobile, never repeated in footer: '.$style);
+    themeCheck(!str_contains($longHtml,'class="d-footer__links"'),
+        'Footer must not invent irrelevant navigation or legal information: '.$style);
+    foreach(['.d-footer__links','grid-template-columns:repeat(4,minmax(0,1fr))',
+             'V8 concluding CTA across all six starter homepages',
+             '.d-home-composition>.d-home-tile--cta'] as $footerRule) {
         themeCheck(str_contains((string)file_get_contents($p['design_kit']['entrypoint_path']),$footerRule),
-            'Theme has 3-column footer style: '.$style);
+            'Theme has 4-column footer style: '.$style);
     }
 
     $cssText=(string)file_get_contents($p['design_kit']['entrypoint_path']);

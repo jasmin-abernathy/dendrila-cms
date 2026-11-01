@@ -63,6 +63,7 @@ final class StarterSiteCatalog
                         ['Informations','Indiquez les modalités de contact ou de participation.','/informations'],
                     ]),
                     $info('En bref',[['Activité','Présentez ce que vous proposez'],['Accueil','Précisez vos modalités et vos horaires']]),
+                    $cta('Parlons de votre projet','/contact'),
                 ],'Accueil'),
                 $page('services','Nos services',[
                     $text('Décrivez les services, activités ou réalisations que vous souhaitez mettre en avant.'),
@@ -106,6 +107,7 @@ final class StarterSiteCatalog
                     $cta('Découvrir les espaces','/espaces'),
                     $gallery('Images du lieu'),
                     $cards('Explorer le lieu',[['Les espaces','Présentez les pièces, espaces ou équipements disponibles.','/espaces'],['Présentation','Découvrez l’histoire et les caractéristiques du lieu.','/presentation'],['À découvrir','Activités, projets ou informations à découvrir.','/decouvrir']]),
+                    $cta('Nous contacter','/contact'),
                 ],'Accueil'),
                 $page('presentation','Présentation',[
                     $text('Racontez l’histoire, la démarche ou le cadre de votre projet.'),
@@ -137,6 +139,7 @@ final class StarterSiteCatalog
                     $cta('Découvrir les projets','/projets'),
                     $gallery('Sélection d’images'),
                     $cards('À parcourir',[['Projets','Découvrez les réalisations et leurs histoires.','/projets'],['Actualités','Suivez les événements ou nouveautés.','/actualites'],['À propos','Découvrez l’univers et les intentions du projet.','/a-propos']]),
+                    $cta('Explorer la galerie','/galerie'),
                 ],'Accueil'),
                 $page('galerie','Galerie',[
                     $text('Présentez vos images et réalisations. Créez des albums, des légendes et des descriptions accessibles.'),
@@ -167,6 +170,7 @@ final class StarterSiteCatalog
                     $cta('Découvrir les services','/services'),
                     $cards('À découvrir',[['Service 1','Présentez votre offre principale.','/services'],['Service 2','Expliquez une autre proposition.','/services'],['Votre approche','Présentez vos méthodes.','/methode'],['Les offres','Découvrez les formules disponibles.','/offres']]),
                     $steps('Comment ça fonctionne',[['Découvrir','Présenter le projet ou le besoin.'],['Organiser','Définir les étapes utiles.'],['Réaliser','Mettre en œuvre et faire le point.']]),
+                    $cta('Parler de votre besoin','/contact'),
                 ],'Accueil'),
                 $page('services','Services',[
                     $text('Présentez les services, produits ou compétences de votre activité.'),
@@ -201,6 +205,7 @@ final class StarterSiteCatalog
                     $cta('Voir les activités','/activites'),
                     $cards('À la une',[['Découvrir','Les activités et nouveautés.','/activites'],['Suivre','Les prochaines dates.','/agenda'],['Participer','Les différentes façons de s’impliquer.','/a-propos']]),
                     $steps('Le déroulement',[['Découvrir','Explorer le projet et ses activités.'],['Participer','Trouver la formule qui convient.'],['Partager','Suivre les résultats et prochains rendez-vous.']]),
+                    $cta('Préparer votre visite','/infos-pratiques'),
                 ],'Accueil'),
                 $page('agenda','Agenda',[
                     $steps('Dates et temps forts',[['Première date','Présentez l’activité ou le rendez-vous.'],['Deuxième date','Ajoutez une nouvelle étape.'],['Autre rendez-vous','Décrivez un événement ou une actualité.'],['Bilan','Partagez les résultats ou les images.']]),
@@ -230,6 +235,7 @@ final class StarterSiteCatalog
                     $cta('Lire les publications','/publications'),
                     $cards('À découvrir',[['Publication à la une','Mettez ici un contenu important.','/publications'],['Dossiers','Approfondissez un sujet.','/dossiers'],['Thèmes','Parcourez les catégories.','/themes']]),
                     $info('En bref',[['Sujets','Présentez les catégories de publication'],['Méthode','Expliquez votre démarche'],['Contact','Indiquez comment vous joindre']]),
+                    $cta('Proposer un sujet','/contact'),
                 ],'Accueil'),
                 $page('publications','Publications',[
                     $text('Présentez vos articles, actualités, études ou publications.'),

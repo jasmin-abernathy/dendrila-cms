@@ -82,26 +82,46 @@ final readonly class PublicPrivacyDocumentRouter
 
         $links = self::navigation($navigation);
         $legalLinks = [];
-        foreach (self::ROUTES as $route => $routeKind) {
-            $legalLinks[] = '<a href="' . self::escape($route) . '">' . self::escape(self::title($routeKind)) . '</a>';
+        foreach (($site['footer_links'] ?? []) as $item) {
+            if (!is_array($item) || !is_string($item['url'] ?? null)
+                || !isset(self::ROUTES[$item['url']])) continue;
+            $legalLinks[] = '<a href="' . self::escape($item['url']) . '">'
+                . self::escape(self::shortText($item['label'] ?? null, 'legal label', 190)) . '</a>';
         }
+        foreach ($navigation as $item) {
+            if (!is_array($item) || !is_string($item['url'] ?? null)) continue;
+            $route = trim((string)parse_url($item['url'], PHP_URL_PATH), '/');
+            if ($route !== 'contact' && strtolower((string)($item['label'] ?? '')) !== 'contact') continue;
+            $legalLinks[] = '<a href="' . self::escape(self::safeLinkUrl($item['url'])) . '">Contact</a>';
+            break;
+        }
+        $mainNavigation = $links === [] ? '' : '<nav class="d-nav" aria-label="'
+            . ($language === 'en' ? 'Main navigation' : 'Navigation principale') . '">'
+            . implode('', $links) . '</nav>';
+        $mobileNavigation = $links === [] ? '' : '<details class="d-mobile-menu"><summary aria-label="'
+            . ($language === 'en' ? 'Open navigation menu' : 'Ouvrir le menu de navigation')
+            . '"><span class="d-mobile-menu__label">Menu</span><span class="d-mobile-menu__icon" aria-hidden="true"><i></i><i></i><i></i></span></summary>'
+            . '<div class="d-mobile-menu__panel">' . $mainNavigation . '</div></details>';
 
         return '<!doctype html><html lang="' . self::escape($language) . '"><head>'
             . '<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
             . '<title>' . self::escape($title . ' — ' . $siteName) . '</title>'
             . '<link rel="stylesheet" href="' . self::escape($themeCssUrl) . '">'
+            . (isset($presentation['support_css_url']) ? '<link rel="stylesheet" href="' . self::escape(self::safeAssetUrl($presentation['support_css_url'])) . '">' : '')
             . '<style data-dendrila-presentation>' . $compiledCss . '</style>'
+            . '<link rel="stylesheet" href="/assets/accessibility.css?v=2"><script src="/assets/accessibility.js?v=2" defer></script>'
             . '</head><body data-dendrila-theme="' . self::escape($theme['id']) . '">'
             . '<a class="d-skip-link" href="#contenu">' . ($language === 'en' ? 'Skip to content' : 'Aller au contenu') . '</a>'
             . '<header class="d-header"><div class="d-shell d-header__inner">'
             . '<a class="d-brand" href="' . self::escape($homeUrl) . '"><span>' . self::escape($siteName) . '</span></a>'
-            . ($links !== [] ? '<nav class="d-nav" aria-label="' . ($language === 'en' ? 'Main navigation' : 'Navigation principale') . '">' . implode('', $links) . '</nav>' : '')
+            . $mainNavigation . $mobileNavigation
+            . '<div id="d-reading-toolbar-anchor" class="d-reading-header-anchor"></div>'
             . '</div></header>'
             . '<main id="contenu"><section class="d-section"><div class="d-shell d-prose">'
             . $documentHtml
             . '</div></section></main>'
             . '<footer class="d-footer"><div class="d-shell d-footer__grid"><strong>' . self::escape($siteName) . '</strong>'
-            . '<nav aria-label="' . ($language === 'en' ? 'Legal information' : 'Informations légales') . '">' . implode('<br>', $legalLinks) . '</nav>'
+            . ($legalLinks !== [] ? '<nav class="d-footer__links" aria-label="' . ($language === 'en' ? 'Legal information' : 'Informations légales et contact') . '">' . implode('', $legalLinks) . '</nav>' : '')
             . '</div></footer>'
             . $privacyMarkup
             . '</body></html>';

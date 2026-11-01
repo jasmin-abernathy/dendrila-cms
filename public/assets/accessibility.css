@@ -29,3 +29,187 @@ html.d-reading-readable :focus-visible{outline:3px solid #005fcc!important;outli
 html.d-reading-motion *,html.d-reading-motion *::before,html.d-reading-motion *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 @media print{#d-reading-tools{display:none!important}}
+
+
+/* V2: header eye, resilient accessible theme layouts and compact native menus. */
+/* Public pages: a compact SVG eye in the header. Installation/admin keep the label. */
+.d-reading-header-anchor{
+    display:flex;align-items:center;justify-content:center;flex:0 0 auto;
+    min-width:44px;max-width:52px;min-height:44px;position:relative;z-index:92
+}
+.d-reading-header-anchor #d-reading-tools{
+    display:flex;align-items:center;justify-content:center;position:static;
+    background:transparent!important;color:inherit!important;
+    margin:0!important;padding:0!important;clear:none!important;
+    font:inherit!important;line-height:1!important
+}
+.d-reading-header-anchor #d-reading-open{
+    width:44px!important;height:44px!important;min-width:44px!important;
+    min-height:44px!important;max-width:44px!important;max-height:44px!important;
+    display:inline-flex!important;align-items:center!important;justify-content:center!important;
+    padding:8px!important;margin:0!important;border-radius:50%!important;
+    border:2px solid currentColor!important;box-shadow:none!important;
+    color:#111!important;background:#fff!important;opacity:1!important;
+    text-align:center!important;white-space:nowrap!important;cursor:pointer!important;
+    transform:none!important;filter:none!important
+}
+.d-reading-header-anchor #d-reading-open svg{
+    display:block!important;width:24px!important;height:24px!important;
+    flex:0 0 24px!important;stroke:currentColor!important;
+    fill:none!important;opacity:1!important
+}
+.d-reading-header-anchor #d-reading-open .d-reading-open__label{
+    position:absolute!important;width:1px!important;height:1px!important;
+    padding:0!important;margin:-1px!important;overflow:hidden!important;
+    clip:rect(0,0,0,0)!important;clip-path:inset(50%)!important;
+    white-space:nowrap!important;border:0!important
+}
+html.d-reading-readable .d-reading-header-anchor #d-reading-open,
+html.d-reading-readable .d-reading-header-anchor #d-reading-open:hover{
+    background:#fff!important;color:#111!important;border:2px solid #111!important;
+    box-shadow:none!important;border-radius:50%!important;
+}
+html.d-reading-readable .d-reading-header-anchor #d-reading-open svg{
+    color:#111!important;stroke:currentColor!important;fill:none!important;
+}
+html.d-reading-readable #d-reading-dialog{
+    background:#fff!important;color:#111!important;border:2px solid #111!important;
+    border-radius:.5rem!important
+}
+html.d-reading-readable #d-reading-dialog :is(button,select){
+    border:2px solid #111!important;border-radius:.35rem!important;
+}
+html.d-reading-readable #d-reading-dialog :is(button){
+    background:#111!important;color:#fff!important;
+}
+html.d-reading-readable #d-reading-dialog select{
+    background:#fff!important;color:#111!important;
+}
+/* Simplified mode changes colors and removes effects, NOT structure or controls. */
+html.d-reading-readable body[data-dendrila-theme] .d-mobile-menu>summary,
+html.d-reading-readable body[data-dendrila-theme] .d-mobile-menu[open]>summary{
+    display:flex!important;flex-direction:row!important;align-items:center!important;
+    justify-content:center!important;gap:.5rem!important;
+    width:auto!important;min-width:5.5rem!important;min-height:44px!important;
+    height:auto!important;max-width:100%!important;
+    padding:.45rem .65rem!important;
+    border:2px solid #111!important;border-radius:.45rem!important;
+    background:#fff!important;color:#111!important;
+    -webkit-text-fill-color:#111!important;
+    box-shadow:none!important;transform:none!important
+}
+html.d-reading-readable body[data-dendrila-theme] .d-mobile-menu__icon{
+    display:grid!important;grid-template-columns:minmax(0,1fr)!important;
+    gap:3px!important;width:19px!important;height:auto!important;
+    flex:0 0 19px!important;transform:none!important;
+}
+html.d-reading-readable body[data-dendrila-theme] .d-mobile-menu__icon i{
+    display:block!important;width:19px!important;height:2px!important;
+    background:#111!important;background-color:#111!important;
+    border:0!important;border-radius:2px!important;
+    opacity:1!important;transform:none!important
+}
+html.d-reading-readable body[data-dendrila-theme] .d-mobile-menu[open] .d-mobile-menu__icon i:nth-child(2){
+    opacity:0!important
+}
+html.d-reading-readable body[data-dendrila-theme] .d-mobile-menu__panel{
+    background:#fff!important;color:#111!important;
+    border:2px solid #111!important;border-radius:.5rem!important;
+    box-shadow:none!important;filter:none!important;opacity:1!important;
+    max-width:calc(100vw - 1.5rem)!important
+}
+html.d-reading-readable body[data-dendrila-theme] .d-mobile-menu__panel .d-nav a{
+    background:#fff!important;color:#111!important;
+    -webkit-text-fill-color:#111!important;border-color:#111!important;
+    line-height:1.5!important;min-height:44px!important;
+    text-transform:none!important
+}
+html.d-reading-readable body[data-dendrila-theme] .d-mobile-menu__panel .d-nav a:is(:hover,:focus-visible){
+    background:#111!important;color:#fff!important;
+    -webkit-text-fill-color:#fff!important
+}
+/* No clipped headings, disappearing cards, or ornamental black pseudo-blocks. */
+html.d-reading-readable body[data-dendrila-theme] :is(
+    .d-hero__art,.d-hero__media,.d-home-tile,.d-card,.d-pricing__card,
+    .d-step,.d-key-values__item,.d-gallery__item,.d-section
+){
+    min-width:0!important;max-width:100%;
+    box-shadow:none!important;transform:none!important;
+    clip-path:none!important;mask-image:none!important;-webkit-mask-image:none!important;
+    filter:none!important;backdrop-filter:none!important
+}
+html.d-reading-readable body[data-dendrila-theme] :is(
+    .d-card,.d-pricing__card,.d-key-values__item
+){
+    border:1px solid #111!important;border-radius:.4rem!important;
+    padding:clamp(1rem,3vw,1.5rem)!important
+}
+html.d-reading-readable body[data-dendrila-theme] :is(
+    .d-hero__art img,.d-gallery img,.d-media img
+){
+    max-width:100%!important;height:auto;
+    clip-path:none!important;mask-image:none!important;-webkit-mask-image:none!important;
+    filter:none!important;mix-blend-mode:normal!important
+}
+html.d-reading-readable body[data-dendrila-theme] :is(.d-home-composition,.d-card-grid,.d-gallery,.d-pricing,.d-steps){
+    min-width:0!important;max-width:100%;overflow-wrap:anywhere
+}
+html.d-reading-readable body[data-dendrila-theme] :is(.d-button,.d-cta,.d-mobile-menu summary){
+    min-height:44px
+}
+html.d-reading-readable body[data-dendrila-theme] :is(.d-card,.d-home-tile,.d-pricing__card)::before,
+html.d-reading-readable body[data-dendrila-theme] :is(.d-card,.d-home-tile,.d-pricing__card)::after{
+    display:none!important
+}
+@media(max-width:64rem){
+ body[data-dendrila-theme] .d-header__inner>.d-brand{
+    max-width:calc(100% - 11.5rem)!important;min-width:0!important
+ }
+ body[data-dendrila-theme] .d-reading-header-anchor{flex:0 0 44px}
+ body[data-dendrila-theme] .d-mobile-menu{margin-left:auto}
+}
+@media(max-width:25rem){
+ body[data-dendrila-theme] .d-header__inner{gap:.35rem!important}
+ body[data-dendrila-theme] .d-header__inner>.d-brand{
+    max-width:calc(100% - 10.25rem)!important;font-size:clamp(.9rem,4vw,1.1rem)
+ }
+ body[data-dendrila-theme] .d-reading-header-anchor{flex-basis:44px}
+ html.d-reading-readable body[data-dendrila-theme] .d-mobile-menu>summary{
+    min-width:4.75rem!important;padding:.3rem .4rem!important
+ }
+}
+
+
+/* V4 readable mode keeps CTAs legible and strips portfolio-photo panels. */
+html.d-reading-readable body[data-dendrila-theme] .d-home-composition>.d-home-tile--cta .d-cta-band,
+html.d-reading-readable body[data-dendrila-theme] .d-home-composition>.d-home-tile--cta .d-cta-band__inner{
+    background:#fff!important;color:#111!important;
+    background-image:none!important;border:0!important;
+    box-shadow:none!important;text-shadow:none!important;
+}
+html.d-reading-readable body[data-dendrila-theme] .d-home-composition>.d-home-tile--cta .d-cta-band__inner a{
+    display:inline-flex!important;align-items:center!important;justify-content:center!important;
+    min-width:0!important;min-height:48px!important;
+    padding:1rem 1.5rem!important;
+    background:#111!important;color:#fff!important;
+    border:2px solid #111!important;border-radius:.4rem!important;
+    text-shadow:none!important;
+}
+html.d-reading-readable body[data-dendrila-theme] .d-home-composition>.d-home-tile--cta .d-cta-band__inner a:is(:hover,:focus-visible){
+    background:#fff!important;color:#111!important;
+    border:2px solid #111!important;outline:3px solid #111!important;outline-offset:3px!important;
+}
+html.d-reading-readable body[data-dendrila-theme="image-centered"] .d-section--block-cards .d-card-grid>.d-card,
+html.d-reading-readable body[data-dendrila-theme="image-centered"] .d-section--block-cards .d-card-grid>.d-card:nth-child(n){
+    background:#fff!important;background-image:none!important;
+    color:#111!important;text-shadow:none!important;
+    border:2px solid #111!important;border-radius:.4rem!important;
+}
+html.d-reading-readable body[data-dendrila-theme="image-centered"] .d-section--block-cards .d-card-grid>.d-card :is(h3,p,a,span),
+html.d-reading-readable body[data-dendrila-theme="image-centered"] .d-section--block-steps .d-step :is(h3,p,a,span){
+    color:#111!important;text-shadow:none!important;
+}
+html.d-reading-readable body[data-dendrila-theme="image-centered"] .d-section--block-steps .d-step{
+    background:#fff!important;background-image:none!important;color:#111!important;
+    border:2px solid #111!important;
+}
