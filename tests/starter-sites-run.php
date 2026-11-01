@@ -135,10 +135,31 @@ foreach($required as $style=>$expected) {
  }
  assertStarter(count($store->contents[$site])===count($pages),'All starter pages created');
  $preview=InstallThemePreview::page('empty',$style);
- assertStarter($preview['blocks']===$pages[0]['blocks'],'Installer preview and seeded homepage match');
+ assertStarter($preview['blocks']===StarterSiteCatalog::installationPages($style)[0]['blocks'],'Installer preview matches the default non-guided installation');
  $renderedNav=InstallThemePreview::navigation('empty',$style);
  assertStarter(count($renderedNav)===count($pages),'All starter routes previewable');
 }
+$defaultPages=StarterSiteCatalog::installationPages('ultra-minimal');
+$guidedPages=StarterSiteCatalog::installationPages('ultra-minimal',true,'compact');
+$otherGuided=StarterSiteCatalog::installationPages('editorial',true,'list');
+$guideCount=static fn(array $blocks):int=>count(array_filter($blocks,
+    static fn(array $block):bool=>($block['type']??null)==='guided_assistant'));
+assertStarter($guideCount($defaultPages[0]['blocks'])===0,
+    'An installation without opt-in cannot contain a guided assistant');
+assertStarter($guideCount($guidedPages[0]['blocks'])===1,
+    'The professional theme can install the chosen guide');
+assertStarter($guideCount($otherGuided[0]['blocks'])===1,
+    'The editorial theme can also install the same optional module');
+assertStarter(count(array_filter($defaultPages[0]['blocks'],
+    static fn(array $block):bool=>($block['url']??'')==='/#assistant'))===0,
+    'Disabled guide must not leave a broken shortcut');
+$guidedBlock=array_values(array_filter($guidedPages[0]['blocks'],
+    static fn(array $block):bool=>($block['type']??null)==='guided_assistant'))[0];
+assertStarter(($guidedBlock['presentation']??'')==='compact',
+    'Guided presentation survives installation composition');
+try {StarterSiteCatalog::installationPages('editorial',true,'invalid');
+    throw new RuntimeException('Invalid guided layout accepted');
+} catch(InvalidArgumentException $e){}
 assertStarter($pagesTotal===40&&$blocksTotal===115,'The six starters contain exactly 40 editable pages and 115 sections');
 echo "Starter sites: $pagesTotal CMS pages, $blocksTotal sections, six styles; draft/public states, links and renders OK\n";
 

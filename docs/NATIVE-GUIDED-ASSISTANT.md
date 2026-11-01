@@ -42,3 +42,9 @@ Les six thèmes peuvent afficher ces blocs. Le thème « Très minimal »
 fournit en plus un modèle d'accueil contenant une composition de services,
 des bénéfices, une présentation avec photo locale et un exemple d'assistant.
 Les autres thèmes permettent d'ajouter ces composants sans modifier leur code.
+
+## Parcours facultatif lors de l'installation
+
+Au choix des modules, « Formulaire classique uniquement » est sélectionné par défaut. L'utilisateur peut choisir d'ajouter un « Parcours guidé », sur **n'importe lequel des six thèmes**, et sa présentation : cartes, liste ou compacte. Le formulaire de contact classique reste disponible. Le choix n'exige ni IA ni connexion à un service externe.
+
+Les futurs sites « Très minimal » conservent les blocs inspirés de la mise en page professionnelle de Prestadmin, sans assistant forcé et sans bouton mort. Le nom du bloc dans le back-office est « Parcours guidé », librement personnalisable. « Le Jardinier » reste seulement la déclinaison du Potager. Les sites existants ne sont pas migrés automatiquement.

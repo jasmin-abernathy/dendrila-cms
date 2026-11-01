@@ -138,7 +138,9 @@ final readonly class PublicPageRenderer
             . (isset($presentation['support_css_url']) ? '<link rel="stylesheet" href="'.self::escape(self::safeAssetUrl($presentation['support_css_url'])).'">' : '')
             . '<style data-dendrila-presentation>' . $compiledCss . '</style>'
             . '<link rel="stylesheet" href="/assets/accessibility.css?v=2"><script src="/assets/accessibility.js?v=2" defer></script>'
-            . '<script src="/assets/guided-assistant.js?v=1" defer></script>'
+            . (count(array_filter($blocks, static fn(mixed $block):bool =>
+                is_array($block) && ($block['type'] ?? null) === 'guided_assistant')) > 0
+                ? '<script src="/assets/guided-assistant.js?v=1" defer></script>' : '')
             . '</head><body ' . $attributes . '>'
             . '<a class="d-skip-link" href="#contenu">' . ($language === 'en' ? 'Skip to content' : 'Aller au contenu') . '</a>'
             . '<header class="d-header"><div class="d-shell d-header__inner">'

@@ -11,6 +11,8 @@ foreach([59=>'94287082',1111111109=>'07081804',1111111111=>'14050471',1234567890
 installCheck(Totp::verify($secret,Totp::code($secret,100),99,3000)===100,'Valid step');
 installCheck(Totp::verify($secret,Totp::code($secret,100),100,3000)===null,'Replay rejected');
 installCheck(count(Catalog::themes())===6,'Six themes are installable');
+installCheck(str_contains(file_get_contents(dirname(__DIR__).'/public/install.php'),'name="guided_journey"'),'Installer exposes the guided choice.');
+installCheck(str_contains(file_get_contents(dirname(__DIR__).'/public/install.php'),'Formulaire classique uniquement'),'Installer defaults to a classic contact form.');
 installCheck(!in_array('gd',Catalog::requirements([])['extensions'],true),'No image requirement without module');
 installCheck(in_array('gd',Catalog::requirements(['media'])['extensions'],true),'Media requirements resolved');
 installCheck(Catalog::requirements([])['driver']==='sqlite'

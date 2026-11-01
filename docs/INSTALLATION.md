@@ -132,3 +132,7 @@ Les galeries ne sont proposées que si la médiathèque est raccordée. Dans une
 La CI exécute un dump MariaDB et une archive des fichiers privés de test, les restaure dans une autre base et un autre répertoire, puis vérifie ces propriétés. Les archives privées de test ne sont pas publiées comme artifacts.
 
 Les six thèmes exécutables et leurs ressources locales sont inclus dans le dépôt : aucun second checkout n’est nécessaire sur l’hébergement. Les aperçus d’installation et les pages publiques utilisent le même thème. Voir `docs/DESIGN-STYLES.md` pour les correspondances, l’identité de marque et la mise à jour versionnée des thèmes.
+
+## Choix indépendant du parcours de contact
+
+Le choix « Parcours guidé » se fait dans l'étape Modules, indépendamment du thème. Le formulaire classique reste le choix par défaut et ne crée aucune dépendance externe. L'assistant proposé est un outil natif à choix éditables : la présentation cartes / liste / compacte est modifiable ensuite depuis le back-office. Cette fonction n'est pas la reproduction intégrale du Jardinier conditionnel du Potager.

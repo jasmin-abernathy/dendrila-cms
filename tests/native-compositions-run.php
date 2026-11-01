@@ -12,6 +12,7 @@ function nativeCheck(bool $check,string $message):void {
 }
 $schema=new ContentTypeDefinition(json_decode(file_get_contents(dirname(__DIR__).'/examples/content-types/page.json'),true));
 nativeCheck(BlockEditor::blank('guided_assistant')['type']==='guided_assistant','Guided assistant available as native editable block.');
+nativeCheck(BlockEditor::blank('guided_assistant')['presentation']==='cards','New guided blocks default to cards.');
 nativeCheck(BlockEditor::blank('image_text')['type']==='image_text','Image/text available as native editable block.');
 $withChoice=BlockEditor::collection(BlockEditor::blank('guided_assistant'),'add_item',0);
 nativeCheck(count($withChoice['items'])===2&&$withChoice['items'][1]['url']==='/contact',
@@ -26,6 +27,11 @@ $page=['slug'=>'home','title'=>'Bienvenue','blocks'=>[
     $guided,$image
 ]];
 $schema->validateValues($page);
+$page['blocks'][2]['presentation']='list';
+$schema->validateValues($page);
+$invalid=$page;$invalid['blocks'][2]['presentation']='random-css';
+try {$schema->validateValues($invalid);throw new RuntimeException('Unknown guided layout accepted');} catch(InvalidArgumentException $e) {}
+
 foreach(array_keys(StarterSiteCatalog::REFERENCES) as $theme) {
     $p=Presentation::forTheme($theme,['hero_image_url'=>'https://example.org/hero.webp']);
     $html=(new PublicPageRenderer())->render(['name'=>'Démonstration'],$page,$p,$p['css_url']);
@@ -33,7 +39,8 @@ foreach(array_keys(StarterSiteCatalog::REFERENCES) as $theme) {
         && str_contains($html,'<summary class="d-orientation__select"')
         && str_contains($html,'data-dendrila-orientation')
         && str_contains($html,'data-orientation-choice')
-        && str_contains($html,'id="assistant"'),'Interactive orientation markup visible: '.$theme);
+        && str_contains($html,'id="assistant"')
+        && str_contains($html,'data-orientation-presentation="list"'),'Presentation-aware orientation markup visible: '.$theme);
     nativeCheck(str_contains($html,'class="d-image-text"')
         && str_contains($html,'Une équipe humaine'),'Editable illustrated text rendered: '.$theme);
     nativeCheck(str_contains($html,'d-hero__brand-image')
@@ -45,7 +52,7 @@ catch(InvalidArgumentException $e){}
 $bad=$page;$bad['blocks'][3]['image_url']='javascript:alert(1)';
 try{$schema->validateValues($bad);throw new RuntimeException('Unsafe image URL accepted');}
 catch(InvalidArgumentException $e){}
-nativeCheck(str_contains((string)file_get_contents(dirname(__DIR__).'/src/BackOffice/View.php'),'Assistant d’orientation'),
+nativeCheck(str_contains((string)file_get_contents(dirname(__DIR__).'/src/BackOffice/View.php'),'Parcours guidé'),
     'Block must be selectable in any site backoffice.');
 nativeCheck(str_contains((string)file_get_contents(dirname(__DIR__).'/public/assets/guided-assistant.js'),'toggle'),
     'Script enhances native disclosure without disabling its no-JavaScript fallback.');
