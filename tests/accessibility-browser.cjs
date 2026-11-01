@@ -15,8 +15,20 @@ module.exports=async function accessibility(page){
  assert.equal(await page.locator('html').getAttribute('data-reading-size'),'200');
  assert.equal(await page.locator('html').evaluate(el=>getComputedStyle(el).fontSize),'32px');
  assert(await page.locator('.d-hero,.d-hero__grid,.d-hero__copy,.d-hero__media,.d-cta-band,.d-section__heading').evaluateAll(elements=>elements.every(el=>['::before','::after'].every(p=>getComputedStyle(el,p).display==='none'))),'Simplified mode removes theme decoration');
- const pair=await opener.evaluate(el=>[getComputedStyle(el).color,getComputedStyle(el).backgroundColor]);
- assert.deepEqual(pair,['rgb(255, 255, 255)','rgb(17, 17, 17)']);
+ // Both dark-on-light and light-on-dark satisfy the simplified reading mode.
+ // Test legibility instead of requiring one brand-specific color arrangement.
+ const contrast=await opener.evaluate(el=>{
+  const css=getComputedStyle(el);
+  const luminance=(color)=>{
+   const parts=color.match(/[\\d.]+/g).slice(0,3).map(Number).map(v=>{
+    v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4;
+   });
+   return .2126*parts[0]+.7152*parts[1]+.0722*parts[2];
+  };
+  const a=luminance(css.color),b=luminance(css.backgroundColor);
+  return (Math.max(a,b)+.05)/(Math.min(a,b)+.05);
+ });
+ assert(contrast>=7,'The eye control must meet AAA contrast in simplified reading mode');
  assert(await dialog.evaluate(el=>el.scrollWidth<=el.clientWidth+1),'Settings fit the screen with increased text');
  await page.keyboard.press('Escape');
  assert.equal(await page.locator(':focus').getAttribute('id'),'d-reading-open');
