@@ -46,7 +46,7 @@ final class BrandTokenCompiler
     public function assets(array $brand): array
     {
         $assets = [];
-        foreach (['logo_url', 'wordmark_url'] as $key) {
+        foreach (['logo_url', 'wordmark_url', 'hero_image_url'] as $key) {
             if (isset($brand[$key])) {
                 $assets[$key] = $brand[$key];
             }

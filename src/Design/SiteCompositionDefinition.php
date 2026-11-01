@@ -11,7 +11,7 @@ final readonly class SiteCompositionDefinition
         'primary', 'secondary', 'primary_strong', 'background', 'surface',
         'text', 'muted', 'accent_soft', 'border',
     ];
-    private const URL_KEYS = ['logo_url', 'wordmark_url'];
+    private const URL_KEYS = ['logo_url', 'wordmark_url', 'hero_image_url'];
     private const FONT_KEYS = ['heading_font', 'body_font'];
     private const FONT_CHOICES = [
         'neutral-sans', 'humanist-sans', 'editorial-serif', 'system-serif',

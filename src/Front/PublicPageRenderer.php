@@ -138,6 +138,7 @@ final readonly class PublicPageRenderer
             . (isset($presentation['support_css_url']) ? '<link rel="stylesheet" href="'.self::escape(self::safeAssetUrl($presentation['support_css_url'])).'">' : '')
             . '<style data-dendrila-presentation>' . $compiledCss . '</style>'
             . '<link rel="stylesheet" href="/assets/accessibility.css?v=2"><script src="/assets/accessibility.js?v=2" defer></script>'
+            . '<script src="/assets/guided-assistant.js?v=1" defer></script>'
             . '</head><body ' . $attributes . '>'
             . '<a class="d-skip-link" href="#contenu">' . ($language === 'en' ? 'Skip to content' : 'Aller au contenu') . '</a>'
             . '<header class="d-header"><div class="d-shell d-header__inner">'
@@ -146,7 +147,8 @@ final readonly class PublicPageRenderer
             . $this->renderMobileNavigation($navigation, $language)
             . '<div id="d-reading-toolbar-anchor" class="d-reading-header-anchor"></div>'
             . '</div></header><main id="contenu">'
-            . $this->renderHero($title, $tagline, $hero, $mediaUrls, $supportedShapes, $structure, $theme['id'], ($page['slug'] ?? 'home') === 'home')
+            . $this->renderHero($title, $tagline, $hero, $mediaUrls, $supportedShapes, $structure, $theme['id'], ($page['slug'] ?? 'home') === 'home',
+                $presentation['brand_assets']['hero_image_url'] ?? null)
             // Minimal kit has a real two-column index, not a faux grid spread over
             // many implicit rows. Other themes keep their existing DOM structure.
             . ($theme['id'] === 'very-minimal' ? '<div class="d-main-content">' : '')
@@ -177,32 +179,40 @@ final readonly class PublicPageRenderer
 
     private function extractHero(array $blocks, string $heroLayout): array
     {
-        $introIndex = null; $mediaIndex = null; $ctaIndex = null;
+        $introIndex = null; $mediaIndex = null; $ctaIndex = null; $secondaryCtaIndex = null;
         foreach ($blocks as $index => $block) {
             if (!is_array($block) || !is_string($block['type'] ?? null)) continue;
             if ($introIndex === null && in_array($block['type'], ['text', 'rich_text'], true)) $introIndex = $index;
             if ($mediaIndex === null && in_array($heroLayout, ['split', 'media_first'], true) && $block['type'] === 'image') $mediaIndex = $index;
-            if ($ctaIndex === null && $index <= 2 && $block['type'] === 'cta') $ctaIndex = $index;
+            if ($index <= 3 && $block['type'] === 'cta') {
+                if($ctaIndex === null)$ctaIndex=$index;
+                elseif($secondaryCtaIndex===null)$secondaryCtaIndex=$index;
+            }
         }
         $hero = [
             'intro' => $introIndex !== null ? $blocks[$introIndex] : null,
             'media' => $mediaIndex !== null ? $blocks[$mediaIndex] : null,
             'cta' => $ctaIndex !== null ? $blocks[$ctaIndex] : null,
+            'secondary_cta' => $secondaryCtaIndex !== null ? $blocks[$secondaryCtaIndex] : null,
         ];
-        $consumed = array_filter([$introIndex, $mediaIndex, $ctaIndex], static fn ($value): bool => $value !== null);
+        $consumed = array_filter([$introIndex, $mediaIndex, $ctaIndex, $secondaryCtaIndex], static fn ($value): bool => $value !== null);
         $body = [];
         foreach ($blocks as $index => $block) if (!in_array($index, $consumed, true)) $body[] = $block;
         return [$hero, $body];
     }
 
-    private function renderHero(string $title, string $tagline, array $hero, array $mediaUrls, array $supportedShapes, array $structure, string $themeId, bool $isHome): string
+    private function renderHero(string $title, string $tagline, array $hero, array $mediaUrls, array $supportedShapes, array $structure, string $themeId, bool $isHome, ?string $heroBrandImage=null): string
     {
         $intro = '';
         if (is_array($hero['intro'])) {
             $intro = '<p class="d-lead">' . nl2br(self::escape(self::longText($hero['intro']['text'] ?? null, 'hero text')), false) . '</p>';
         }
         $eyebrow = $tagline !== '' ? '<p class="d-eyebrow">' . self::escape($tagline) . '</p>' : '';
-        $cta = is_array($hero['cta']) ? '<div class="d-actions">' . $this->renderCtaLink($hero['cta']) . '</div>' : '';
+        $buttons=[];
+        foreach(['cta','secondary_cta'] as $key) {
+            if(is_array($hero[$key]??null))$buttons[]=$this->renderCtaLink($hero[$key]);
+        }
+        $cta=$buttons!==[]?'<div class="d-actions">'.implode('', $buttons).'</div>':'';
         $media = '';
         if (is_array($hero['media']) && $structure['hero'] !== 'minimal') {
             $media = '<div class="d-hero__media">' . $this->renderMediaFrame($hero['media'], $mediaUrls, $supportedShapes, true) . '</div>';
@@ -210,6 +220,13 @@ final readonly class PublicPageRenderer
         // Theme-owned artwork makes empty homepages visually distinct without
         // pretending the site has uploaded content or creating fake media records.
         // It disappears when the editor provides an actual hero image.
+        if ($media === '' && $isHome && is_string($heroBrandImage)
+            && $heroBrandImage !== '') {
+            $src=self::safeAssetUrl($heroBrandImage);
+            $media='<div class="d-hero__media d-hero__media--brand">'
+                .'<img class="d-hero__brand-image" src="'.self::escape($src).'"'
+                .' alt="" loading="eager" decoding="async"></div>';
+        }
         if ($media === '' && $isHome) {
             // Explicitly licensed local photos belonging to the theme kit, not
             // remote requests or generated artwork; see docs/PHOTO-SOURCES.md.
@@ -261,6 +278,11 @@ final readonly class PublicPageRenderer
                 . $this->renderSectionHeading($block) . $this->renderSteps($block) . '</div></section>',
             'pricing' => '<section class="' . $sectionClass . '"><div class="d-shell">'
                 . $this->renderSectionHeading($block) . $this->renderPricing($block) . '</div></section>',
+            'guided_assistant' => '<section id="assistant" class="' . $sectionClass . '"><div class="d-shell">'
+                . $this->renderSectionHeading($block) . $this->renderGuidedAssistant($block)
+                . '</div></section>',
+            'image_text' => '<section class="' . $sectionClass . '"><div class="d-shell">'
+                . $this->renderImageText($block) . '</div></section>',
             'contact_form' => '<section class="' . $sectionClass . '"><div class="d-shell">'
                 . $this->renderSectionHeading($block) . $this->renderContactForm($site, $locale)
                 . '</div></section>',
@@ -271,6 +293,42 @@ final readonly class PublicPageRenderer
                 . '</div></div></section>',
             default => throw new InvalidArgumentException("Unsupported public block type '{$type}'."),
         };
+    }
+
+    /** A client-side, deterministic orientation tool: no automatic AI or network calls. */
+    private function renderGuidedAssistant(array $block):string
+    {
+        $intro=self::escape(self::longText($block['text']??'', 'guided assistant introduction'));
+        $choices=[];
+        foreach(self::items($block,'guided assistant') as $index=>$item){
+            $title=self::shortText($item['title']??null,'choice label',280);
+            $advice=self::longText($item['text']??null,'choice advice');
+            $url=self::safeLinkUrl((string)($item['url']??'/contact'));
+            $choices[]='<details class="d-orientation__option" data-orientation-choice>'
+                .'<summary class="d-orientation__select">'
+                .self::escape($title).'<span aria-hidden="true"> →</span></summary>'
+                .'<div class="d-orientation__answer">'
+                .'<p>'.nl2br(self::escape($advice),false).'</p>'
+                .'<a class="d-button" href="'.self::escape($url).'">Continuer</a>'
+                .'</div></details>';
+        }
+        return '<div class="d-orientation" data-dendrila-orientation>'
+            .'<p class="d-orientation__intro">'.$intro.'</p>'
+            .'<div class="d-orientation__choices">'.implode('', $choices).'</div>'
+            .'<p class="d-orientation__privacy">Un parcours guidé sans IA obligatoire. '
+            .'Votre choix reste sur cet appareil ; rien n’est transmis automatiquement.</p>'
+            .'</div>';
+    }
+
+    private function renderImageText(array $block):string
+    {
+        $heading=self::escape(self::shortText($block['heading']??null,'image text heading',1000));
+        $src=self::escape(self::safeAssetUrl($block['image_url']??''));
+        $alt=self::escape(self::shortText($block['alt']??'','image text alt',500,true));
+        $body=self::escape(self::longText($block['text']??'','image text content'));
+        return '<div class="d-image-text"><div class="d-image-text__copy">'
+            .'<h2 class="d-heading">'.$heading.'</h2><p>'.nl2br($body,false).'</p></div>'
+            .'<img loading="lazy" decoding="async" src="'.$src.'" alt="'.$alt.'"></div>';
     }
 
     /** Native contact form, disabled explicitly for read-only previews. */

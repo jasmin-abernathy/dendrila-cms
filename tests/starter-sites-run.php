@@ -121,8 +121,8 @@ foreach($required as $style=>$expected) {
   if ($slug==='home') {
    $ctaBlocks=array_values(array_filter($page['blocks'],
        static fn(array $block):bool=>($block['type']??null)==='cta'));
-   assertStarter(count($ctaBlocks)===2,
-       'Every homepage has a hero CTA and a visible concluding CTA: '.$style);
+   assertStarter(count($ctaBlocks)===($style==='ultra-minimal'?3:2),
+       'Every homepage has a hero CTA and a visible concluding CTA; very-minimal has two hero actions: '.$style);
    assertStarter(($page['blocks'][count($page['blocks'])-1]['type']??null)==='cta',
        'Concluding CTA must be the final editable section: '.$style);
    assertStarter(str_contains($html,'class="d-home-tile d-home-tile--cta"'),
@@ -139,6 +139,6 @@ foreach($required as $style=>$expected) {
  $renderedNav=InstallThemePreview::navigation('empty',$style);
  assertStarter(count($renderedNav)===count($pages),'All starter routes previewable');
 }
-assertStarter($pagesTotal===40&&$blocksTotal===111,'The six starters contain exactly 40 editable pages and 111 sections');
+assertStarter($pagesTotal===40&&$blocksTotal===115,'The six starters contain exactly 40 editable pages and 115 sections');
 echo "Starter sites: $pagesTotal CMS pages, $blocksTotal sections, six styles; draft/public states, links and renders OK\n";
 

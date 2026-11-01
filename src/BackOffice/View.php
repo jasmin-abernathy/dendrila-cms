@@ -290,7 +290,7 @@ final readonly class View
             $html.='</section>';
         }
         if($can){$html.='<form method="post" action="'.self::h($this->config->basePath).'">'.$hidden.'<input type="hidden" name="action" value="change_block"><input type="hidden" name="operation" value="add"><label>Ajouter un bloc<select name="type">';
-            foreach(['text'=>'Texte','rich_text'=>'Texte avec retours à la ligne','embed_safe'=>'Contenu externe avec consentement','cta'=>'Bouton','cards'=>'Cartes','faq'=>'Questions et réponses','key_values'=>'Informations','statistics'=>'Chiffres','steps'=>'Étapes','pricing'=>'Tarifs'] as $key=>$label)$html.='<option value="'.$key.'">'.$label.'</option>';
+            foreach(['text'=>'Texte','rich_text'=>'Texte avec retours à la ligne','embed_safe'=>'Contenu externe avec consentement','cta'=>'Bouton','cards'=>'Cartes','faq'=>'Questions et réponses','key_values'=>'Informations','statistics'=>'Chiffres','steps'=>'Étapes','pricing'=>'Tarifs','image_text'=>'Présentation avec photo','guided_assistant'=>'Assistant d’orientation'] as $key=>$label)$html.='<option value="'.$key.'">'.$label.'</option>';
             if($this->media)$html.='<option value="gallery">Galerie</option>';
             if($media!==[])$html.='<option value="image">Photo</option>';
             $html.='</select></label>';if($media!==[]){$html.='<label>Photo (pour un bloc photo)<select name="media_id">';foreach($media as $photo)$html.='<option value="'.self::h($photo['id']).'">'.self::h($photo['title']).'</option>';$html.='</select></label>';}

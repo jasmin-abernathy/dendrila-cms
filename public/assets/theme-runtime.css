@@ -18,3 +18,30 @@ body[data-dendrila-theme]{margin:0}
 .d-pricing__amount{font-size:clamp(1.4rem,3vw,2rem);line-height:1.2;overflow-wrap:anywhere}
 .d-pricing__card .d-button{margin-top:auto}
 @media(prefers-contrast:more){.d-pricing__card,.d-step{border-width:2px}}
+
+/* Native guided orientation. Works in any theme; no external script or AI. */
+.d-orientation{max-width:70rem;margin-inline:auto}
+.d-orientation__intro{max-width:65ch;margin:0 0 1.5rem;line-height:1.65}
+.d-orientation__choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(.8rem,2vw,1.2rem)}
+.d-orientation__option{min-width:0;padding:clamp(1rem,2vw,1.5rem);border:1px solid var(--dendrila-color-border,#d5d5d5);border-radius:.8rem;background:var(--dendrila-color-surface,#fff)}
+.d-orientation__select{display:flex;align-items:center;justify-content:space-between;gap:.9rem;min-height:48px;width:100%;padding:.5rem 0;border:0;background:transparent;color:var(--dendrila-color-text,#111);font:700 clamp(1rem,2vw,1.15rem)/1.35 system-ui,sans-serif;text-align:left;cursor:pointer}
+.d-orientation__select{list-style:none}
+.d-orientation__select::-webkit-details-marker{display:none}
+.d-orientation__select:focus-visible{outline:3px solid currentColor;outline-offset:3px}
+.d-orientation__option[open]{border-color:var(--dendrila-color-primary,#333)}
+.d-orientation__option:not([open]) .d-orientation__answer{display:none}
+.d-orientation__answer{padding-top:1rem;border-top:1px solid var(--dendrila-color-border,#ddd)}
+.d-orientation__answer p{line-height:1.6;margin:0 0 1rem}
+.d-orientation__privacy{font-size:.87rem;opacity:.85;margin:1.1rem 0 0}
+.d-image-text{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:clamp(1.5rem,5vw,5rem);align-items:center;min-width:0}
+.d-image-text__copy{min-width:0}
+.d-image-text__copy>p{font-size:clamp(1rem,1.5vw,1.12rem);line-height:1.8;max-width:64ch}
+.d-image-text img{display:block;width:100%;height:100%;max-height:32rem;min-height:16rem;object-fit:cover;border-radius:clamp(.4rem,1vw,.8rem)}
+@media(max-width:48rem){
+.d-orientation__choices{grid-template-columns:minmax(0,1fr)}
+.d-image-text{grid-template-columns:minmax(0,1fr)}
+.d-image-text img{order:-1;min-height:13rem;max-height:19rem}
+}
+html.d-reading-readable .d-orientation__option,
+html.d-reading-readable .d-image-text{background:#fff!important;color:#111!important}
+html.d-reading-readable .d-orientation__select{color:#111!important;background:#fff!important}

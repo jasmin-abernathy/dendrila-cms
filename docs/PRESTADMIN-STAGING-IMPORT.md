@@ -74,3 +74,35 @@ de destination valide et le transport mail du serveur n'ont pas
   une base autre que SQLite, et ne doit pas écraser les pages déjà
   éditées indépendamment par le propriétaire.
 - Les identifiants et la configuration privée sont hors Git.
+
+## Rééquilibrage natif de l'accueil (novembre 2026)
+
+L'ancienne maquette importée ressemblait à une liste en deux colonnes plutôt
+qu'au véritable Prestadmin. Correction dans le **kit de base Très minimal**
+du dépôt `dendrila-design-kits` : bandeau avec deux colonnes et image
+configurable, grille de quatre prestations, section ressources et données
+administratives, bénéfices, présentation avec image, CTA pleine largeur et
+responsive. La mise en page s'appuie sur les blocs Dendrila, sans CSS spécifique
+au domaine Prestadmin ni copie de l'ancienne page HTML.
+
+Prestadmin-test utilise désormais :
+- `hero_image_url` dans les réglages natifs d'apparence, pointant vers son
+  image de bandeau locale d'origine ;
+- les blocs `cards` pour facturation électronique/RGPD et prestations ;
+- `key_values` pour les bénéfices ;
+- `image_text` pour la présentation illustrée, avec la photo Pexels déjà
+  employée dans le vrai site, recopiée dans les actifs du test ;
+- `guided_assistant` pour « Assistant Prestadmin », avec trois choix
+  orientant vers les vraies pages de services, facturation ou contact ;
+- deux boutons natifs dans le bandeau, dont « Être guidé dans ma demande ».
+
+L'assistant natif est un parcours de premier niveau sans transmission ni IA
+imposée. Il ne remplace pas encore le parcours complet « Le Jardinier »
+conditionnel du Potager. Les contenus Prestadmin restent des révisions dans
+sa base SQLite et peuvent être modifiés dans le back-office. Aucun changement
+n'a été apporté à la production ni aux secrets du propriétaire.
+
+Le kit comprend aussi une photo Pexels localement servie en WebP pour les
+**futures** installations « Très minimal ». Le site Prestadmin-test conserve
+ses propres actifs de marque, sans injecter son logo ou ses couleurs comme
+valeurs obligatoires pour les autres propriétaires de Dendrila.

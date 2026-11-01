@@ -10,12 +10,15 @@ final class BlockEditor
         'gallery'=>['heading'=>'Titre de la galerie','alt'=>'Description de la galerie'],
         'cta'=>['label'=>'Texte du bouton','url'=>'Destination'],
         'contact_form'=>['heading'=>'Titre du formulaire'],
+        'guided_assistant'=>['heading'=>'Titre de l’assistant','text'=>'Introduction'],
+        'image_text'=>['heading'=>'Titre','text'=>'Texte','image_url'=>'Adresse HTTPS de l’image','alt'=>'Description alternative'],
         'embed_safe'=>['provider'=>'Fournisseur','url'=>'Adresse','label'=>'Libellé','heading'=>'Titre'],
         'cards'=>['heading'=>'Titre'],'faq'=>['heading'=>'Titre'],
         'key_values'=>['heading'=>'Titre'],'statistics'=>['heading'=>'Titre'],
         'steps'=>['heading'=>'Titre'],'pricing'=>['heading'=>'Titre'],
     ];
     public const ITEMS=['cards'=>['title'=>'Titre','text'=>'Texte','url'=>'Lien','media_id'=>'Photo'],
+        'guided_assistant'=>['title'=>'Choix','text'=>'Conseil affiché','url'=>'Lien conseillé'],
         'faq'=>['question'=>'Question','answer'=>'Réponse'],
         'key_values'=>['label'=>'Libellé','value'=>'Valeur'],
         'statistics'=>['label'=>'Libellé','value'=>'Valeur','note'=>'Précision'],
@@ -30,6 +33,7 @@ final class BlockEditor
                 if(!is_string($edit[$key])||strlen($edit[$key])>($key==='text'?100000:2000))throw new \InvalidArgumentException('Champ de bloc invalide.');
                 if($key==='media_id'&&!in_array($edit[$key],$allowedMedia,true))throw new \InvalidArgumentException('Photo inconnue.');
                 if($key==='url'&&$edit[$key]!=='')self::link($edit[$key]);
+                if($key==='image_url'&&$edit[$key]!=='' && !((str_starts_with($edit[$key],'/')&&!str_starts_with($edit[$key],'//'))||(filter_var($edit[$key],FILTER_VALIDATE_URL) && parse_url($edit[$key],PHP_URL_SCHEME)==='https')))throw new \InvalidArgumentException('Image HTTPS requise.');
                 if($key==='provider'&&!in_array($edit[$key],['youtube-nocookie','vimeo','openstreetmap'],true))throw new \InvalidArgumentException('Fournisseur non pris en charge.');
                 $block[$key]=$edit[$key];
             }
@@ -74,7 +78,12 @@ final class BlockEditor
         $items=$block['items'];
         if($operation==='add_item'){
             if(count($items)>=50)throw new \InvalidArgumentException('Une collection contient au maximum 50 éléments.');
-            $item=array_fill_keys(array_keys(self::ITEMS[$block['type']]),'');unset($item['media_id'],$item['url']);$items[]=$item;
+            $item=array_fill_keys(array_keys(self::ITEMS[$block['type']]),'');
+            unset($item['media_id'],$item['url']);
+            if($block['type']==='guided_assistant'){
+                $item=['title'=>'Nouveau choix','text'=>'Présentez la prochaine étape conseillée.','url'=>'/contact'];
+            }
+            $items[]=$item;
         }else{
             if(!isset($items[$index]))throw new \InvalidArgumentException('Élément introuvable.');
             if($operation==='remove_item')array_splice($items,$index,1);
@@ -88,6 +97,8 @@ final class BlockEditor
         return match($type){'text','rich_text'=>['type'=>$type,'text'=>''], 'gallery'=>['type'=>'gallery','media_ids'=>[]],
             'embed_safe'=>['type'=>'embed_safe','provider'=>'youtube-nocookie','url'=>'','label'=>'','heading'=>''],
             'cta'=>['type'=>'cta','label'=>'En savoir plus','url'=>'/'],
+            'guided_assistant'=>['type'=>'guided_assistant','heading'=>'Je vous aide à choisir','text'=>'Choisissez ce qui correspond le mieux à votre besoin.','items'=>[['title'=>'Un projet','text'=>'Décrivez votre projet.','url'=>'/contact']]],
+            'image_text'=>['type'=>'image_text','heading'=>'Présentation','text'=>'Présentez votre démarche.','image_url'=>'/design-kits/themes/very-minimal/assets/office.webp','alt'=>'Un espace de travail'],
             'contact_form'=>['type'=>'contact_form','heading'=>'Envoyer un message'],
             'cards','faq','key_values','statistics','steps','pricing'=>['type'=>$type,'heading'=>'','items'=>[]],
             default=>throw new \InvalidArgumentException('Type de bloc non disponible.')};

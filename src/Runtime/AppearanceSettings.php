@@ -22,7 +22,7 @@ final class AppearanceSettings
         'neutral-sans'=>'Sans serif neutre', 'humanist-sans'=>'Sans serif humaniste',
         'editorial-serif'=>'Serif éditoriale', 'system-serif'=>'Serif système',
     ];
-    public const ASSETS = ['logo_url'=>'URL du logo', 'wordmark_url'=>'URL du logotype'];
+    public const ASSETS = ['logo_url'=>'URL du logo', 'wordmark_url'=>'URL du logotype', 'hero_image_url'=>'Image du bandeau (HTTPS)'];
     public const THEMES = [
         'simple-illustrated'=>'Simple avec quelques illustrations',
         'quiet-elegant'=>'Sobre et élégant', 'image-forward'=>'Centré sur les images',
