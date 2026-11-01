@@ -127,8 +127,17 @@ def run(archive: Path):
             def submit(fields):
                 _, current = get(opener, "/install.php")
                 fields["csrf"] = re.search(r'name="csrf" value="([a-f0-9]{64})"', current).group(1)
-                with opener.open(BASE + "/install.php", data=urlencode(fields, doseq=True).encode(), timeout=20) as response:
-                    return response.read().decode()
+                try:
+                    with opener.open(BASE + "/install.php", data=urlencode(fields, doseq=True).encode(), timeout=20) as response:
+                        return response.read().decode()
+                except HTTPError as error:
+                    details = error.read().decode("utf-8", "replace")
+                    # Account credentials and the TOTP code are never included in diagnostics.
+                    alert = re.search(r'<p class="notice" role="alert">([^<]+)</p>', details)
+                    raise AssertionError(
+                        "Wizard rejected step with HTTP " + str(error.code) +
+                        ": " + (alert.group(1) if alert else "no visible validation reason")
+                    ) from None
             submit({"theme": "editorial"})
             account = submit({"addons[]": ["media", "forum"], "guided_journey": "none", "guided_presentation": "cards"})
             assert 'Adresse HTTPS du site' not in account, "Site origin should not be entered manually"
