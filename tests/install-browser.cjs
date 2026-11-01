@@ -6,7 +6,7 @@ const php=process.env.PHP_BINARY||'php';
  fs.mkdirSync('build/test-artifacts',{recursive:true});
  const browser=await chromium.launch({executablePath:process.env.CHROMIUM_EXECUTABLE||undefined,headless:true,args:['--no-sandbox']});
  // Requests stay on loopback. A synthetic, DNS-shaped Host exercises HTTPS origin derivation.
- const context=await browser.newContext({viewport:{width:1280,height:900},extraHTTPHeaders:{Host:'atelier.example.test'}});
+ const context=await browser.newContext({viewport:{width:1280,height:900}});
  const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
  try {
   await page.goto('http://127.0.0.1:8080/install.php');
