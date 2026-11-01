@@ -56,7 +56,7 @@ $guide=[
         ['title'=>'Préparer la facturation électronique',
          'text'=>'Vous pouvez consulter les étapes de préparation de la liste clients et les tarifs avant toute commande.','url'=>'/facturation-electronique'],
         ['title'=>'Un besoin particulier ou urgent',
-         'text'=>'Expliquez la situation via la page de contact : un échange humain permettra de définir la bonne intervention.','url'=>'/contact'],
+         'text'=>'Décrivez votre situation depuis la page Contact : Prestadmin précisera les tâches à réaliser et les modalités d’intervention.','url'=>'/contact'],
     ],
 ];
 $revised=[];$didIntro=false;$didAbout=false;$didGuide=false;
