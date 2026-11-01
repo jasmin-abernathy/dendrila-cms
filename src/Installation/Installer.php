@@ -37,7 +37,11 @@ final class Installer
     public static function install(array $state,array $account,string $directory):void {
         if(!isset(Catalog::themes()[$state['theme']??'']))throw new \InvalidArgumentException('Thème inconnu.');
         \Dendrila\Cms\Runtime\Presentation::forTheme($state['theme']);
-        $starterPages=StarterSiteCatalog::validatedPages($state['theme']);
+        $starterPages=StarterSiteCatalog::installationPages(
+            $state['theme'],
+            ($state['guided_journey']??'none')==='guided',
+            (string)($state['guided_presentation']??'cards'),
+        );
         $addons=Catalog::selection($state['addons']??[]);
         foreach(Catalog::requirements($addons)['extensions'] as $ext)if(!extension_loaded($ext))throw new \RuntimeException('Extension PHP manquante : '.$ext);
         $name=trim($account['name']??'');$email=strtolower(trim($account['email']??''));$password=$account['password']??'';

@@ -139,7 +139,7 @@ final readonly class ContentTypeDefinition
             'gallery' => ['type', 'media_ids', 'alt', 'heading'],
             'cta' => ['type', 'label', 'url'],
             'contact_form' => ['type', 'heading'],
-            'guided_assistant' => ['type', 'heading', 'text', 'items'],
+            'guided_assistant' => ['type', 'heading', 'text', 'items', 'presentation'],
             'image_text' => ['type', 'heading', 'text', 'image_url', 'alt'],
             'cards' => ['type', 'items', 'heading'],
             'faq' => ['type', 'items', 'heading'],
@@ -166,6 +166,8 @@ final readonly class ContentTypeDefinition
                 || !is_string($block['alt']??null)
                 || strlen($block['alt'])>500
                 || !self::safeAssetBlockUrl($block['image_url']??null))) return false;
+            if ($type === 'guided_assistant' && isset($block['presentation'])
+                && !in_array($block['presentation'], ['cards', 'list', 'compact'], true)) return false;
             if ($type === 'guided_assistant' && (
                 !is_string($block['heading']??null)
                 || !is_string($block['text']??null)

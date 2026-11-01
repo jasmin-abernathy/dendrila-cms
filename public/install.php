@@ -93,6 +93,12 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
                 $state['step']=2;break;
             case 2:
                 $state['addons']=Catalog::selection($_POST['addons']??[]);
+                $journey=is_string($_POST['guided_journey']??null)?$_POST['guided_journey']:'none';
+                $presentation=is_string($_POST['guided_presentation']??null)?$_POST['guided_presentation']:'cards';
+                if(!in_array($journey,['none','guided'],true)||!in_array($presentation,['cards','list','compact'],true))
+                    throw new InvalidArgumentException('Choix de parcours invalide.');
+                $state['guided_journey']=$journey;
+                $state['guided_presentation']=$presentation;
                 $requirements=Catalog::requirements($state['addons']);
                 foreach($requirements['extensions'] as $ext)
                     if(!extension_loaded($ext))throw new InvalidArgumentException('Extension PHP à activer : '.$ext);
@@ -182,6 +188,18 @@ case 2:
     $body.='<h2>De quoi avez-vous besoin ?</h2><p>Pages, menu et administration sont inclus. La médiathèque est précochée pour les thèmes illustrés, mais vous pouvez la décocher.</p>'
         .'<p class="notice"><strong>Stockage local automatique :</strong> pour ce site, Dendrila utilisera SQLite dans son dossier privé. Vous n’avez aucune base externe à créer ni aucun identifiant SQL à fournir.</p>';
     foreach(Catalog::addons() as $id=>$module)$body.='<label class="addon-card"><input type="checkbox" name="addons[]" value="'.$id.'"'.(in_array($id,$state['addons']??[],true)?' checked':'').'><span><strong>'.App::h($module['label']).'</strong><br>'.App::h($module['description']).'</span></label>';
+    $body.='<fieldset class="setup-guided-choice"><legend>Contact et orientation</legend>'
+        .'<p>Le formulaire classique reste disponible. Vous pouvez aussi ajouter un parcours guidé, sans IA ni service externe.</p>'
+        .'<label class="addon-card"><input type="radio" name="guided_journey" value="none"'
+        .((($state['guided_journey']??'none')==='none')?' checked':'')
+        .'> <span><strong>Formulaire classique uniquement</strong><br>Pas de parcours guidé sur l’accueil.</span></label>'
+        .'<label class="addon-card"><input type="radio" name="guided_journey" value="guided"'
+        .((($state['guided_journey']??'none')==='guided')?' checked':'')
+        .'> <span><strong>Ajouter un parcours guidé</strong><br>Questions et réponses personnalisables, quel que soit le thème.</span></label>'
+        .'<label class="field">Présentation du parcours (si activé)<select name="guided_presentation">';
+    foreach(['cards'=>'Cartes','list'=>'Liste','compact'=>'Compacte'] as $id=>$label)
+        $body.='<option value="'.$id.'"'.(($state['guided_presentation']??'cards')===$id?' selected':'').'>'.$label.'</option>';
+    $body.='</select></label></fieldset>';
     $body.='<div class="addon-card addon-card--unavailable" role="group" aria-labelledby="booking-addon-title">'
         .'<label><input type="checkbox" disabled aria-describedby="booking-addon-status"> '
         .'<strong id="booking-addon-title">Réservations (Booking)</strong></label>'

@@ -45,3 +45,11 @@ body[data-dendrila-theme]{margin:0}
 html.d-reading-readable .d-orientation__option,
 html.d-reading-readable .d-image-text{background:#fff!important;color:#111!important}
 html.d-reading-readable .d-orientation__select{color:#111!important;background:#fff!important}
+
+/* Optional guided journey: independent of the visual theme. */
+.d-orientation[data-orientation-presentation="list"] .d-orientation__choices{grid-template-columns:1fr!important;max-width:62rem}
+.d-orientation[data-orientation-presentation="list"] .d-orientation__option{border-radius:.25rem;padding:.75rem 1.2rem}
+.d-orientation[data-orientation-presentation="compact"] .d-orientation__choices{grid-template-columns:repeat(auto-fit,minmax(min(100%,12rem),1fr))!important;gap:.65rem}
+.d-orientation[data-orientation-presentation="compact"] .d-orientation__option{padding:.65rem .9rem;border-radius:.35rem}
+.d-orientation[data-orientation-presentation="compact"] .d-orientation__select{font-size:1rem;min-height:42px}
+@media(max-width:38rem){.d-orientation[data-orientation-presentation] .d-orientation__choices{grid-template-columns:1fr!important}}

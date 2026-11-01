@@ -312,7 +312,9 @@ final readonly class PublicPageRenderer
                 .'<a class="d-button" href="'.self::escape($url).'">Continuer</a>'
                 .'</div></details>';
         }
-        return '<div class="d-orientation" data-dendrila-orientation>'
+        $layout=$block['presentation']??'cards';
+        if(!in_array($layout,['cards','list','compact'],true))throw new InvalidArgumentException('Invalid guided layout.');
+        return '<div class="d-orientation" data-dendrila-orientation data-orientation-presentation="'.self::escape($layout).'">'
             .'<p class="d-orientation__intro">'.$intro.'</p>'
             .'<div class="d-orientation__choices">'.implode('', $choices).'</div>'
             .'<p class="d-orientation__privacy">Un parcours guidé sans IA obligatoire. '

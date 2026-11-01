@@ -288,6 +288,51 @@ final class StarterSiteCatalog
         };
     }
 
+    /** Make guided orientation opt-in without changing the editable starter's design. */
+    public static function installationPages(string $style, bool $guided = false, string $presentation = 'cards'): array
+    {
+        if (!in_array($presentation, ['cards', 'list', 'compact'], true)) {
+            throw new \InvalidArgumentException('Invalid guided presentation.');
+        }
+        $pages = self::validatedPages($style);
+        foreach ($pages as &$page) {
+            if ($page['slug'] !== 'home') continue;
+            $old = $page['blocks'];
+            $blocks = array_values(array_filter($old, static fn(array $block): bool =>
+                ($block['type'] ?? '') !== 'guided_assistant'
+                && !(($block['type'] ?? '') === 'cta' && ($block['url'] ?? '') === '/#assistant')
+            ));
+            if ($guided) {
+                $assistant = null;
+                foreach ($old as $block) {
+                    if (($block['type'] ?? '') === 'guided_assistant') { $assistant = $block; break; }
+                }
+                $assistant ??= [
+                    'type' => 'guided_assistant', 'heading' => 'Parcours guidé',
+                    'text' => 'Choisissez votre situation pour trouver une prochaine étape utile.',
+                    'items' => [
+                        ['title' => 'Je cherche une information', 'text' => 'Consultez les informations pratiques ou posez votre question.', 'url' => '/contact'],
+                        ['title' => 'Je prépare une demande', 'text' => 'Présentez votre besoin pour définir les étapes utiles.', 'url' => '/contact'],
+                    ],
+                ];
+                $assistant['presentation'] = $presentation;
+                $index = count($blocks);
+                if ($index && ($blocks[$index - 1]['type'] ?? null) === 'cta') $index--;
+                array_splice($blocks, $index, 0, [$assistant]);
+            }
+            $page['blocks'] = $blocks;
+        }
+        unset($page);
+        $schema = new ContentTypeDefinition(json_decode(
+            (string) file_get_contents(dirname(__DIR__, 2) . '/examples/content-types/page.json'),
+            true, 512, JSON_THROW_ON_ERROR,
+        ));
+        foreach ($pages as $page) $schema->validateValues([
+            'title' => $page['title'], 'slug' => $page['slug'], 'blocks' => $page['blocks'],
+        ]);
+        return $pages;
+    }
+
     public static function navigation(string $style): array
     {
         $items=[];

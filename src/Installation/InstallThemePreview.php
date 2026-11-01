@@ -24,7 +24,7 @@ final class InstallThemePreview
     {
         self::check($mode,$style);
         if ($mode === 'empty') {
-            $pages=StarterSiteCatalog::validatedPages($style);
+            $pages=StarterSiteCatalog::installationPages($style);
             return ['title'=>$pages[0]['title'],'blocks'=>$pages[0]['blocks']];
         }
         $text=static fn(string $s):array=>['type'=>'text','text'=>$s];
