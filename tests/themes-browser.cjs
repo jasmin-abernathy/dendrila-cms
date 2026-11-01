@@ -29,7 +29,12 @@ module.exports=async function reviewThemes(browser,php){
     assert.equal(await page.locator('body').getAttribute('data-dendrila-theme'),theme);
     await require('./accessibility-browser.cjs')(page);
     assert(!/blog|actualités|lorem ipsum/i.test(await page.locator('body').innerText()),'No blog feed imposed by a theme');
-    if(width===1280)structures.add(await page.locator('main > section, .d-main-content > section').evaluateAll(sections=>sections.map(s=>s.className).join('|')));
+    if(width===1280) {
+      const sections=await page.locator('.d-home-composition > .d-home-tile').evaluateAll(tiles=>
+        tiles.map(el=>Array.from(el.classList).find(name=>name.startsWith('d-home-tile--'))||'unknown').join('|'));
+      assert(sections.length>0,'The demo is composed from actual editable theme blocks');
+      structures.add(sections);
+    }
     const css=await page.locator('link[rel=stylesheet]').first().getAttribute('href');assert(css.startsWith('/design-kits/themes/'+theme+'/theme.css?v='));
     assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`Theme ${style} fits ${width}px`);
     const buttonContrasts=await page.locator('.d-button').evaluateAll(buttons=>buttons.map(button=>{
