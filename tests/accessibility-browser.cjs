@@ -20,7 +20,7 @@ module.exports=async function accessibility(page){
  const contrast=await opener.evaluate(el=>{
   const css=getComputedStyle(el);
   const luminance=(color)=>{
-   const parts=color.match(/[\\d.]+/g).slice(0,3).map(Number).map(v=>{
+   const parts=color.match(/[\d.]+/g).slice(0,3).map(Number).map(v=>{
     v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4;
    });
    return .2126*parts[0]+.7152*parts[1]+.0722*parts[2];
