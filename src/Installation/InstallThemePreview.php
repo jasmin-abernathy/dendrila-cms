@@ -62,11 +62,16 @@ final class InstallThemePreview
             ]],
             'graphic-rhythm'=>['title'=>'FAIRE. ENSEMBLE.','blocks'=>[
                 $text('Trois jours pour construire, essayer et partager. Un rendez-vous ouvert à toutes les curiosités.'),$cta('Découvrir le programme'),
+                ['type'=>'statistics','heading'=>'Un événement fictif, des idées à partager','items'=>[
+                    ['label'=>'Journées','value'=>'3','note'=>'Pour expérimenter et rencontrer'],
+                    ['label'=>'Ateliers','value'=>'18','note'=>'De la découverte à la fabrication'],
+                    ['label'=>'Rencontres','value'=>'9','note'=>'Des échanges ouverts à toutes et tous'],
+                ]],
                 $cards('Le programme',[
                     ['title'=>'01 / Fabriquer','text'=>'Des ateliers pour passer de l’idée au premier objet.'],
                     ['title'=>'02 / Échanger','text'=>'Des rencontres courtes, ouvertes et concrètes.'],
                     ['title'=>'03 / Célébrer','text'=>'Une soirée pour réunir les énergies.'],
-                ]),$info([['label'=>'Format','value'=>'Ateliers et rencontres'],['label'=>'Lieu','value'=>'La grande halle'],['label'=>'Public','value'=>'Toutes les curiosités']]),
+                ]),
             ]],
             'editorial'=>['title'=>'Comprendre les lieux. Accompagner leurs transformations.','blocks'=>[
                 $text('Nous réunissons les savoirs et les expériences pour aider les territoires à construire leur avenir.'),
