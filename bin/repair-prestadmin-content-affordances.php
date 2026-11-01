@@ -82,11 +82,14 @@ $pdo->exec('VACUUM INTO ' . $pdo->quote($backup));
 chmod($backup, 0600);
 foreach ($pending as $change) {
     $page = $change['page'];
+    // Request IDs are unique per page/revision; the service enforces strict
+    // idempotency and rejects the same identifier with different payloads.
+    $requestSuffix = substr(hash('sha256', $page['content_id'] . ':' . $page['version']), 0, 20);
     $draft = $service->updateDraft($actor, $page['content_id'], (int) $page['version'],
-        $change['values'], 'prestadmin-card-action-and-paragraph-repair');
+        $change['values'], 'prestadmin-card-action-repair-' . $requestSuffix);
     $record = $draft['content'];
     $service->transition($actor, $record['id'], 'published', $record['version'],
-        'prestadmin-card-action-and-paragraph-published');
+        'prestadmin-card-action-published-' . $requestSuffix);
     echo "UPDATED=" . $page['slug'] . "\n";
 }
 echo "PRIVATE_BACKUP_CREATED=YES\n";
