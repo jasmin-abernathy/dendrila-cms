@@ -101,7 +101,7 @@ const php=process.env.PHP_BINARY||'php';
   const introBlock=page.locator('.block-editor').first();
   await introBlock.locator('textarea[name="blocks[0][text]"]').fill('Texte modifié depuis le navigateur.');
   await introBlock.getByRole('button',{name:'Enregistrer ce bloc'}).click();
-  const guest=await context.newPage();await guest.goto('http://127.0.0.1:8080/');assert(!(await guest.textContent('body')).includes('Texte modifié depuis le navigateur.'));
+  const guest=await browser.newPage();await guest.goto('http://127.0.0.1:8080/');assert(!(await guest.textContent('body')).includes('Texte modifié depuis le navigateur.'));
   await page.getByRole('button',{name:'Publier le brouillon enregistré'}).click();await guest.reload();assert((await guest.textContent('body')).includes('Texte modifié depuis le navigateur.'));
   assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Admin has no mobile overflow');
   // The starter now seeds multiple editable blocks; appended blocks cannot assume indexes 1/2/3.
