@@ -54,12 +54,12 @@ final class StarterSiteCatalog
         $steps=[self::class,'steps'];$faq=[self::class,'faq'];$info=[self::class,'info'];
         $gallery=[self::class,'gallery'];$prices=[self::class,'prices'];$page=[self::class,'page'];
         return match($style) {            'simple-illustrated' => [
-                $page('home','Un espace pour vos projets',[
+                $page('home','Vos projets commencent ici',[
                     $text('Présentez ici votre activité, votre projet ou votre organisation. Ce texte est entièrement modifiable.'),
                     $cta('Découvrir nos services','/services'),
                     $cards('Ce que nous proposons',[
                         ['Services','Présentez vos activités et vos propositions.','/services'],
-                        ['Présentation','Racontez votre démarche et vos engagements.','/a-propos'],
+                        ['Présentation','Décrivez votre activité et les services proposés.','/a-propos'],
                         ['Informations','Indiquez les modalités de contact ou de participation.','/informations'],
                     ]),
                     $info('En bref',[['Activité','Présentez ce que vous proposez'],['Accueil','Précisez vos modalités et vos horaires']]),
@@ -72,7 +72,7 @@ final class StarterSiteCatalog
                 ],'Services'),
                 $page('a-propos','À propos',[
                     $text('Racontez l’histoire du projet, les personnes impliquées et vos valeurs.'),
-                    $steps('Notre démarche',[
+                    $steps('Les étapes',[
                         ['Découvrir','Présenter les besoins ou les objectifs.'],
                         ['Construire','Organiser les étapes du projet.'],
                         ['Faire le point','Partager les résultats et les prochaines étapes.'],
@@ -111,7 +111,7 @@ final class StarterSiteCatalog
                     $cta('Nous contacter','/contact'),
                 ],'Accueil'),
                 $page('presentation','Présentation',[
-                    $text('Racontez l’histoire, la démarche ou le cadre de votre projet.'),
+                    $text('Indiquez les dates importantes, les services proposés et les informations pratiques.'),
                     $info('En pratique',[['Accueil','Modalités à préciser'],['Services','À détailler'],['Accessibilité','Informations à compléter']]),
                     $gallery('Présentation en images'),
                 ],'Présentation'),
@@ -159,7 +159,7 @@ final class StarterSiteCatalog
                 ],'Actualités'),
 
                 $page('a-propos','À propos',[
-                    $text('Présentez votre activité, votre parcours, votre démarche et les personnes impliquées.'),
+                    $text('Présentez vos réalisations, vos séries photographiques et vos projets en cours.'),
                     $cta('Échanger','/contact'),
                 ],'À propos'),
                 $page('contact','Contact',[
@@ -183,11 +183,11 @@ final class StarterSiteCatalog
                         ['Clarté','Présentez les étapes de manière simple.'],
                         ['Disponibilité','Expliquez comment vous joindre.'],
                         ['Fiabilité','Montrez comment votre travail est suivi.'],
-                        ['Proximité','Parlez de votre façon de travailler.'],
+                        ['Disponibilité','Indiquez vos jours et horaires de contact.'],
                         ['Autonomie','Permettez aux visiteurs de choisir le bon point de départ.'],
                     ]),
-                    ['type'=>'image_text','heading'=>'Une présentation humaine',
-                        'text'=>'Présentez votre activité, votre équipe ou votre approche avec une image que vous pourrez modifier.',
+                    ['type'=>'image_text','heading'=>'Votre activité en images',
+                        'text'=>'Décrivez votre activité et choisissez une photo pour illustrer cette section.',
                         'image_url'=>'/design-kits/themes/very-minimal/assets/office.webp',
                         'alt'=>'Documents et matériel de travail sur un bureau'],
                     ['type'=>'guided_assistant','heading'=>'Besoin d’un coup de main pour choisir ?',
@@ -263,7 +263,7 @@ final class StarterSiteCatalog
                     $text('Présentez vos publications, vos sujets et votre manière de les aborder. Aucun article n’est publié automatiquement.'),
                     $cta('Lire les publications','/publications'),
                     $cards('À découvrir',[['Publication à la une','Mettez ici un contenu important.','/publications'],['Dossiers','Approfondissez un sujet.','/dossiers'],['Thèmes','Parcourez les catégories.','/themes']]),
-                    $info('En bref',[['Sujets','Présentez les catégories de publication'],['Méthode','Expliquez votre démarche'],['Contact','Indiquez comment vous joindre']]),
+                    $info('En bref',[['Sujets','Présentez les catégories de publication'],['Méthode','Décrivez les étapes de travail'],['Contact','Indiquez comment vous joindre']]),
                     $cta('Proposer un sujet','/contact'),
                 ],'Accueil'),
                 $page('publications','Publications',[
@@ -284,7 +284,7 @@ final class StarterSiteCatalog
                 ],'Rencontres'),
                 $page('a-propos','À propos',[
                     $text('Présentez votre organisation, les personnes impliquées et les objectifs du projet.'),
-                    $faq('Questions fréquentes',[['Comment sont préparés les contenus ?','Expliquez votre démarche.'],['Comment vous contacter ?','Indiquez les moyens de contact.']]),
+                    $faq('Questions fréquentes',[['Comment sont préparés les contenus ?','Décrivez les étapes de travail.'],['Comment vous contacter ?','Indiquez les moyens de contact.']]),
                 ],'À propos'),
                 $page('contact','Contact',[
                     $text('Proposez un sujet ou prenez contact avec notre équipe.'),

@@ -35,7 +35,7 @@ final class InstallThemePreview
         $info=static fn(array $items):array=>['type'=>'key_values','heading'=>'En pratique','items'=>$items];
         return match($style) {
             'simple-illustrated'=>['title'=>'Un lieu, mille façons de participer.','blocks'=>[
-                $text('Des ateliers, des espaces partagés et une équipe à votre écoute. Retrouvez simplement le service dont vous avez besoin.'),
+                $text('Ateliers, jardin partagé et salle commune : consultez les activités et les horaires.'),
                 $photo('flowers','Fleurs du jardin partagé'),$cta('Découvrir les services'),
                 $cards('Comment pouvons-nous vous aider ?',[
                     ['title'=>'Trouver un atelier','text'=>'Créer, apprendre et rencontrer les habitants.'],
@@ -44,23 +44,23 @@ final class InstallThemePreview
                 ]),$info([['label'=>'Accueil','value'=>'Du mardi au samedi'],['label'=>'Lieu','value'=>'La maison commune'],['label'=>'Participation','value'=>'Ouverte à toutes et tous']]),
             ]],
             'quiet-elegant'=>['title'=>'Prendre le temps. Retrouver l’essentiel.','blocks'=>[
-                $text('Une maison au calme, des matières naturelles et une attention portée aux détails. Un espace pour se retrouver, tout simplement.'),
+                $text('Chambres donnant sur le jardin, petit déjeuner dans la salle commune et sentiers accessibles à pied.'),
                 $photo('forest','Lumière dans une forêt paisible'),$cta('Découvrir la maison'),
-                $text('Nous imaginons des séjours à taille humaine. Quelques chambres, un jardin et des moments qui laissent la place à chacun.'),
+                $text('Les chambres donnent sur le jardin. Le petit déjeuner est servi dans la salle commune ou sur la terrasse.'),
                 $gallery(['architecture','flowers']),$info([['label'=>'Le lieu','value'=>'Une maison dans la nature'],['label'=>'Accueil','value'=>'Sur rendez-vous']]),
             ]],
             'image-forward'=>['title'=>'Regarder autrement.','blocks'=>[
-                $text('Paysages, espaces et lumières. Une sélection photographique, sans détour.'),
+                $text('Paysages, bâtiments et lumières : cinq séries photographiques à parcourir.'),
                 $photo('mountains','Montagnes et village au bord du lac'),$cta('Parcourir la sélection'),
                 $gallery(['architecture','forest','flowers','mountains']),
-                $text('Chaque série explore un lieu et son atmosphère. Les photographies occupent le premier plan ; le texte les accompagne.'),
+                $text('Chaque série comprend des photographies, leurs légendes et une présentation du lieu.'),
             ]],
             'ultra-minimal'=>['title'=>'Votre activité avance. Votre organisation suit.','blocks'=>[
-                $text('Une équipe de proximité pour organiser vos démarches, clarifier vos priorités et gagner du temps.'),
+                $text('Classement, suivi des dossiers et préparation des échéances : choisissez la prestation qui correspond à votre besoin.'),
                 $cta('Découvrir les prestations'),
                 $cards('Des solutions concrètes',[
                     ['title'=>'Un besoin ponctuel','text'=>'Un renfort quand votre activité en a besoin.','url'=>'#contenu'],
-                    ['title'=>'Un suivi régulier','text'=>'Un accompagnement clair, adapté à votre rythme.','url'=>'#contenu'],
+                    ['title'=>'Un suivi régulier','text'=>'Un suivi défini avec vous, selon la fréquence nécessaire.','url'=>'#contenu'],
                 ]),
                 $cards('Comment pouvons-nous vous aider ?',[
                     ['title'=>'Mettre en ordre','text'=>'Rassembler les informations et retrouver des repères.'],
@@ -68,19 +68,19 @@ final class InstallThemePreview
                     ['title'=>'Renforcer une équipe','text'=>'Faire face aux périodes chargées.'],
                     ['title'=>'Préparer un changement','text'=>'Avancer étape par étape vers un nouvel outil.'],
                 ]),
-                $info([['label'=>'Clarté','value'=>'Des priorités lisibles'],['label'=>'Régularité','value'=>'Un suivi adapté'],['label'=>'Proximité','value'=>'Des échanges directs'],['label'=>'Souplesse','value'=>'Des missions ajustables'],['label'=>'Sérénité','value'=>'Une organisation partagée']]),
-                ['type'=>'image_text','heading'=>'Un accompagnement humain',
-                 'text'=>'Un seul interlocuteur, des méthodes simples et des décisions expliquées.',
+                $info([['label'=>'Clarté','value'=>'Des priorités lisibles'],['label'=>'Régularité','value'=>'Un suivi adapté'],['label'=>'Proximité','value'=>'Un contact identifié'],['label'=>'Souplesse','value'=>'Des missions ajustables'],['label'=>'Sérénité','value'=>'Des dossiers à jour']]),
+                ['type'=>'image_text','heading'=>'Comment nous travaillons',
+                 'text'=>'Le dossier est organisé par étapes, avec un récapitulatif des actions et des échéances.',
                  'image_url'=>'/design-kits/themes/very-minimal/assets/office.webp',
                  'alt'=>'Documents et fournitures organisés sur un bureau'],
                 $cta('Parlons de votre projet'),
             ]],
-            'graphic-rhythm'=>['title'=>'FAIRE. ENSEMBLE.','blocks'=>[
-                $text('Trois jours pour construire, essayer et partager. Un rendez-vous ouvert à toutes les curiosités.'),$cta('Découvrir le programme'),
-                ['type'=>'statistics','heading'=>'Un événement fictif, des idées à partager','items'=>[
+            'graphic-rhythm'=>['title'=>'Trois jours pour fabriquer','blocks'=>[
+                $text('Trois jours d’ateliers, de démonstrations et de discussions autour de la fabrication.'),$cta('Découvrir le programme'),
+                ['type'=>'statistics','heading'=>'Le festival en chiffres','items'=>[
                     ['label'=>'Journées','value'=>'3','note'=>'Pour expérimenter et rencontrer'],
                     ['label'=>'Ateliers','value'=>'18','note'=>'De la découverte à la fabrication'],
-                    ['label'=>'Rencontres','value'=>'9','note'=>'Des échanges ouverts à toutes et tous'],
+                    ['label'=>'Rencontres','value'=>'9','note'=>'Conférences et tables rondes'],
                 ]],
                 $cards('Le programme',[
                     ['title'=>'01 / Fabriquer','text'=>'Des ateliers pour passer de l’idée au premier objet.'],
@@ -88,12 +88,12 @@ final class InstallThemePreview
                     ['title'=>'03 / Célébrer','text'=>'Une soirée pour réunir les énergies.'],
                 ]),
             ]],
-            'editorial'=>['title'=>'Comprendre les lieux. Accompagner leurs transformations.','blocks'=>[
-                $text('Nous réunissons les savoirs et les expériences pour aider les territoires à construire leur avenir.'),
+            'editorial'=>['title'=>'Les territoires en mutation','blocks'=>[
+                $text('Enquêtes de terrain, entretiens et ressources documentaires sur les transformations des territoires.'),
                 $photo('architecture','Façade et composition architecturale'),$cta('Découvrir notre mission'),
-                $text('Notre travail relie observation, transmission et action. Nous accompagnons les équipes locales avec des méthodes accessibles et des ressources partagées.'),
+                $text('Les publications présentent les résultats des enquêtes, les méthodes utilisées et les documents consultables.'),
                 $info([['label'=>'Observer','value'=>'Enquêtes de terrain et diagnostics'],['label'=>'Transmettre','value'=>'Formations et ressources'],['label'=>'Accompagner','value'=>'Démarches collectives et projets locaux']]),
-                ['type'=>'statistics','heading'=>'Une action à taille humaine','items'=>[['value'=>'12','label'=>'territoires accompagnés'],['value'=>'24','label'=>'partenaires'],['value'=>'8','label'=>'années de terrain']]],
+                ['type'=>'statistics','heading'=>'Les chiffres clés','items'=>[['value'=>'12','label'=>'territoires accompagnés'],['value'=>'24','label'=>'partenaires'],['value'=>'8','label'=>'années de terrain']]],
             ]],
         };
     }

@@ -161,5 +161,15 @@ try {StarterSiteCatalog::installationPages('editorial',true,'invalid');
     throw new RuntimeException('Invalid guided layout accepted');
 } catch(InvalidArgumentException $e){}
 assertStarter($pagesTotal===40&&$blocksTotal===116,'The six starters contain exactly 40 editable pages and 116 sections');
+
+ // Every public starter and demonstration must avoid generic "human" selling points.
+ foreach(array_keys(StarterSiteCatalog::REFERENCES) as $style) {
+     $payload=json_encode([
+         StarterSiteCatalog::validatedPages($style),
+         InstallThemePreview::page('demo',$style),
+     ],JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR);
+     assertStarter(preg_match('/\\bhumaine?s?\\b|taille humaine|à votre écoute/iu',$payload)===0,
+         'Remove generic human-centred marketing clichés in theme '.$style);
+ }
 echo "Starter sites: $pagesTotal CMS pages, $blocksTotal sections, six styles; draft/public states, links and renders OK\n";
 
