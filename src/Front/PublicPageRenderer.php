@@ -448,12 +448,14 @@ final readonly class PublicPageRenderer
     private function renderFooter(string $siteName, array $navigation, string $language): string
     {
         $links = [];
-        foreach (array_slice($navigation, 0, 6) as $item) {
+        // Do not silently omit the last pages (often Contact) on sites with
+        // more than six menu entries. The public navigation is already bounded.
+        foreach ($navigation as $item) {
             if (!is_array($item) || !isset($item['label'], $item['url'])) continue;
             $links[] = '<a href="' . self::escape(self::safeLinkUrl((string) $item['url'])) . '">' . self::escape(self::shortText($item['label'], 'footer label', 190)) . '</a>';
         }
         return '<footer class="d-footer"><div class="d-shell d-footer__grid"><div><strong>' . self::escape($siteName) . '</strong></div>'
-            . ($links !== [] ? '<nav aria-label="' . ($language === 'en' ? 'Secondary navigation' : 'Navigation secondaire') . '">' . implode('<br>', $links) . '</nav>' : '')
+            . ($links !== [] ? '<nav class="d-footer__links" aria-label="' . ($language === 'en' ? 'Secondary navigation' : 'Navigation secondaire') . '">' . implode('', $links) . '</nav>' : '')
             . '</div></footer>';
     }
 

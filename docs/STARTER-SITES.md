@@ -52,3 +52,15 @@ Tests : php tests/themes-run.php, php tests/starter-sites-run.php, bash tests/ru
 Les premières sections de chaque page d'accueil sont rendues dans un conteneur \`d-home-composition\` dont la grille est définie **par le thème**. Les blocs restent indépendants et éditables dans leur ordre de lecture. La galerie photo peut précéder les cartes, être placée à côté du texte ou dominer la page ; le catalogue minimal affiche une colonne de services et un déroulement en vis-à-vis ; l'éditorial présente une « une » et un encart. Les pages intérieures restent en lecture ordinaire.
 
 Les couvertures avec photos d'exemple utilisent exclusivement des WebP locaux Commons, en CC0 ou domaine public (sources dans \`docs/PREVIEW-IMAGES.md\`). Dans l'aperçu de l'installateur, les galeries sont illustrées sans aucune écriture en base : seul le propriétaire ajoute ses propres médias, puis personnalise ou remplace les photos du thème.
+
+## Pied de page commun et fonds photographiques (1er novembre 2026)
+
+Dans les six thèmes, la navigation secondaire du pied de page est un vrai élément nav, avec une grille de trois colonnes dans le CSS du kit. Sur les téléphones de moins de 25 rem, les liens occupent deux colonnes pour éviter des cibles trop étroites. Les liens ne sont pas soulignés mais conservent un focus visible au clavier. Le moteur ne limite plus le footer à six entrées : la page Contact ne disparaît plus lorsque le site compte sept pages ou davantage.
+
+La composition « Centré sur les images » associe aux trois cartes « Projets », « Actualités » et « À propos » les fichiers Wikimedia Commons locaux architecture.webp, nature.webp et forest.webp, sous CC0 ou domaine public. Le CSS ajoute un dégradé sombre derrière le texte blanc. Ces fonds sont décoratifs, sans téléchargement distant, et ne constituent pas des médias clients enregistrés dans la base.
+
+Voir docs/PREVIEW-IMAGES.md pour la traçabilité des droits.
+
+## Menu burger lisible (correctif du 1er novembre 2026)
+
+Sur les six thèmes, les commandes Menu des téléphones utilisent maintenant des fonds opaques et des couleurs explicitement contrastées. Le panneau ouvert, l'état survol/focus et les trois traits du burger reçoivent eux aussi des couleurs dédiées, non héritées d'une éventuelle transparence du header. Les tests de Design Kits contrôlent les rapports de contraste du texte normal à au moins 4,5:1 ; toutes les combinaisons testées dépassent 8:1. Les règles CSS sont incluses dans les six kits compilés et testées par le script themes-run.php.

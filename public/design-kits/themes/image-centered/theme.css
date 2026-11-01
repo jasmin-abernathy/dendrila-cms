@@ -734,3 +734,154 @@ body[data-dendrila-theme="image-centered"] .d-home-tile .d-heading{text-transfor
  body[data-dendrila-theme="image-centered"] .d-home-tile .d-gallery__item:nth-child(4){grid-column:auto}
  body[data-dendrila-theme="image-centered"] .d-home-tile:nth-child(2) .d-card-grid{grid-template-columns:1fr}
 }
+
+
+/* V5 shared footer: horizontal three-column navigation, never a vertical list. */
+body[data-dendrila-theme="image-centered"] .d-footer__grid {
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    gap:clamp(1.1rem,2.8vw,2rem)!important;
+    align-items:start!important;
+}
+body[data-dendrila-theme="image-centered"] .d-footer__grid > div {
+    min-width:0;
+}
+body[data-dendrila-theme="image-centered"] .d-footer__links {
+    display:grid!important;
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    gap:.65rem clamp(.75rem,3.5vw,3.5rem)!important;
+    align-items:start!important;
+    width:100%!important;
+    border:0!important;
+    padding:0!important;
+    margin:0!important;
+}
+body[data-dendrila-theme="image-centered"] .d-footer__links a {
+    display:block!important;
+    width:auto!important;
+    min-width:0!important;
+    margin:0!important;
+    padding:.4rem 0!important;
+    overflow-wrap:anywhere;
+    line-height:1.45;
+    text-decoration:none!important;
+    text-transform:none!important;
+}
+body[data-dendrila-theme="image-centered"] .d-footer__links a:focus-visible {
+    outline:3px solid currentColor;
+    outline-offset:3px;
+}
+@media(max-width:25rem) {
+ body[data-dendrila-theme="image-centered"] .d-footer__links {
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ }
+}
+
+
+/* V5 — Portfolio project tiles: CC0 photos already bundled with this theme.
+   Overlay is darkest where the labels sit; do not rely on image luminance. */
+body[data-dendrila-theme="image-centered"] .d-home-composition--image-centered
+.d-home-tile--cards .d-card-grid>.d-card {
+    position:relative;
+    isolation:isolate;
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-end;
+    min-height:clamp(13rem,22vw,21rem)!important;
+    padding:clamp(1.3rem,3vw,2rem)!important;
+    background-color:#23312b!important;
+    background-repeat:no-repeat!important;
+    background-position:center!important;
+    background-size:cover!important;
+    color:#fff!important;
+    border:1px solid rgba(255,255,255,.25)!important;
+    text-shadow:0 1px 3px rgba(0,0,0,.6);
+}
+body[data-dendrila-theme="image-centered"] .d-home-composition--image-centered
+.d-home-tile--cards .d-card-grid>.d-card:nth-child(1) {
+    background-image:linear-gradient(180deg,rgba(7,18,13,.18),rgba(7,18,13,.83) 84%),
+                     url("assets/architecture.webp")!important;
+}
+body[data-dendrila-theme="image-centered"] .d-home-composition--image-centered
+.d-home-tile--cards .d-card-grid>.d-card:nth-child(2) {
+    background-image:linear-gradient(180deg,rgba(7,18,13,.18),rgba(7,18,13,.83) 84%),
+                     url("assets/nature.webp")!important;
+}
+body[data-dendrila-theme="image-centered"] .d-home-composition--image-centered
+.d-home-tile--cards .d-card-grid>.d-card:nth-child(3) {
+    background-image:linear-gradient(180deg,rgba(7,18,13,.18),rgba(7,18,13,.83) 84%),
+                     url("assets/forest.webp")!important;
+}
+body[data-dendrila-theme="image-centered"] .d-home-composition--image-centered
+.d-home-tile--cards .d-card-grid>.d-card :is(.d-card__title,.d-card__title a,p) {
+    color:#fff!important;
+    opacity:1!important;
+    text-decoration:none!important;
+}
+body[data-dendrila-theme="image-centered"] .d-home-composition--image-centered
+.d-home-tile--cards .d-card-grid>.d-card .d-card__title {
+    font-size:clamp(1.55rem,2.5vw,2.5rem)!important;
+    font-weight:800!important;
+    line-height:1.15;
+}
+body[data-dendrila-theme="image-centered"] .d-home-composition--image-centered
+.d-home-tile--cards .d-card-grid>.d-card p {
+    font-size:clamp(1rem,1.3vw,1.15rem)!important;
+    line-height:1.5;
+}
+body[data-dendrila-theme="image-centered"] .d-home-composition--image-centered
+.d-home-tile--cards .d-card-grid>.d-card a:focus-visible {
+    outline:3px solid #fff!important;
+    outline-offset:5px;
+}
+@media(max-width:46rem) {
+ body[data-dendrila-theme="image-centered"] .d-home-composition--image-centered
+ .d-home-tile--cards .d-card-grid>.d-card {
+    min-height:13rem!important;
+ }
+}
+
+
+/* V6 solid high-contrast native mobile navigation (no transparent burger). */
+@media (max-width:64rem) {
+ body[data-dendrila-theme="image-centered"] .d-mobile-menu > summary,
+ body[data-dendrila-theme="image-centered"] .d-mobile-menu[open] > summary {
+    background:#e5eee4!important;
+    background-color:#e5eee4!important;
+    color:#101616!important;
+    border:2px solid #e5eee4!important;
+    opacity:1!important;
+    box-shadow:none!important;
+    -webkit-text-fill-color:#101616!important;
+ }
+ body[data-dendrila-theme="image-centered"] .d-mobile-menu__icon i {
+    background-color:#101616!important;
+    opacity:1;
+ }
+ body[data-dendrila-theme="image-centered"] .d-mobile-menu[open] .d-mobile-menu__icon i:nth-child(2) {
+    opacity:0;
+ }
+ body[data-dendrila-theme="image-centered"] .d-mobile-menu__panel {
+    background:#172020!important;
+    background-color:#172020!important;
+    color:#f4f5ef!important;
+    border:2px solid #e5eee4!important;
+    opacity:1!important;
+ }
+ body[data-dendrila-theme="image-centered"] .d-mobile-menu__panel .d-nav a {
+    color:#f4f5ef!important;
+    -webkit-text-fill-color:#f4f5ef!important;
+    background:transparent!important;
+ }
+ body[data-dendrila-theme="image-centered"] .d-mobile-menu__panel .d-nav a:is(:hover,:focus-visible) {
+    background:#384b3f!important;
+    background-color:#384b3f!important;
+    color:#f4f5ef!important;
+    -webkit-text-fill-color:#f4f5ef!important;
+ }
+ body[data-dendrila-theme="image-centered"] .d-mobile-menu > summary:focus-visible,
+ body[data-dendrila-theme="image-centered"] .d-mobile-menu__panel a:focus-visible {
+    outline:3px solid #101616!important;
+    outline-offset:3px!important;
+ }
+}

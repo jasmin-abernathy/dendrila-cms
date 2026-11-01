@@ -61,10 +61,36 @@ foreach($styles as $style=>$theme){
         'Desktop and mobile navigation share identical links: '.$style);
     themeCheck(substr_count($menuHtml,'href="/galerie"')>=2,
         'The public gallery link is reachable in both menus: '.$style);
+    themeCheck(str_contains($menuHtml,'class="d-footer__links"'),
+        'Shared footer has a navigation grid: '.$style);
+    themeCheck(substr_count($menuHtml,'href="/galerie"')===3,
+        'Gallery link is in main/mobile/footer menus: '.$style);
+    themeCheck(!str_contains($menuHtml,'<br>'),
+        'Shared footer does not stack links with break tags: '.$style);
+    $longNav = array_map(
+        static fn(int $i):array=>['label'=>'Page '.$i,'url'=>'/page-'.$i],
+        range(1,8)
+    );
+    $longHtml=(new PublicPageRenderer())->render(
+        ['name'=>'Test site'], ['title'=>'Test','slug'=>'home','blocks'=>[]],
+        $p,$p['css_url'],[], $longNav
+    );
+    themeCheck(str_contains($longHtml,'href="/page-8"'),
+        'Footer must not truncate later pages including Contact: '.$style);
+    themeCheck(substr_count($longHtml,'href="/page-8"')===3,
+        'Last link appears on desktop, mobile and in the footer: '.$style);
+    foreach(['.d-footer__links','grid-template-columns:repeat(3,minmax(0,1fr))'] as $footerRule) {
+        themeCheck(str_contains((string)file_get_contents($p['design_kit']['entrypoint_path']),$footerRule),
+            'Theme has 3-column footer style: '.$style);
+    }
+
     $cssText=(string)file_get_contents($p['design_kit']['entrypoint_path']);
     foreach(['V3 responsive contract','@media(max-width:64rem)','@media(max-width:42rem)',
              '.d-mobile-menu__panel','min-height:2.8rem!important',
-             '@media(prefers-reduced-motion:reduce)'] as $responsiveRule) {
+             '@media(prefers-reduced-motion:reduce)',
+             'V6 solid high-contrast native mobile navigation',
+             '.d-mobile-menu[open] > summary',
+             '.d-mobile-menu__panel .d-nav a:is(:hover,:focus-visible)'] as $responsiveRule) {
         themeCheck(str_contains($cssText,$responsiveRule),
             'Missing responsive contract '.$responsiveRule.' in '.$style);
     }
