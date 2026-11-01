@@ -34,9 +34,10 @@ def package_info() -> str:
 4. Créez une base MariaDB VIDE et un utilisateur autorisé dans le panneau
    de votre hébergeur. Notez hôte, port, nom, identifiant et mot de passe.
 5. Ouvrez https://VOTRE-DOMAINE/. La page redirige vers /install.php.
-6. Dans l'écran « Accès », recopiez le code affiché dans le fichier privé
-   config/ownership-proof.txt, à côté de public/ (PAS dans public/).
-   Cliquez « Vérifier le fichier et continuer ». Le fichier sera effacé.
+6. Dans l'écran « Accès », choisissez votre hébergeur pour afficher son guide.
+   Téléchargez ownership-proof.txt et déposez-le dans le dossier privé
+   config/ (à côté de public/, JAMAIS dans public/). Cliquez ensuite sur
+   « Vérifier et continuer ». Le fichier sera effacé après contrôle.
 7. Choisissez le thème, les modules, la base et le compte propriétaire.
    Enregistrez la clé TOTP dans une application d'authentification.
 8. L'administration est accessible sur /admin/ après installation.
