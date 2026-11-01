@@ -1009,3 +1009,80 @@ body[data-dendrila-theme="image-centered"] .d-section--block-steps .d-step :is(h
   gap:.75rem 1.25rem!important;
  }
 }
+
+
+/* V10 layering fix: menu must paint above hero and every content card. */
+body[data-dendrila-theme="image-centered"] .d-header {
+    position:relative!important;
+    z-index:5000!important;
+    isolation:isolate;
+    overflow:visible!important;
+    transform:none!important;
+    filter:none!important;
+}
+@media(max-width:64rem){
+    body[data-dendrila-theme="image-centered"] .d-header__inner{
+        position:relative!important;
+        z-index:1!important;
+        overflow:visible!important;
+        transform:none!important;
+        clip-path:none!important;
+        -webkit-mask:none!important;
+        mask:none!important;
+    }
+    body[data-dendrila-theme="image-centered"] .d-mobile-menu[open]{
+        position:relative;
+        z-index:10!important;
+    }
+    body[data-dendrila-theme="image-centered"] .d-mobile-menu__panel{
+        z-index:20!important;
+        opacity:1!important;
+        visibility:visible!important;
+    }
+}
+
+/* V11 CTA full-width section background, not a floating button strip. */
+body[data-dendrila-theme="image-centered"] .d-home-composition>.d-home-tile--cta {
+    grid-column:1/-1!important;
+    position:relative!important;
+    box-sizing:border-box!important;
+    width:100vw!important;
+    max-width:none!important;
+    margin-left:calc(50% - 50vw)!important;
+    margin-right:0!important;
+    padding:0!important;
+    background:#24362c!important;
+    border:0!important;
+    border-radius:0!important;
+}
+body[data-dendrila-theme="image-centered"] .d-home-composition>.d-home-tile--cta>.d-cta-band {
+    box-sizing:border-box!important;
+    width:100%!important;
+    min-width:0!important;
+    margin:0!important;
+    padding:clamp(1.5rem,4vw,3rem) clamp(1rem,4vw,2.5rem)!important;
+    border:0!important;
+    border-radius:0!important;
+    background:transparent!important;
+    color:#fff!important;
+}
+body[data-dendrila-theme="image-centered"] .d-home-composition>.d-home-tile--cta .d-cta-band__inner {
+    box-sizing:border-box!important;
+    width:min(100%,45rem)!important;
+    max-width:100%!important;
+    margin:0 auto!important;
+    padding:0!important;
+    min-height:0!important;
+    display:flex;
+    justify-content:center!important;
+}
+@media(max-width:46rem){
+    body[data-dendrila-theme="image-centered"] .d-home-composition>.d-home-tile--cta>.d-cta-band {
+        padding:2rem clamp(1rem,5vw,2rem)!important;
+    }
+}
+html.d-reading-readable body[data-dendrila-theme="image-centered"] .d-home-composition>.d-home-tile--cta {
+    background:#fff!important;
+    border-block:2px solid #111!important;
+    color:#111!important;
+}

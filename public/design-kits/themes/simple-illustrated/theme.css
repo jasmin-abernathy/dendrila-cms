@@ -1604,3 +1604,136 @@ body[data-dendrila-theme="simple-illustrated"] .d-cta-band__inner{
     --d-simple-card-inset:1.15rem;
  }
 }
+
+
+/* V10 layering fix: menu must paint above hero and every content card. */
+body[data-dendrila-theme="simple-illustrated"] .d-header {
+    position:relative!important;
+    z-index:5000!important;
+    isolation:isolate;
+    overflow:visible!important;
+    transform:none!important;
+    filter:none!important;
+}
+@media(max-width:64rem){
+    body[data-dendrila-theme="simple-illustrated"] .d-header__inner{
+        position:relative!important;
+        z-index:1!important;
+        overflow:visible!important;
+        transform:none!important;
+        clip-path:none!important;
+        -webkit-mask:none!important;
+        mask:none!important;
+    }
+    body[data-dendrila-theme="simple-illustrated"] .d-mobile-menu[open]{
+        position:relative;
+        z-index:10!important;
+    }
+    body[data-dendrila-theme="simple-illustrated"] .d-mobile-menu__panel{
+        z-index:20!important;
+        opacity:1!important;
+        visibility:visible!important;
+    }
+}
+
+/* V10 nested card rhythm. The previous outer-tile padding did not provide
+   enough space INSIDE Services, Présentation, Informations and Activité cards. */
+body[data-dendrila-theme="simple-illustrated"] {
+    --d-simple-card-inset:clamp(1.85rem,3.5vw,2.65rem);
+}
+body[data-dendrila-theme="simple-illustrated"] .d-home-tile--cards .d-card-grid{
+    gap:clamp(1.25rem,2.7vw,2rem)!important;
+}
+body[data-dendrila-theme="simple-illustrated"] .d-home-tile--cards .d-card-grid>.d-card{
+    padding:var(--d-simple-card-inset)!important;
+    min-height:clamp(12rem,18vw,17rem);
+    align-items:flex-start;
+    justify-content:center;
+}
+body[data-dendrila-theme="simple-illustrated"] .d-home-tile--cards .d-card-grid>.d-card:first-child{
+    padding-right:clamp(9rem,38%,18rem)!important;
+}
+body[data-dendrila-theme="simple-illustrated"] .d-home-tile--cards .d-card-grid>.d-card .d-card__title {
+    margin:0 0 1rem!important;
+}
+body[data-dendrila-theme="simple-illustrated"] .d-home-tile--cards .d-card-grid>.d-card p {
+    margin:0!important;
+    line-height:1.7;
+}
+body[data-dendrila-theme="simple-illustrated"] .d-home-tile--key-values .d-key-values{
+    gap:clamp(1.2rem,2.5vw,1.8rem)!important;
+}
+body[data-dendrila-theme="simple-illustrated"] .d-home-tile--key-values .d-key-values__item{
+    padding:var(--d-simple-card-inset)!important;
+}
+body[data-dendrila-theme="simple-illustrated"] .d-home-tile--key-values .d-key-values dt{
+    margin-bottom:.9rem!important;
+}
+@media(max-width:46rem){
+ body[data-dendrila-theme="simple-illustrated"]{
+    --d-simple-card-inset:clamp(1.65rem,6.3vw,2.1rem);
+ }
+ body[data-dendrila-theme="simple-illustrated"] .d-home-tile--cards .d-card-grid{
+    grid-template-columns:minmax(0,1fr)!important;
+    gap:1.25rem!important;
+ }
+ body[data-dendrila-theme="simple-illustrated"] .d-home-tile--cards .d-card-grid>.d-card{
+    min-height:0!important;
+ }
+ body[data-dendrila-theme="simple-illustrated"] .d-home-tile--cards .d-card-grid>.d-card:first-child{
+    padding:var(--d-simple-card-inset)!important;
+    padding-bottom:clamp(10.5rem,36vw,15rem)!important;
+    align-items:flex-start;
+ }
+ body[data-dendrila-theme="simple-illustrated"] .d-home-tile--cards .d-card-grid>.d-card:first-child::after{
+    top:auto;bottom:0;right:0;
+    width:100%;
+    height:clamp(9.5rem,32vw,14rem);
+ }
+}
+
+/* V11 CTA full-width section background, not a floating button strip. */
+body[data-dendrila-theme="simple-illustrated"] .d-home-composition>.d-home-tile--cta {
+    grid-column:1/-1!important;
+    position:relative!important;
+    box-sizing:border-box!important;
+    width:100vw!important;
+    max-width:none!important;
+    margin-left:calc(50% - 50vw)!important;
+    margin-right:0!important;
+    padding:0!important;
+    background:#315d49!important;
+    border:0!important;
+    border-radius:0!important;
+}
+body[data-dendrila-theme="simple-illustrated"] .d-home-composition>.d-home-tile--cta>.d-cta-band {
+    box-sizing:border-box!important;
+    width:100%!important;
+    min-width:0!important;
+    margin:0!important;
+    padding:clamp(1.5rem,4vw,3rem) clamp(1rem,4vw,2.5rem)!important;
+    border:0!important;
+    border-radius:0!important;
+    background:transparent!important;
+    color:#fff!important;
+}
+body[data-dendrila-theme="simple-illustrated"] .d-home-composition>.d-home-tile--cta .d-cta-band__inner {
+    box-sizing:border-box!important;
+    width:min(100%,45rem)!important;
+    max-width:100%!important;
+    margin:0 auto!important;
+    padding:0!important;
+    min-height:0!important;
+    display:flex;
+    justify-content:center!important;
+}
+@media(max-width:46rem){
+    body[data-dendrila-theme="simple-illustrated"] .d-home-composition>.d-home-tile--cta>.d-cta-band {
+        padding:2rem clamp(1rem,5vw,2rem)!important;
+    }
+}
+html.d-reading-readable body[data-dendrila-theme="simple-illustrated"] .d-home-composition>.d-home-tile--cta {
+    background:#fff!important;
+    border-block:2px solid #111!important;
+    color:#111!important;
+}
