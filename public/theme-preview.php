@@ -56,7 +56,7 @@ try {
             ]];
             $found=true;
         } else {
-            foreach(\Dendrila\Cms\Installation\StarterSiteCatalog::validatedPages($id) as $candidate){
+            foreach(\Dendrila\Cms\Installation\StarterSiteCatalog::installationPages($id) as $candidate){
                 if($candidate['slug']!==$requested) continue;
                 $previewPage=['title'=>$candidate['title'],'slug'=>$candidate['slug'],'blocks'=>$candidate['blocks']];
                 $found=true;

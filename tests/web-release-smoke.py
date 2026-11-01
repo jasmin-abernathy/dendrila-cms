@@ -91,7 +91,9 @@ def run(archive: Path):
                     assert ('class="d-card-grid"' in html if mode == "empty" else "Démonstration" in html), (style, mode)
                     if mode == "empty":
                         assert '/theme-preview.php?theme=' + style in html, (style, 'starter navigation')
-                        assert "/assets/install-demo/" not in html
+                        # Locally shipped demonstration photos are allowed in an
+                        # offline preview; they do not become required CMS media.
+                        assert "https://images.pexels.com" not in html
                     else:
                         assert "Lorem ipsum" not in html and "Blog" not in html
                         assert 'class="d-button"' in html, "Each preview offers a clear primary action"
@@ -141,8 +143,9 @@ def run(archive: Path):
             assert (root / "storage/site.sqlite").is_file(), "Private SQLite must be created"
             assert "https://" + TEST_HOST in (root / "config/local.php").read_text(), "HTTPS origin must be deduced from Host"
             status, homepage = get(opener, "/")
-            assert status == 200 and "À la une : prendre le temps de comprendre" in homepage
+            assert status == 200 and "Présentez vos publications, vos sujets" in homepage
             assert 'data-dendrila-theme="editorial"' in homepage
+            assert 'data-dendrila-orientation' not in homepage, "No guided assistant without explicit opt-in"
             print("PASS: extracted package completes real SQLite installation, account creation and publication")
             print("PASS: release ZIP, Composer autoload, first-visit redirect, preflight, file-manager proof and private directory isolation")
         finally:
