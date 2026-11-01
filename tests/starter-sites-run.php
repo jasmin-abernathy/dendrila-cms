@@ -160,6 +160,6 @@ assertStarter(($guidedBlock['presentation']??'')==='compact',
 try {StarterSiteCatalog::installationPages('editorial',true,'invalid');
     throw new RuntimeException('Invalid guided layout accepted');
 } catch(InvalidArgumentException $e){}
-assertStarter($pagesTotal===40&&$blocksTotal===115,'The six starters contain exactly 40 editable pages and 115 sections');
+assertStarter($pagesTotal===40&&$blocksTotal===116,'The six starters contain exactly 40 editable pages and 116 sections');
 echo "Starter sites: $pagesTotal CMS pages, $blocksTotal sections, six styles; draft/public states, links and renders OK\n";
 
