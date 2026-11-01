@@ -39,9 +39,10 @@ guideCheck(str_contains($install,'HostingGuide::render($provider)')
 guideCheck(str_contains($install,'session_regenerate_id(true)')
     && str_contains($install,'WebOwnerProof::confirm('),'Owner verification still gates wizard progression');
 guideCheck(str_contains($install,'obligatoire si vous installez Dendrila')
-    && str_contains($install,'gestionnaire du compte')
-    && str_contains($install,'nom.dendrila.org'),
-    'Installer must explain mandatory self-hosted verification, delegated host account manager and separate hosted offer.');
+    && str_contains($install,'gestionnaire du compte'),
+    'Installer explains mandatory self-hosted verification and delegated host account manager.');
+guideCheck(!str_contains($install,'nom.dendrila.org'),
+    'Installer welcome should not mention the separate hosted-service offer.');
 
 guideCheck(str_contains($install,"header('Cache-Control: no-store, private')")
     && str_contains($install,'download_proof'),'Proof downloaded without caching');

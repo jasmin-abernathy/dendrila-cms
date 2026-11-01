@@ -114,9 +114,6 @@ case 0:
         .'votre hébergement</strong> de déposer le fichier de vérification à votre place. '
         .'Vous pouvez lui transmettre les instructions indiquées ci-dessous, '
         .'mais pas votre mot de passe.</p>'
-        .'<p>Une offre de site hébergé directement par Dendrila sur une adresse de type '
-        .'<code>nom.dendrila.org</code> relève d’un autre parcours : '
-        .'ce formulaire est destiné à l’installation sur votre propre hébergement.</p>'
         .'<p><strong>Vous n’avez besoin ni de programmer ni de saisir de commandes.</strong> '
         .'Choisissez votre hébergeur : nous vous guidons pas à pas.</p></section>';
     $body.=HostingGuide::render($provider);
