@@ -15,7 +15,7 @@ import tempfile
 import time
 from urllib.parse import urlencode
 from urllib.error import URLError, HTTPError
-from urllib.request import build_opener, HTTPCookieProcessor
+from urllib.request import build_opener, HTTPCookieProcessor, Request
 from zipfile import ZipFile
 
 PORT = 18293
@@ -24,8 +24,12 @@ TEST_HOST = 'package.example.test'
 BASE = f"http://127.0.0.1:{PORT}"
 
 
+def local_request(url, data=None):
+    return Request(BASE + url, data=data, headers={"Host": TEST_HOST})
+
+
 def get(opener, url):
-    with opener.open(BASE + url, timeout=5) as response:
+    with opener.open(local_request(url), timeout=5) as response:
         return response.status, response.read().decode("utf-8")
 
 
@@ -52,7 +56,8 @@ def run(archive: Path):
         )
         try:
             opener = build_opener(HTTPCookieProcessor(CookieJar()))
-            opener.addheaders = [('Host', TEST_HOST)]
+            # Explicit Host on every request is required: urllib's automatic
+            # Host uses 127.0.0.1 otherwise and the installer rejects IP origins.
             for attempt in range(40):
                 try:
                     status, body = get(opener, "/preflight.php")
@@ -73,7 +78,7 @@ def run(archive: Path):
             proof.write_text(challenge.group(1) + "\n")
             proof.chmod(0o600)
             form = urlencode({"csrf": csrf.group(1), "auth_method": "file"}).encode()
-            with opener.open(BASE + "/install.php", data=form, timeout=6) as response:
+            with opener.open(local_request("/install.php", data=form), timeout=6) as response:
                 body = response.read().decode("utf-8")
                 assert response.status == 200 and 'name="theme"' in body, "Proof did not unlock theme chooser"
 
@@ -102,7 +107,7 @@ def run(archive: Path):
             for name in ("mountains", "forest", "architecture", "flowers"):
                 image_path = root / "public" / "assets" / "install-demo" / (name + ".webp")
                 assert image_path.is_file() and image_path.stat().st_size > 1024
-                with opener.open(BASE + "/assets/install-demo/" + name + ".webp", timeout=5) as response:
+                with opener.open(local_request("/assets/install-demo/" + name + ".webp"), timeout=5) as response:
                     body_bytes = response.read()
                     assert response.status == 200 and body_bytes[:4] == b"RIFF"
                     assert body_bytes[8:12] == b"WEBP"
@@ -128,7 +133,7 @@ def run(archive: Path):
                 _, current = get(opener, "/install.php")
                 fields["csrf"] = re.search(r'name="csrf" value="([a-f0-9]{64})"', current).group(1)
                 try:
-                    with opener.open(BASE + "/install.php", data=urlencode(fields, doseq=True).encode(), timeout=20) as response:
+                    with opener.open(local_request("/install.php", data=urlencode(fields, doseq=True).encode()), timeout=20) as response:
                         return response.read().decode()
                 except HTTPError as error:
                     details = error.read().decode("utf-8", "replace")

@@ -61,7 +61,7 @@ verifyInstall(str_contains((new PublicSite($pdo))->render('/'),'data-dendrila-th
 
 $actor=new ActorContext('default','owner');$store=new PdoCmsStore($pdo);$authz=new AuthorizationService($store);$content=new ContentService($store,$authz);
 $core=new CoreData($store,new NavigationService(new PdoNavigationRepository($pdo),$store,$authz));
-$id=$core->createPage($actor,'presentation-test','Présentation de test','presentation-test');
+$id=$core->createPage($actor,'presentation','Présentation de test','presentation-test');
 $core->saveBlocks($actor,$id,1,[0=>['text'=>'Le corps de la page']],[]);
 verifyInstall((new PublicSite($pdo))->render('/presentation-test/')===null,'Draft invisible');
 $core->publishPage($actor,$id,2);
