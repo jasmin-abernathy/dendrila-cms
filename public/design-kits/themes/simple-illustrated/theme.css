@@ -1737,3 +1737,62 @@ html.d-reading-readable body[data-dendrila-theme="simple-illustrated"] .d-home-c
     border-block:2px solid #111!important;
     color:#111!important;
 }
+
+
+/* V12 MOBILE: real inner section gutters, not just padding on the outer tile.
+   Important: d-section--soft and the cards share colors, so their separate
+   edges must be spaced on BOTH levels of the layout. */
+@media(max-width:46rem){
+  body[data-dendrila-theme="simple-illustrated"]{
+    --d-simple-inner-gutter:clamp(1.25rem,5.5vw,1.85rem);
+  }
+  body[data-dendrila-theme="simple-illustrated"] .d-home-composition>
+  .d-home-tile--cards>.d-section>.d-shell,
+  body[data-dendrila-theme="simple-illustrated"] .d-home-composition>
+  .d-home-tile--key-values>.d-section>.d-shell{
+    box-sizing:border-box!important;
+    width:100%!important;
+    min-width:0!important;
+    padding:var(--d-simple-inner-gutter)!important;
+    margin:0!important;
+  }
+  body[data-dendrila-theme="simple-illustrated"] .d-home-composition>
+  .d-home-tile--cards>.d-section,
+  body[data-dendrila-theme="simple-illustrated"] .d-home-composition>
+  .d-home-tile--key-values>.d-section{
+    box-sizing:border-box!important;
+    width:100%!important;
+    min-width:0!important;
+    padding:0!important;
+    overflow:visible!important;
+  }
+  body[data-dendrila-theme="simple-illustrated"] .d-home-tile--cards .d-card-grid,
+  body[data-dendrila-theme="simple-illustrated"] .d-home-tile--key-values .d-key-values{
+    box-sizing:border-box!important;
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    margin:0!important;
+    padding:0!important;
+  }
+  body[data-dendrila-theme="simple-illustrated"] .d-home-tile--cards .d-card-grid>.d-card,
+  body[data-dendrila-theme="simple-illustrated"] .d-home-tile--key-values .d-key-values>.d-key-values__item{
+    box-sizing:border-box!important;
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+  }
+  /* Inner pages also get breathing room on mobile instead of wall-to-wall cards. */
+  body[data-dendrila-theme="simple-illustrated"] main>.d-section--block-cards>.d-shell,
+  body[data-dendrila-theme="simple-illustrated"] main>.d-section--block-key-values>.d-shell{
+    box-sizing:border-box!important;
+    width:min(calc(100% - 1.5rem),var(--dendrila-content-max,68rem))!important;
+    padding-inline:clamp(.9rem,3vw,1.25rem)!important;
+    margin-inline:auto!important;
+  }
+}
+@media(max-width:23rem){
+  body[data-dendrila-theme="simple-illustrated"]{
+    --d-simple-inner-gutter:1.15rem;
+  }
+}
