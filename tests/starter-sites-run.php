@@ -106,6 +106,18 @@ foreach($required as $style=>$expected) {
    assertStarter(str_contains($html,'class="d-home-composition d-home-composition--'),
       'Homepage must compose sections as a visual layout: '.$style);
   }
+  if ($slug==='contact') {
+   $formBlocks=array_values(array_filter($page['blocks'],
+       static fn(array $block):bool=>($block['type']??null)==='contact_form'));
+   assertStarter(count($formBlocks)===1,
+      'Every contact page is seeded with one editable native form: '.$style);
+   foreach(['class="d-contact-form"','name="email"','name="subject"',
+            'name="message"','type="submit" disabled',
+            'Formulaire de contact non encore configuré'] as $marker) {
+      assertStarter(str_contains($html,$marker),
+         'Contact page lacks form markup '.$marker.' in '.$style);
+   }
+  }
   if ($slug==='home') {
    $ctaBlocks=array_values(array_filter($page['blocks'],
        static fn(array $block):bool=>($block['type']??null)==='cta'));
@@ -127,6 +139,6 @@ foreach($required as $style=>$expected) {
  $renderedNav=InstallThemePreview::navigation('empty',$style);
  assertStarter(count($renderedNav)===count($pages),'All starter routes previewable');
 }
-assertStarter($pagesTotal===40&&$blocksTotal===105,'The six starters contain exactly 40 editable pages and 105 sections');
+assertStarter($pagesTotal===40&&$blocksTotal===111,'The six starters contain exactly 40 editable pages and 111 sections');
 echo "Starter sites: $pagesTotal CMS pages, $blocksTotal sections, six styles; draft/public states, links and renders OK\n";
 

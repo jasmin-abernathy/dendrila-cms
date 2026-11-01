@@ -64,3 +64,11 @@ Voir docs/PREVIEW-IMAGES.md pour la traçabilité des droits.
 ## Menu burger lisible (correctif du 1er novembre 2026)
 
 Sur les six thèmes, les commandes Menu des téléphones utilisent maintenant des fonds opaques et des couleurs explicitement contrastées. Le panneau ouvert, l'état survol/focus et les trois traits du burger reçoivent eux aussi des couleurs dédiées, non héritées d'une éventuelle transparence du header. Les tests de Design Kits contrôlent les rapports de contraste du texte normal à au moins 4,5:1 ; toutes les combinaisons testées dépassent 8:1. Les règles CSS sont incluses dans les six kits compilés et testées par le script themes-run.php.
+
+## Formulaire de contact natif
+
+Chaque thème possède maintenant un bloc éditable contact_form dans sa page Contact, avec nom, e-mail, objet facultatif et message. Le formulaire s'affiche dans les aperçus de l'installateur, mais **tous les champs et l'envoi sont désactivés dans ces démonstrations**. Aucun message n'est collecté ou transmis par l'aperçu.
+
+Sur un site installé, le formulaire est activé **uniquement** après configuration de DENDRILA_CONTACT_EMAIL et APP_BASE_URL. Le traitement intégré emploie une protection CSRF via session, un champ piège, un temps minimal avant envoi, un plafond de trois tentatives par heure et par adresse IP, puis transmet le message via mail() du serveur. Une réussite de la fonction d'envoi signifie acceptation locale par le transport, pas remise garantie en boîte de réception. La politique de confidentialité doit être adaptée par le propriétaire du site. Sans configuration valide, le formulaire demeure visible mais désactivé avec un message explicite.
+
+Tests : php tests/starter-sites-run.php, php tests/themes-run.php, php tests/front-run.php, php tests/contact-run.php.

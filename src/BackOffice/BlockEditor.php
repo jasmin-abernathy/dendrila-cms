@@ -9,6 +9,7 @@ final class BlockEditor
         'image'=>['media_id'=>'Photographie','alt'=>'Description accessible','caption'=>'Légende'],
         'gallery'=>['heading'=>'Titre de la galerie','alt'=>'Description de la galerie'],
         'cta'=>['label'=>'Texte du bouton','url'=>'Destination'],
+        'contact_form'=>['heading'=>'Titre du formulaire'],
         'embed_safe'=>['provider'=>'Fournisseur','url'=>'Adresse','label'=>'Libellé','heading'=>'Titre'],
         'cards'=>['heading'=>'Titre'],'faq'=>['heading'=>'Titre'],
         'key_values'=>['heading'=>'Titre'],'statistics'=>['heading'=>'Titre'],
@@ -87,6 +88,7 @@ final class BlockEditor
         return match($type){'text','rich_text'=>['type'=>$type,'text'=>''], 'gallery'=>['type'=>'gallery','media_ids'=>[]],
             'embed_safe'=>['type'=>'embed_safe','provider'=>'youtube-nocookie','url'=>'','label'=>'','heading'=>''],
             'cta'=>['type'=>'cta','label'=>'En savoir plus','url'=>'/'],
+            'contact_form'=>['type'=>'contact_form','heading'=>'Envoyer un message'],
             'cards','faq','key_values','statistics','steps','pricing'=>['type'=>$type,'heading'=>'','items'=>[]],
             default=>throw new \InvalidArgumentException('Type de bloc non disponible.')};
     }

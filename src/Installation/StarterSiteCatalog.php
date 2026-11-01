@@ -97,8 +97,9 @@ final class StarterSiteCatalog
                     $cta('Poser une autre question','/contact'),
                 ],'FAQ'),
                 $page('contact','Nous contacter',[
-                    $text('Indiquez vos coordonnées et moyens de contact. Aucun formulaire ni envoi automatique n’est activé dans cet exemple.'),
+                    $text('Posez votre question ou présentez votre projet. Le formulaire est activé après configuration de l’adresse de réception.'),
                     $info('Coordonnées à renseigner',[['E-mail','Adresse à personnaliser'],['Secteur','Ville et zone de déplacement']]),
+                    ['type'=>'contact_form','heading'=>'Envoyer un message'],
                 ],'Contact'),
             ],
             'quiet-elegant' => [
@@ -130,7 +131,8 @@ final class StarterSiteCatalog
                 ],'À découvrir'),
                 $page('contact','Contact',[
                     $info('Informations pratiques',[['Adresse','À personnaliser'],['Accès','Précisez les modalités pratiques'],['Contact','À renseigner']]),
-                    $text('Ce modèle n’enregistre pas de demandes sans l’activation d’un module dédié.'),
+                    ['type'=>'contact_form','heading'=>'Envoyer un message'],
+                    $text('L’envoi de messages nécessite une adresse de réception configurée. Aucun message n’est envoyé depuis les aperçus.'),
                 ],'Contact'),
             ],
             'image-forward' => [
@@ -161,7 +163,8 @@ final class StarterSiteCatalog
                     $cta('Échanger','/contact'),
                 ],'À propos'),
                 $page('contact','Contact',[
-                    $text('Ajoutez une adresse de contact ou activez un formulaire après avoir configuré les mesures anti-spam.'),
+                    $text('Pour une question, une collaboration ou un projet, utilisez le formulaire ci-dessous.'),
+                    ['type'=>'contact_form','heading'=>'Envoyer un message'],
                 ],'Contact'),
             ],
             'ultra-minimal' => [
@@ -195,8 +198,9 @@ final class StarterSiteCatalog
                     $cards('À consulter',[['Documentation','Présentez des guides ou informations pratiques.'],['Outils','Ajoutez des fonctionnalités dédiées si nécessaire.'],['Liens utiles','Ressources complémentaires à sélectionner.']]),
                 ],'Ressources'),
                 $page('contact','Contact',[
-                    $text('Ajoutez une adresse de contact et, si vous le souhaitez, activez un formulaire anti-spam après installation.'),
+                    $text('Présentez votre demande avec ce formulaire de contact.'),
                     $info('Informations',[['E-mail','À compléter'],['Téléphone','À compléter'],['Localisation','À compléter']]),
+                    ['type'=>'contact_form','heading'=>'Envoyer un message'],
                 ],'Contact'),
             ],
             'graphic-rhythm' => [
@@ -227,7 +231,7 @@ final class StarterSiteCatalog
                     $info('À savoir',[['Adresse','À renseigner'],['Horaires','À renseigner'],['Accessibilité','À renseigner'],['Contact','À renseigner']]),
                     $faq('Questions fréquentes',[['Le projet est-il accessible ?','Ajoutez les modalités d’accessibilité.'],['Comment prendre part aux activités ?','Expliquez les modalités de participation.']]),
                 ],'Infos pratiques'),
-                $page('contact','Contact',[$text('Indiquez un contact pour les visiteurs et les partenaires.')],'Contact'),
+                $page('contact','Contact',[$text('Pour échanger ou participer, envoyez un message avec le formulaire.'),['type'=>'contact_form','heading'=>'Écrivez-nous']],'Contact'),
             ],
             'editorial' => [
                 $page('home','À la une',[
@@ -258,7 +262,8 @@ final class StarterSiteCatalog
                     $faq('Questions fréquentes',[['Comment sont préparés les contenus ?','Expliquez votre démarche.'],['Comment vous contacter ?','Indiquez les moyens de contact.']]),
                 ],'À propos'),
                 $page('contact','Contact',[
-                    $text('Indiquez une adresse pour les questions, les propositions et les demandes de contact.'),
+                    $text('Proposez un sujet ou prenez contact avec notre équipe.'),
+                    ['type'=>'contact_form','heading'=>'Envoyer un message'],
                 ],'Contact'),
             ],
         };

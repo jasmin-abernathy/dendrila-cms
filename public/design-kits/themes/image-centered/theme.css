@@ -1086,3 +1086,145 @@ html.d-reading-readable body[data-dendrila-theme="image-centered"] .d-home-compo
     border-block:2px solid #111!important;
     color:#111!important;
 }
+
+
+/* V13 first-class contact form: accessible, responsive, theme-specific. */
+body[data-dendrila-theme="image-centered"] .d-section--block-contact-form {
+  padding:clamp(2rem,5vw,4rem) 0!important;
+  background:#e4ebe5;
+}
+body[data-dendrila-theme="image-centered"] .d-section--block-contact-form>.d-shell {
+  width:min(calc(100% - 2rem),57rem)!important;
+  max-width:57rem!important;
+  box-sizing:border-box;
+}
+body[data-dendrila-theme="image-centered"] .d-section--block-contact-form .d-section__heading {
+  margin-bottom:1.4rem;
+}
+body[data-dendrila-theme="image-centered"] .d-contact-form__frame {
+  box-sizing:border-box;
+  max-width:100%;
+  padding:clamp(1.3rem,3.7vw,3rem);
+  background:#f8faf7;
+  border:1px solid #24362c;
+  border-radius:clamp(.5rem,2vw,1.25rem);
+  color:#24362c;
+}
+body[data-dendrila-theme="image-centered"] .d-contact-form__status {
+  display:block;
+  margin:0 0 clamp(1.2rem,2.6vw,1.8rem);
+  padding:1rem 1.1rem;
+  color:#24362c;
+  background:#e4ebe5;
+  border-left:4px solid #24362c;
+  font-size:clamp(.96rem,2vw,1.05rem);
+  line-height:1.55;
+}
+body[data-dendrila-theme="image-centered"] .d-contact-form,
+body[data-dendrila-theme="image-centered"] .d-contact-form__fields {
+  box-sizing:border-box;
+  display:grid;
+  min-width:0;
+  width:100%;
+  padding:0;
+  margin:0;
+  border:0;
+  gap:clamp(1.15rem,2.5vw,1.7rem);
+}
+body[data-dendrila-theme="image-centered"] .d-contact-form__fields:disabled,
+body[data-dendrila-theme="image-centered"] .d-contact-form__fields[disabled] {
+  opacity:1!important;
+}
+body[data-dendrila-theme="image-centered"] .d-contact-form__grid {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:clamp(1rem,2.5vw,1.5rem);
+}
+body[data-dendrila-theme="image-centered"] .d-contact-form label {
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+  gap:.55rem;
+  font-weight:650;
+  line-height:1.5;
+}
+body[data-dendrila-theme="image-centered"] .d-contact-form :is(input,textarea) {
+  box-sizing:border-box;
+  display:block;
+  width:100%;
+  min-width:0;
+  max-width:100%;
+  border:2px solid #24362c;
+  border-radius:.45rem;
+  padding:.85rem 1rem;
+  background:#f8faf7;
+  color:#24362c;
+  font:inherit;
+  line-height:1.45;
+  opacity:1;
+  box-shadow:none;
+}
+body[data-dendrila-theme="image-centered"] .d-contact-form input {
+  min-height:48px;
+}
+body[data-dendrila-theme="image-centered"] .d-contact-form textarea {
+  min-height:11rem;
+  resize:vertical;
+}
+body[data-dendrila-theme="image-centered"] .d-contact-form :is(input,textarea):focus-visible {
+  outline:3px solid #24362c;
+  outline-offset:3px;
+}
+body[data-dendrila-theme="image-centered"] .d-contact-form__submit {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  justify-self:start;
+  min-height:48px;
+  max-width:100%;
+  padding:.85rem clamp(1.2rem,3vw,2rem);
+  border:2px solid #24362c;
+  border-radius:.5rem;
+  color:#f8faf7!important;
+  background:#24362c!important;
+  font-weight:700;
+  cursor:pointer;
+  text-decoration:none!important;
+}
+body[data-dendrila-theme="image-centered"] .d-contact-form__submit[disabled] {
+  opacity:1!important;
+  cursor:not-allowed;
+  background:#e4ebe5!important;
+  color:#24362c!important;
+  border-color:#24362c!important;
+}
+body[data-dendrila-theme="image-centered"] .d-contact-form__trap {
+  position:absolute!important;
+  width:1px!important;
+  height:1px!important;
+  overflow:hidden!important;
+  clip-path:inset(50%)!important;
+}
+body[data-dendrila-theme="image-centered"] .d-visually-hidden {
+  position:absolute!important;
+  width:1px!important;
+  height:1px!important;
+  overflow:hidden!important;
+  clip-path:inset(50%)!important;
+}
+@media(max-width:42rem) {
+ body[data-dendrila-theme="image-centered"] .d-section--block-contact-form>.d-shell {
+   width:calc(100% - 1.5rem)!important;
+ }
+ body[data-dendrila-theme="image-centered"] .d-contact-form__grid {
+   grid-template-columns:minmax(0,1fr);
+   gap:1.15rem;
+ }
+ body[data-dendrila-theme="image-centered"] .d-contact-form__frame {
+   padding:clamp(1.25rem,5vw,1.8rem);
+ }
+ body[data-dendrila-theme="image-centered"] .d-contact-form__submit {
+   justify-self:stretch;
+   width:100%;
+ }
+}

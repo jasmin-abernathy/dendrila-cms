@@ -129,6 +129,7 @@ final readonly class ContentTypeDefinition
             'image' => ['type', 'media_id', 'alt', 'caption', 'shape', 'focal_x', 'focal_y'],
             'gallery' => ['type', 'media_ids', 'alt', 'heading'],
             'cta' => ['type', 'label', 'url'],
+            'contact_form' => ['type', 'heading'],
             'cards' => ['type', 'items', 'heading'],
             'faq' => ['type', 'items', 'heading'],
             'key_values' => ['type', 'items', 'heading'],
@@ -166,7 +167,7 @@ final readonly class ContentTypeDefinition
             if ($type === 'gallery' && !$this->optionalText($block, 'alt')) {
                 return false;
             }
-            if (in_array($type, ['gallery', 'cards', 'faq', 'key_values', 'statistics', 'steps', 'pricing', 'embed_safe'], true)
+            if (in_array($type, ['gallery', 'cards', 'faq', 'key_values', 'statistics', 'steps', 'pricing', 'embed_safe', 'contact_form'], true)
                 && !$this->optionalText($block, 'heading')) {
                 return false;
             }

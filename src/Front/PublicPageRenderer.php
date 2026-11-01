@@ -90,7 +90,7 @@ final readonly class PublicPageRenderer
             }
             if (($block['type'] ?? null) === 'gallery') $block['media_alts'] = $mediaAlts;
             $markup = $this->renderBlock(
-                $block, (int) $index, $mediaUrls, $supportedShapes, $structure, $language,
+                $block, (int) $index, $mediaUrls, $supportedShapes, $structure, $language, $site,
             );
             // Every section remains independent in storage and in the editor.
             // Homepages get a theme-driven composition; articles and inside
@@ -236,7 +236,7 @@ final readonly class PublicPageRenderer
             . '</div>' . $media . '</div></section>';
     }
 
-    private function renderBlock(array $block, int $index, array $mediaUrls, array $supportedShapes, array $structure, string $locale): string
+    private function renderBlock(array $block, int $index, array $mediaUrls, array $supportedShapes, array $structure, string $locale, array $site): string
     {
         $type = $block['type'] ?? null;
         if (!is_string($type)) throw new InvalidArgumentException('Block type is missing.');
@@ -261,6 +261,9 @@ final readonly class PublicPageRenderer
                 . $this->renderSectionHeading($block) . $this->renderSteps($block) . '</div></section>',
             'pricing' => '<section class="' . $sectionClass . '"><div class="d-shell">'
                 . $this->renderSectionHeading($block) . $this->renderPricing($block) . '</div></section>',
+            'contact_form' => '<section class="' . $sectionClass . '"><div class="d-shell">'
+                . $this->renderSectionHeading($block) . $this->renderContactForm($site, $locale)
+                . '</div></section>',
             'cta' => '<section class="d-cta-band"><div class="d-shell d-cta-band__inner">'
                 . $this->renderCtaLink($block) . '</div></section>',
             'embed_safe' => '<section class="' . $sectionClass . '"><div class="d-shell">'
@@ -268,6 +271,54 @@ final readonly class PublicPageRenderer
                 . '</div></div></section>',
             default => throw new InvalidArgumentException("Unsupported public block type '{$type}'."),
         };
+    }
+
+    /** Native contact form, disabled explicitly for read-only previews. */
+    private function renderContactForm(array $site, string $locale): string
+    {
+        $settings=is_array($site['contact_form'] ?? null) ? $site['contact_form'] : [];
+        $preview=($settings['preview'] ?? false)===true;
+        $enabled=($settings['enabled'] ?? false)===true && !$preview;
+        $token=$enabled && is_string($settings['token'] ?? null)
+            && preg_match('/^[a-f0-9]{64}$/D',$settings['token'])===1
+                ? $settings['token'] : '';
+        if ($token==='') $enabled=false;
+        $notice=is_string($settings['notice'] ?? null)
+            ? self::shortText($settings['notice'], 'contact notice', 500, true) : '';
+        $disabled=$enabled ? '' : ' disabled';
+        $name=$locale==='en'?'Your name':'Votre nom';
+        $email=$locale==='en'?'Your email':'Votre adresse e-mail';
+        $subject=$locale==='en'?'Subject (optional)':'Objet (facultatif)';
+        $message=$locale==='en'?'Your message':'Votre message';
+        $send=$locale==='en'?'Send message':'Envoyer le message';
+        $status=$preview
+            ? ($locale==='en'
+                ? 'Preview only: the form is not connected to an inbox and no message will be sent.'
+                : 'Aperçu uniquement : aucun message ne sera envoyé. Le formulaire sera utilisable une fois la réception configurée.')
+            : ($enabled ? 'Les informations saisies servent à répondre à votre demande.'
+                : 'Formulaire de contact non encore configuré : aucun message ne peut être envoyé.');
+        if ($notice!=='') $status=$notice;
+        $inputs='<div class="d-contact-form__grid">'
+            . '<label for="d-contact-name">' . self::escape($name) . '<span aria-hidden="true"> *</span>'
+            . '<input id="d-contact-name" name="name" type="text" autocomplete="name" maxlength="120" required></label>'
+            . '<label for="d-contact-email">' . self::escape($email) . '<span aria-hidden="true"> *</span>'
+            . '<input id="d-contact-email" name="email" type="email" autocomplete="email" maxlength="254" required></label>'
+            . '</div>'
+            . '<label for="d-contact-subject">' . self::escape($subject)
+            . '<input id="d-contact-subject" name="subject" type="text" maxlength="140"></label>'
+            . '<label for="d-contact-message">' . self::escape($message) . '<span aria-hidden="true"> *</span>'
+            . '<textarea id="d-contact-message" name="message" rows="7" maxlength="5000" required></textarea></label>'
+            . '<div class="d-contact-form__trap" aria-hidden="true"><label>Website'
+            . '<input name="website" type="text" tabindex="-1" autocomplete="off"></label></div>'
+            . ($enabled ? '<input type="hidden" name="csrf" value="' . self::escape($token) . '">' : '');
+        return '<div class="d-contact-form__frame">'
+            . '<p id="d-contact-status" class="d-contact-form__status" role="status">' . self::escape($status) . '</p>'
+            . '<form class="d-contact-form" method="post" action="' . ($enabled?'/contact':'#d-contact-status') . '">'
+            . '<fieldset class="d-contact-form__fields"' . $disabled . '><legend class="d-visually-hidden">'
+            . ($locale==='en'?'Contact form':'Formulaire de contact') . '</legend>'
+            . $inputs
+            . '<button class="d-button d-contact-form__submit" type="submit"' . $disabled . '>'
+            . self::escape($send) . '</button></fieldset></form></div>';
     }
 
     private function renderSectionHeading(array $block): string

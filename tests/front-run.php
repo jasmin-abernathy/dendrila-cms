@@ -254,5 +254,17 @@ $decorativeHtml = $renderer->render(
 frontCheck(!str_contains($decorativeHtml, 'Legacy group description'),
     'Explicit empty alternatives remain decorative.');
 
+$formDemo=$renderer->render(
+    ['name'=>'Site','contact_form'=>['preview'=>true,'enabled'=>false]],
+    ['title'=>'Contact','slug'=>'contact',
+     'blocks'=>[['type'=>'contact_form','heading'=>'Envoyer un message']]],
+    $presentation,$themeCssUrl
+);
+frontCheck(str_contains($formDemo,'<form class="d-contact-form"')
+    && str_contains($formDemo,'<fieldset class="d-contact-form__fields" disabled')
+    && str_contains($formDemo,'Aperçu uniquement')
+    && !str_contains($formDemo,'name="csrf"'),
+    'Demo form cannot send or collect visitor details.');
+
 echo "Public front renderer tests passed.\n";
 

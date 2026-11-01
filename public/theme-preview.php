@@ -124,6 +124,7 @@ try {
     $previewSite=InstallThemePreview::site($mode,$id);
     $previewSite['preview_theme']=$id;
     $previewSite['preview_kit']=$presentation['design_kit']['id'];
+    $previewSite['contact_form']=['preview'=>true,'enabled'=>false];
     $previewSite['footer_links']=[];
     foreach ([
         'mentions-legales'=>'Mentions légales',

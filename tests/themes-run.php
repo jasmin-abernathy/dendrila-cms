@@ -53,6 +53,20 @@ foreach($styles as $style=>$theme){
             ['label'=>'Contact','url'=>'/contact'],
         ]
     );
+    $contactHtml=(new PublicPageRenderer())->render(
+        ['name'=>'Demo','contact_form'=>['preview'=>true,'enabled'=>false]],
+        ['title'=>'Contact','slug'=>'contact','blocks'=>[
+            ['type'=>'contact_form','heading'=>'Écrivez-nous'],
+        ]], $p,$p['css_url']
+    );
+    themeCheck(str_contains($contactHtml,'class="d-contact-form"')
+        && str_contains($contactHtml,'Aperçu uniquement')
+        && str_contains($contactHtml,'type="submit" disabled'),
+        'Contact preview has a real-looking but non-sending form: '.$style);
+    themeCheck(str_contains(
+        (string)file_get_contents($p['design_kit']['entrypoint_path']),
+        'V13 first-class contact form'
+    ),'Theme styles contact form: '.$style);
     themeCheck(substr_count($menuHtml,'class="d-mobile-menu"')===1,
         'Every themed page has one native mobile menu: '.$style);
     themeCheck(substr_count($menuHtml,'<summary aria-label="Ouvrir le menu de navigation">')===1,

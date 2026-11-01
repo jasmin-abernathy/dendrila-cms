@@ -46,6 +46,11 @@ final readonly class PublicSite
         if(!is_string($json))return null;
         $page=json_decode($json,true,512,JSON_THROW_ON_ERROR);
         $media=MediaFactory::fromEnvironment($this->pdo);
+        if($slug==='contact' && is_array($page['blocks']??null)){
+            $hasForm=count(array_filter($page['blocks'],
+                static fn(mixed $block):bool=>is_array($block) && ($block['type']??null)==='contact_form'))>0;
+            if($hasForm)$site['contact_form']=\Dendrila\Cms\Front\PublicContactForm::context();
+        }
         return (new PublicPageRenderer())->render(
             $site,$page,$presentation,$presentation['css_url'],
             $media?->publicMap($siteId)??[],$navigation,Presentation::consentFor($page),
