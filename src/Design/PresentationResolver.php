@@ -57,6 +57,8 @@ final readonly class PresentationResolver
                 'components' => $theme['components'],
             ],
             'enabled_modules' => $composition->enabledModules(),
+            'layout_variant' => $composition->layoutVariant(),
+            'contact_entry' => $composition->contactEntry(),
             'structure' => [
                 'hero' => $style->token('layout.hero'),
                 'alignment' => $style->token('layout.alignment'),

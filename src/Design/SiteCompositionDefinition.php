@@ -64,6 +64,39 @@ final readonly class SiteCompositionDefinition
             }
         }
 
+
+        $variant = $definition['layout_variant'] ?? 'standard';
+        if (!in_array($variant, ['standard', 'service-showcase'], true)) {
+            throw new InvalidArgumentException('Invalid layout variant.');
+        }
+
+        $entry = $definition['contact_entry'] ?? [];
+        if (!is_array($entry) || ($entry !== [] && array_is_list($entry))
+            || array_diff(array_keys($entry), ['mode', 'presentation', 'label', 'description', 'url']) !== []) {
+            throw new InvalidArgumentException('Invalid contact entry.');
+        }
+        $mode = $entry['mode'] ?? 'none';
+        if (!in_array($mode, ['none', 'direct', 'form', 'guided'], true)
+            || (isset($entry['presentation']) && !in_array($entry['presentation'], ['button', 'link', 'card', 'banner', 'floating'], true))) {
+            throw new InvalidArgumentException('Invalid contact entry mode or presentation.');
+        }
+        foreach (['label' => 80, 'description' => 240] as $field => $limit) {
+            if (isset($entry[$field]) && (!is_string($entry[$field])
+                || ($field === 'label' && trim($entry[$field]) === '')
+                || mb_strlen($entry[$field]) > $limit)) {
+                throw new InvalidArgumentException('Invalid contact entry text.');
+            }
+        }
+        if ($mode !== 'none' && (!is_string($entry['url'] ?? null) || !self::safeContactUrl($entry['url']))) {
+            throw new InvalidArgumentException('Contact entry needs a safe destination.');
+        }
+        if ($mode === 'none' && isset($entry['url'])) {
+            throw new InvalidArgumentException('Disabled contact entry cannot have a destination.');
+        }
+        if ($mode === 'guided' && !in_array('guided_assistant', $modules, true)) {
+            throw new InvalidArgumentException('Guided journey module is not enabled.');
+        }
+
         $styleOverrides = $definition['style_overrides'] ?? [];
         if (!is_array($styleOverrides) || ($styleOverrides !== [] && array_is_list($styleOverrides))) {
             throw new InvalidArgumentException('Style overrides must be an object.');
@@ -81,6 +114,24 @@ final readonly class SiteCompositionDefinition
 
     /** @return array<string, mixed> */
     public function styleOverrides(): array { return $this->definition['style_overrides'] ?? []; }
+
+    public function layoutVariant(): string { return $this->definition['layout_variant'] ?? 'standard'; }
+
+    /** @return array<string, mixed> */
+    public function contactEntry(): array { return $this->definition['contact_entry'] ?? []; }
+
+    private static function safeContactUrl(string $url): bool
+    {
+        if ($url === '' || trim($url) !== $url || str_starts_with($url, '//')
+            || str_contains($url, '\\') || preg_match('/[\x00-\x1F\x7F]/', $url) === 1) return false;
+        if (str_starts_with($url, '/')) return true;
+        if (str_starts_with($url, '#')) return strlen($url) > 1;
+        if (str_starts_with(strtolower($url), 'mailto:')) {
+            return filter_var(substr($url, 7), FILTER_VALIDATE_EMAIL) !== false;
+        }
+        return filter_var($url, FILTER_VALIDATE_URL) !== false
+            && strtolower((string) parse_url($url, PHP_URL_SCHEME)) === 'https';
+    }
 
     private static function identifier(mixed $value): bool
     {

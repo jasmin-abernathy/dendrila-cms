@@ -98,6 +98,51 @@
     "style_overrides": {
       "type": "object",
       "description": "Overrides limited to tokens supported by the selected front adapter."
+    },
+    "layout_variant": {
+      "type": "string",
+      "enum": [
+        "standard",
+        "service-showcase"
+      ]
+    },
+    "contact_entry": {
+      "type": "object",
+      "description": "Optional site-specific entry point, independently styled and disabled by default.",
+      "properties": {
+        "mode": {
+          "enum": [
+            "none",
+            "direct",
+            "form",
+            "guided"
+          ]
+        },
+        "presentation": {
+          "enum": [
+            "button",
+            "link",
+            "card",
+            "banner",
+            "floating"
+          ]
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 240
+        },
+        "url": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        }
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": false

@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "functional_kit": "pme-services",
+  "design_style": "simple-illustrated",
+  "enabled_modules": [
+    "content",
+    "media",
+    "forms",
+    "seo",
+    "guided_assistant"
+  ],
+  "layout_variant": "service-showcase",
+  "contact_entry": {
+    "mode": "guided",
+    "presentation": "card",
+    "label": "Préparer mon besoin",
+    "description": "Quelques questions pour préciser votre demande.",
+    "url": "/projet/"
+  },
+  "brand_overrides": {
+    "primary": "#9D2941",
+    "primary_strong": "#7F1F34",
+    "background": "#FFFFFF",
+    "surface": "#FFFFFF",
+    "text": "#191718",
+    "muted": "#686264",
+    "accent_soft": "#F8ECEF",
+    "border": "#E9E4E3",
+    "heading_font": "system-serif",
+    "body_font": "neutral-sans"
+  }
+}

@@ -57,6 +57,11 @@ final readonly class PublicPageRenderer
         }
 
         $structure = $this->structure($presentation);
+        $variant = $presentation['layout_variant'] ?? 'standard';
+        if (!in_array($variant, ['standard', 'service-showcase'], true)) {
+            throw new InvalidArgumentException('Invalid layout variant.');
+        }
+        $contactEntry = (new ContactEntryRenderer())->render($presentation['contact_entry'] ?? [], $language);
         $supportedShapes = $presentation['media']['supported_shapes'] ?? ['auto', 'rounded', 'none'];
         if (!is_array($supportedShapes) || !array_is_list($supportedShapes)
             || count($supportedShapes) === 0 || count($supportedShapes) > 30
@@ -101,11 +106,12 @@ final readonly class PublicPageRenderer
             : '<span class="d-brand__mark" aria-hidden="true">✦</span>';
 
         $attributes = sprintf(
-            'data-dendrila-theme="%s" data-dendrila-hero="%s" data-dendrila-alignment="%s" '
+            'data-dendrila-theme="%s" data-dendrila-layout="%s" data-dendrila-hero="%s" data-dendrila-alignment="%s" '
             . 'data-dendrila-gallery="%s" data-dendrila-media-crop="%s" data-dendrila-full-bleed="%s" '
             . 'data-dendrila-illustration-frequency="%s" data-dendrila-illustration-style="%s" '
             . 'data-dendrila-heading-style="%s" data-dendrila-body-style="%s"',
             self::escape($theme['id']),
+            self::escape($variant),
             self::escape($structure['hero']),
             self::escape($structure['alignment']),
             self::escape($structure['gallery']),
@@ -130,6 +136,7 @@ final readonly class PublicPageRenderer
             . '</div></header><main id="contenu">'
             . $this->renderHero($title, $tagline, $hero, $mediaUrls, $supportedShapes, $structure)
             . $bodyMarkup
+            . $contactEntry
             . '</main>'
             . $this->renderFooter($siteName, $navigation, $language)
             . $privacyMarkup
@@ -205,6 +212,10 @@ final readonly class PublicPageRenderer
                 . $this->renderSectionHeading($block) . $this->renderGallery($block, $mediaUrls, $supportedShapes) . '</div></section>',
             'cards' => '<section class="' . $sectionClass . '"><div class="d-shell">'
                 . $this->renderSectionHeading($block) . $this->renderCards($block, $mediaUrls) . '</div></section>',
+            'highlights' => '<section class="' . $sectionClass . '"><div class="d-shell">'
+                . $this->renderSectionHeading($block) . $this->renderHighlights($block) . '</div></section>',
+            'benefits' => '<section class="' . $sectionClass . '"><div class="d-shell">'
+                . $this->renderSectionHeading($block) . $this->renderBenefits($block) . '</div></section>',
             'faq' => '<section class="' . $sectionClass . '"><div class="d-shell d-prose">'
                 . $this->renderSectionHeading($block) . $this->renderFaq($block) . '</div></section>',
             'key_values' => '<section class="' . $sectionClass . '"><div class="d-shell">'
@@ -289,6 +300,34 @@ final readonly class PublicPageRenderer
             $markup[] = '<article class="d-card">' . $media . $titleMarkup . $text . '</article>';
         }
         return '<div class="d-card-grid">' . implode('', $markup) . '</div>';
+    }
+
+    private function renderHighlights(array $block): string
+    {
+        $markup = [];
+        foreach (self::items($block, 'highlights') as $item) {
+            $eyebrow = self::shortText($item['eyebrow'] ?? null, 'highlight eyebrow', 190);
+            $text = self::longText($item['text'] ?? null, 'highlight text');
+            $label = self::shortText($item['label'] ?? null, 'highlight label', 190);
+            $url = self::safeLinkUrl(self::shortText($item['url'] ?? null, 'highlight url', 2000));
+            $markup[] = '<a class="d-highlight" href="' . self::escape($url) . '"><span class="d-highlight__eyebrow">'
+                . self::escape($eyebrow) . '</span><span class="d-highlight__text">'
+                . nl2br(self::escape($text), false) . '</span><span class="d-highlight__action">'
+                . self::escape($label) . ' <span aria-hidden="true">→</span></span></a>';
+        }
+        return '<div class="d-highlights">' . implode('', $markup) . '</div>';
+    }
+
+    private function renderBenefits(array $block): string
+    {
+        $markup = [];
+        foreach (self::items($block, 'benefits') as $item) {
+            $title = self::shortText($item['title'] ?? null, 'benefit title', 190);
+            $text = self::longText($item['text'] ?? null, 'benefit text');
+            $markup[] = '<div class="d-benefit"><span class="d-benefit__symbol" aria-hidden="true">✓</span>'
+                . '<div><h3>' . self::escape($title) . '</h3><p>' . self::escape($text) . '</p></div></div>';
+        }
+        return '<div class="d-benefits">' . implode('', $markup) . '</div>';
     }
 
     private function renderFaq(array $block): string
