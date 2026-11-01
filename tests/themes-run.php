@@ -157,7 +157,7 @@ foreach(['../editorial','missing'] as $id){try{Presentation::forTheme($id,[]);th
 try{Presentation::forTheme('editorial',['primary'=>'red; background:url(https://evil.test)']);throw new RuntimeException('CSS injection accepted');}catch(InvalidArgumentException){}
 try{Presentation::forTheme('editorial',['logo_url'=>'javascript:alert(1)']);throw new RuntimeException('Unsafe logo accepted');}catch(InvalidArgumentException){}
 // Regression: business-service presentation keeps the reference hierarchy in the actual theme.
-$service=\\Dendrila\\Cms\\Installation\\StarterSiteCatalog::installationPages('ultra-minimal')[0];
+$service=\Dendrila\Cms\Installation\StarterSiteCatalog::installationPages('ultra-minimal')[0];
 $serviceHtml=(new PublicPageRenderer())->render(
   ['name'=>'Entreprise démo'], ['title'=>$service['title'],'slug'=>'home','blocks'=>$service['blocks']],
   Presentation::forTheme('ultra-minimal'), Presentation::forTheme('ultra-minimal')['css_url']
