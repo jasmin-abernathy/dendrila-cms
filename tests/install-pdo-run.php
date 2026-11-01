@@ -135,7 +135,7 @@ $galleryHtml=(new PublicSite($pdo))->render('/galerie/');
 verifyInstall(str_contains($galleryHtml,'media.php')&&str_contains($galleryHtml,'alt="Description"'),'Uploaded gallery preserves its media alternative');
 // The SQL uniqueness constraint protects even slugs beyond the first UI batch.
 for($i=0;$i<105;$i++)$core->createPage($actor,'free','Volume '.$i,'volume-'.$i);
-verifyInstall(count($core->pages($actor))===108,'Editor includes pages beyond the first 100');
+verifyInstall(count($core->pages($actor))===$starterCount+107,'Editor includes all starter pages and pages beyond the first 100');
 try{$core->createPage($actor,'free','Duplicate','presentation');throw new RuntimeException('Duplicate after 100 accepted');}catch(DomainException){}
 // Server-side ownership, publication and account administration remain distinct.
 foreach(['editor','contributor','viewer'] as $role){
