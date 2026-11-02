@@ -89,7 +89,7 @@ const php=process.env.PHP_BINARY||'php';
   assert((await page.locator('[data-font-target=heading_font] [data-font-sample]')
     .evaluate(el=>getComputedStyle(el).fontFamily)).includes('Georgia'),'Font sample updates on selection');
   assert(originalHeading !== '', 'Initial font remains inspectable');
-  const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9WlH8NwAAAAASUVORK5CYII=','base64');
+  const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAIAAAAmkwkpAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAFElEQVQImWOcq+nIAANMDEgANwcANL4BD1ttcPoAAAAASUVORK5CYII=','base64');
   await page.locator('.appearance-details summary').click();
   await page.locator('input[name="asset_file[logo_url]"]').setInputFiles({
     name:'brand-icon.png',mimeType:'image/png',buffer:png
