@@ -4,6 +4,8 @@ require dirname(__DIR__,2).'/bootstrap.php';
 use Dendrila\Cms\Runtime\{Application as App,AppearanceSettings};
 use Dendrila\Cms\BackOffice\SessionCsrf;
 use Dendrila\Cms\Storage\PdoCmsStore;
+use Dendrila\Cms\Runtime\{BrandImageStore,BrandFontStore};
+use Dendrila\Cms\Http\UploadedFile;
 
 App::session();
 try {
@@ -21,6 +23,10 @@ try {
     if($_SERVER['REQUEST_METHOD']==='POST'){
         try{
             if(!$csrf->verify(is_string($_POST['csrf']??null)?$_POST['csrf']:''))throw new \InvalidArgumentException('Formulaire expiré.');
+            $previous=AppearanceSettings::read($pdo,App::site());
+            $version=$_POST['version']??null;
+            if(!is_string($version)||!hash_equals(hash('sha256',$previous['raw']),$version))
+                throw new \DomainException('Ces réglages ont changé dans un autre onglet. Rechargez la page.');
             $theme=$_POST['theme']??null;
             if(!is_string($theme))throw new \InvalidArgumentException('Thème invalide.');
             $enabled=$_POST['enabled']??[];
@@ -39,17 +45,73 @@ try {
             }
             foreach(['heading_font','body_font'] as $key){
                 $value=$_POST[$key]??'';
-                if(!is_string($value)||strlen($value)>40)throw new \InvalidArgumentException('Police invalide.');
-                if($value!=='')$brand[$key]=$value;
+                if(!is_string($value) || !in_array($value,['', 'custom',...array_keys(AppearanceSettings::FONTS)],true))
+                    throw new \InvalidArgumentException('Police invalide.');
+                if($value==='custom'){
+                    $fileKey=$key.'_file';
+                    if(isset($previous['brand'][$fileKey]))$brand[$fileKey]=$previous['brand'][$fileKey];
+                }elseif($value!=='')$brand[$key]=$value;
+            }
+            $assetRemoved=$_POST['remove_asset']??[];
+            $fontRemoved=$_POST['remove_font']??[];
+            foreach([[$assetRemoved,AppearanceSettings::ASSETS],[$fontRemoved,AppearanceSettings::CUSTOM_FONTS]] as [$selection,$known]){
+                if(!is_array($selection)||count($selection)>count($known)
+                    ||count(array_filter($selection,'is_string'))!==count($selection)
+                    ||count(array_unique($selection))!==count($selection)
+                    ||array_diff($selection,array_keys($known))!==[])
+                    throw new \InvalidArgumentException('Sélection des fichiers invalide.');
             }
             foreach(AppearanceSettings::ASSETS as $key=>$label){
-                $value=$_POST[$key]??'';
-                if(!is_string($value)||strlen($value)>2048)throw new \InvalidArgumentException('URL de média invalide.');
-                $value=trim($value);
-                if($value!=='')$brand[$key]=$value;
+                if(!in_array($key,$assetRemoved,true)&&isset($previous['brand'][$key]))
+                    $brand[$key]=$previous['brand'][$key];
             }
-            $version=$_POST['version']??null;
-            AppearanceSettings::save($pdo,App::site(),is_string($version)?$version:'',$theme,$brand);
+            foreach(AppearanceSettings::CUSTOM_FONTS as $key=>$label){
+                if(in_array($key,$fontRemoved,true))unset($brand[$key]);
+            }
+            $uploads=[];
+            foreach(['asset_file'=>AppearanceSettings::ASSETS,'font_file'=>AppearanceSettings::CUSTOM_FONTS] as $postKey=>$choices){
+                $input=$_FILES[$postKey]??null;
+                if($input!==null&&(!is_array($input)||!is_array($input['error']??null)
+                    ||array_diff(array_keys($input['error']),array_keys($choices))!==[]))
+                    throw new \InvalidArgumentException('Fichiers transmis invalides.');
+                foreach($choices as $key=>$label){
+                    $error=$input['error'][$key]??UPLOAD_ERR_NO_FILE;
+                    if($error===UPLOAD_ERR_NO_FILE)continue;
+                    if($error!==UPLOAD_ERR_OK)throw new \InvalidArgumentException(
+                        'Impossible d’importer « '.$label.' » : fichier trop volumineux ou transfert interrompu.');
+                    $uploads[]=[
+                        'type'=>$postKey,'key'=>$key,
+                        'file'=>UploadedFile::fromPhp([
+                            'name'=>$input['name'][$key]??null,
+                            'tmp_name'=>$input['tmp_name'][$key]??null,
+                            'error'=>$error,
+                        ]),
+                    ];
+                }
+            }
+            $created=[];
+            $saved=false;
+            try{
+                foreach($uploads as $upload){
+                    if($upload['type']==='asset_file'){
+                        $result=BrandImageStore::upload(App::site(),$upload['file']);
+                        $brand[$upload['key']]=$result['url'];
+                        $created[]=['image',$result['token']];
+                    }else{
+                        $ref=BrandFontStore::upload(App::site(),$upload['file']);
+                        $brand[$upload['key']]=$ref;
+                        unset($brand[str_replace('_file','',$upload['key'])]);
+                        $created[]=['font',$ref];
+                    }
+                }
+                AppearanceSettings::save($pdo,App::site(),$version,$theme,$brand);
+                $saved=true;
+            }finally{
+                if(!$saved)foreach($created as [$type,$token]){
+                    if($type==='image')BrandImageStore::discard(App::site(),$token);
+                    else BrandFontStore::discard(App::site(),$token);
+                }
+            }
             header('Location: /admin/appearance.php?saved=1',true,303);
             exit;
         }catch(\InvalidArgumentException|\DomainException $e){
@@ -113,7 +175,7 @@ try {
     if(isset($_GET['saved']))$message='<p class="appearance-notice" role="status">Apparence enregistrée. Les pages publiques et leurs aperçus utilisent les nouveaux réglages.</p>';
     if($message!=='')$body.=$message;
     if(getenv('DENDRILA_BRAND_JSON')!==false)$body.='<p class="appearance-note" role="note">Certains réglages du serveur peuvent remplacer les couleurs choisies ici.</p>';
-    $body.='<form method="post" action="/admin/appearance.php" data-appearance-form>';
+    $body.='<form method="post" action="/admin/appearance.php" enctype="multipart/form-data" data-appearance-form>';
     $body.='<input type="hidden" name="csrf" value="'.App::h($csrf->token()).'">';
     $body.='<input type="hidden" name="version" value="'.hash('sha256',$state['raw']).'">';
     $body.='<div class="appearance-workspace"><div class="appearance-controls">';
@@ -148,18 +210,52 @@ try {
         $body.='</div></fieldset>';
     }
 
-    $body.='<details class="appearance-panel appearance-details"><summary>Polices, logo et images <span>Options complémentaires</span></summary>';
-    $body.='<div class="appearance-details-content"><h3>Polices locales</h3><div class="appearance-fields">';
-    foreach(['heading_font'=>'Titres','body_font'=>'Corps de texte'] as $key=>$label){
-        $body.='<label class="appearance-field">'.App::h($label).'<select name="'.App::h($key).'"><option value="">Police du thème</option>';
-        foreach(AppearanceSettings::FONTS as $value=>$name)
-            $body.='<option value="'.App::h($value).'"'.(($state['brand'][$key]??'')===$value?' selected':'').'>'.App::h($name).'</option>';
-        $body.='</select></label>';
+    $body.='<fieldset class="appearance-panel appearance-fonts"><legend>Polices d’écriture</legend>';
+    $body.='<p class="appearance-helper">Testez une police sur les titres ou les paragraphes, ou importez la vôtre. Les polices sont hébergées sur ce site, sans service extérieur.</p>';
+    $fontStyles=[
+        'neutral-sans'=>'Sans empattements — classique',
+        'humanist-sans'=>'Sans empattements — souple',
+        'editorial-serif'=>'Avec empattements — classique',
+        'system-serif'=>'Avec empattements — système',
+    ];
+    foreach(['heading_font'=>['Titres','Le titre donne immédiatement le ton.','heading_font_file'],
+             'body_font'=>['Textes et paragraphes','Le texte doit rester facile à lire sur mobile.','body_font_file']] as $key=>[$label,$sample,$fileKey]){
+        $current=$state['brand'][$fileKey]??'';
+        $selection=$current!==''?'custom':($state['brand'][$key]??'');
+        $body.='<div class="appearance-font-card" data-font-target="'.App::h($key).'" data-current-font="'.App::h($current).'">';
+        $body.='<label for="appearance-font-'.$key.'">'.App::h($label).'</label>';
+        $body.='<select name="'.App::h($key).'" id="appearance-font-'.$key.'" data-font-select>';
+        $body.='<option value=""'.($selection===''?' selected':'').'>Police du thème</option>';
+        foreach($fontStyles as $value=>$name)
+            $body.='<option value="'.App::h($value).'"'.($selection===$value?' selected':'').'>'.App::h($name).'</option>';
+        $body.='<option value="custom"'.($selection==='custom'?' selected':'').($current===''?' disabled':'').'>Ma police importée</option>';
+        $body.='</select>';
+        $body.='<div class="appearance-font-sample" data-font-sample>'.App::h($sample).'</div>';
+        $body.='<label class="appearance-font-upload-label" for="appearance-file-'.$key.'">Importer ma police (WOFF2, WOFF, TTF, OTF · 3 Mo max.)</label>';
+        $body.='<input type="file" name="font_file['.$fileKey.']" id="appearance-file-'.$key.'" accept=".woff2,.woff,.ttf,.otf" data-font-upload>';
+        $body.='<p class="appearance-font-status" role="status" data-font-status>'.($current!==''?'Police personnalisée enregistrée.':'Aucune police importée.').'</p>';
+        if($current!=='')$body.='<label class="appearance-remove"><input type="checkbox" name="remove_font[]" value="'.$fileKey.'" data-font-remove> Supprimer cette personnalisation</label>';
+        $body.='</div>';
     }
-    $body.='</div><h3>Images de marque</h3>';
-    $body.='<p class="appearance-helper">Adresses HTTPS des images déjà hébergées sur votre site ou un serveur de confiance.</p>';
-    foreach(AppearanceSettings::ASSETS as $key=>$label){
-        $body.='<label class="appearance-field">'.App::h($label).'<input type="url" inputmode="url" name="'.App::h($key).'" maxlength="2048" placeholder="https://…" value="'.App::h($state['brand'][$key]??'').'"></label>';
+    $body.='</fieldset>';
+    $body.='<details class="appearance-panel appearance-details"><summary>Images du site <span>Logo et bandeau</span></summary>';
+    $body.='<div class="appearance-details-content"><h3>Images de marque</h3>';
+    $body.='<p class="appearance-helper">Sélectionnez une image depuis votre appareil. JPEG, PNG ou WebP, 8 Mo maximum. Les logos déjà configurés restent conservés.</p>';
+    $assets=[
+        'logo_url'=>['Logo (symbole)','Une icône ou un symbole qui représente votre marque.'],
+        'wordmark_url'=>['Logo avec nom (facultatif)','Version avec le nom de votre marque. Inutile si votre logo contient déjà le nom.'],
+        'hero_image_url'=>['Image du bandeau','Illustration ou photo présentée en haut de la page d’accueil.'],
+    ];
+    foreach($assets as $key=>[$label,$explanation]){
+        $url=$state['brand'][$key]??'';
+        $body.='<section class="appearance-asset" data-brand-asset="'.$key.'"><h4>'.App::h($label).'</h4><p>'.App::h($explanation).'</p>';
+        $body.='<div class="appearance-asset-preview'.($key==='hero_image_url'?' appearance-asset-preview--banner':'').'">';
+        $body.='<img data-brand-preview src="'.App::h($url).'" alt="Aperçu : '.App::h($label).'"'.($url===''?' hidden':'').'>';
+        $body.='<span data-brand-placeholder'.($url!==''?' hidden':'').'>Aucune image sélectionnée</span></div>';
+        $body.='<label for="appearance-asset-'.$key.'">Choisir une image</label>';
+        $body.='<input type="file" class="appearance-asset-file" name="asset_file['.$key.']" id="appearance-asset-'.$key.'" accept="image/jpeg,image/png,image/webp" data-brand-file>';
+        if($url!=='')$body.='<label class="appearance-remove"><input type="checkbox" name="remove_asset[]" value="'.$key.'" data-brand-remove> Retirer cette image</label>';
+        $body.='</section>';
     }
     $body.='</div></details>';
     $body.='</div>';
@@ -187,8 +283,8 @@ try {
     $body.='</form></div>';
     $page=App::page('Apparence du site',$body);
     echo str_replace('<body>',
-        '<link rel="stylesheet" href="/backoffice-assets/appearance.css?v=1">'
-        .'<script defer src="/backoffice-assets/appearance.js?v=1"></script><body>', $page);
+        '<link rel="stylesheet" href="/backoffice-assets/appearance.css?v=3">'
+        .'<script defer src="/backoffice-assets/appearance.js?v=3"></script><body>', $page);
 }catch(\Throwable $e){
     error_log('Dendrila appearance: '.$e::class.': '.$e->getMessage());
     http_response_code(503);echo App::page('Apparence indisponible','<p>Consultez les journaux du serveur.</p>');
