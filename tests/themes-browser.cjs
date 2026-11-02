@@ -50,6 +50,44 @@ module.exports=async function reviewThemes(browser,php){
         'Mobile hero never clips the image');
     }
     assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`Theme ${style} fits ${width}px`);
+
+    // Real interior page coverage, not merely a homepage snapshot. Every kit
+    // must provide a readable content shell and an entirely visible menu.
+    const interiorPage={
+      'simple-illustrated':'services',
+      'quiet-elegant':'espaces',
+      'image-forward':'projets',
+      'ultra-minimal':'services',
+      'graphic-rhythm':'activites',
+      'editorial':'publications',
+    }[style];
+    await page.goto('http://127.0.0.1:8080/theme-preview.php?theme='+style+'&mode=empty&page='+interiorPage);
+    assert.equal(await page.locator('body').getAttribute('data-dendrila-page'),interiorPage);
+    const section=page.locator('main .d-section--block-cards>.d-shell').first();
+    assert(await section.count(),'Secondary page offers a real content section: '+style);
+    const margins=await section.evaluate(el=>{
+      const rect=el.getBoundingClientRect();
+      return {left:rect.left,right:window.innerWidth-rect.right,scroll:document.documentElement.scrollWidth};
+    });
+    assert(margins.left>=10&&margins.right>=10,
+      'Secondary content has real side gutters: '+style+'/'+width+' '+JSON.stringify(margins));
+    assert(margins.scroll<=width+1,'No sideways overflow on interior pages: '+style+'/'+width);
+    const menu=page.locator('details.d-mobile-menu');
+    if(width===390) {
+      assert(await menu.isVisible(),'Mobile menu appears on interior page: '+style);
+      await menu.locator('summary').click();
+      assert(await menu.evaluate(el=>el.open),'Mobile menu expands with keyboard-accessible summary: '+style);
+      const menuRect=await menu.locator('.d-mobile-menu__panel').evaluate(el=>{
+        const rect=el.getBoundingClientRect();
+        return {left:rect.left,right:rect.right,viewport:innerWidth,width:rect.width};
+      });
+      assert(menuRect.left>=5&&menuRect.right<=menuRect.viewport-5,
+        'Mobile menu must be entirely within viewport: '+style+' '+JSON.stringify(menuRect));
+      await menu.locator('summary').click();
+      assert(!(await menu.evaluate(el=>el.open)),'Mobile menu closes: '+style);
+    }
+    await page.goto('http://127.0.0.1:8080/theme-preview.php?theme='+style+'&mode=demo');
+
     const buttonContrasts=await page.locator('.d-button').evaluateAll(buttons=>buttons.map(button=>{
      const css=getComputedStyle(button);
      const luminance=color=>{const rgb=color.match(/[\d.]+/g).slice(0,3).map(Number).map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4});return .2126*rgb[0]+.7152*rgb[1]+.0722*rgb[2]};
