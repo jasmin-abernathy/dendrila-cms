@@ -11,13 +11,17 @@ mkdir($base.'/config',0700,true);
 $secret=Totp::secret();
 try {
     Installer::install(
-        ['theme'=>'ultra-minimal','addons'=>['media','forum'],'db'=>['driver'=>'sqlite'],'secret'=>$secret],
+        ['theme'=>'ultra-minimal','addons'=>['media','forum','booking'],'db'=>['driver'=>'sqlite'],'secret'=>$secret],
         ['name'=>'Example site','email'=>'owner@example.test',
          'password'=>'example-long-password-sqlite','url'=>'https://example.test',
          'code'=>Totp::code($secret,intdiv(time(),30))],
         $base.'/config'
     );
     $settings=require $base.'/config/local.php';
+    if(($settings['DENDRILA_BOOKING_SETUP_REQUESTED']??null)!=='1')
+        throw new RuntimeException('Booking request not retained.');
+    if(in_array('booking',explode(',',$settings['DENDRILA_ADDONS']),true))
+        throw new RuntimeException('Unconfigured Booking must never be marked active.');
     foreach($settings as $key=>$value) putenv($key.'='.$value);
     $pdo=new SqliteConnection($settings['DB_DSN']);
     $dbFile=substr($settings['DB_DSN'],7);

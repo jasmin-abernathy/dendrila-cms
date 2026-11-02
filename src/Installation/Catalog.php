@@ -16,6 +16,9 @@ final class Catalog
         return [
             'media'=>['label'=>'Photos et galeries','description'=>'Photothèque, images optimisées et galeries dans vos pages.','requires'=>['gd','fileinfo'],'database'=>false],
             'forum'=>['label'=>'Forum modéré','description'=>'Discussions et réponses modérées, avec stockage local SQLite.','requires'=>['gd','fileinfo'],'database'=>false],
+            'booking'=>['label'=>'Réservations et paiements — Booking',
+                'description'=>'Préparer Booking pour une activation ultérieure. Base MySQL dédiée, SMTP et paiements restent à configurer. Aucun règlement ni rendez-vous activé à cette étape.',
+                'requires'=>[],'database'=>false,'setup_pending'=>true],
         ];
     }
     public static function selection(mixed $ids):array {
@@ -26,9 +29,11 @@ final class Catalog
     public static function requirements(array $ids):array {
         $ids=self::selection($ids);$extensions=['pdo_sqlite','mbstring','sodium'];
         foreach($ids as $id) $extensions=array_merge($extensions,self::addons()[$id]['requires']);
+        $reasons=['Les contenus, les comptes et les modules sélectionnés utilisent un fichier SQLite privé créé automatiquement.'];
+        if(in_array('booking',$ids,true))$reasons[]='Booking demandera ultérieurement une base MySQL/MariaDB séparée : rien à renseigner pour l’instant.';
         return [
             'database'=>false,'driver'=>'sqlite',
-            'database_reasons'=>['Les contenus, les comptes et les modules sélectionnés utilisent un fichier SQLite privé créé automatiquement.'],
+            'database_reasons'=>$reasons,
             'extensions'=>array_values(array_unique($extensions)),
         ];
     }

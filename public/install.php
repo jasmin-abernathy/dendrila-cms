@@ -215,13 +215,7 @@ case 2:
     foreach(['cards'=>'Cartes','list'=>'Liste','compact'=>'Compacte'] as $id=>$label)
         $body.='<option value="'.$id.'"'.(($state['guided_presentation']??'cards')===$id?' selected':'').'>'.$label.'</option>';
     $body.='</select></label></fieldset>';
-    $body.='<div class="addon-card addon-card--unavailable" role="group" aria-labelledby="booking-addon-title">'
-        .'<label><input type="checkbox" disabled aria-describedby="booking-addon-status"> '
-        .'<strong id="booking-addon-title">Réservations (Booking)</strong></label>'
-        .'<span>Créneaux, disponibilités, synchronisation calendrier et paiements : le module Dendrila Booking '
-        .'existe, mais son intégration dans cet installateur n’est pas terminée. '
-        .'Aucune réservation ni transaction ne sera activée par ce choix.</span>'
-        .'<span id="booking-addon-status" class="setup-addon-status">En cours d’intégration — non disponible</span></div>';
+    $body.='<p class="notice"><strong>Booking :</strong> vous pouvez maintenant cocher ce module. Le choix sera enregistré, sans activer les réservations ni les transactions avant la configuration et les tests de son adaptateur.</p>';
     break;
 case 3:
     $body.='<h2>Relier votre base de données</h2><ul>';foreach(Catalog::requirements($state['addons'])['database_reasons'] as $reason)$body.='<li>'.App::h($reason).'</li>';

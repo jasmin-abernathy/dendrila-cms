@@ -43,6 +43,9 @@ final class Installer
             (string)($state['guided_presentation']??'cards'),
         );
         $addons=Catalog::selection($state['addons']??[]);
+        // A setup request is not an executable or active extension.
+        $bookingRequested=in_array('booking',$addons,true);
+        $activeAddons=array_values(array_diff($addons,['booking']));
         foreach(Catalog::requirements($addons)['extensions'] as $ext)if(!extension_loaded($ext))throw new \RuntimeException('Extension PHP manquante : '.$ext);
         $name=trim($account['name']??'');$email=strtolower(trim($account['email']??''));$password=$account['password']??'';
         if($name===''||mb_strlen($name)>190||!filter_var($email,FILTER_VALIDATE_EMAIL)||strlen($email)>254||strlen($password)<12||strlen($password)>72)throw new \InvalidArgumentException('Nom, e-mail ou mot de passe invalide (12 caractères minimum, 72 octets maximum).');
@@ -74,7 +77,9 @@ final class Installer
             $settings=['APP_ENV'=>'production','APP_BASE_URL'=>$url,
                 'DB_DSN'=>$sqlite?'sqlite:'.$db['path']:self::dsn($db),
                 'DB_USERNAME'=>$sqlite?'':$db['user'],'DB_PASSWORD'=>$sqlite?'':$db['password'],
-                'DENDRILA_SITE_ID'=>'default','DENDRILA_SITE_NAME'=>$name,'DENDRILA_IDENTITY_PROVIDER'=>'native','DENDRILA_THEME'=>$state['theme'],'DENDRILA_ADDONS'=>implode(',',$addons),'DENDRILA_AUTH_KEY'=>bin2hex(random_bytes(32))];
+                'DENDRILA_SITE_ID'=>'default','DENDRILA_SITE_NAME'=>$name,'DENDRILA_IDENTITY_PROVIDER'=>'native','DENDRILA_THEME'=>$state['theme'],'DENDRILA_ADDONS'=>implode(',',$activeAddons),
+                'DENDRILA_BOOKING_SETUP_REQUESTED'=>$bookingRequested?'1':'0',
+                'DENDRILA_AUTH_KEY'=>bin2hex(random_bytes(32))];
             if(in_array('media',$addons,true))$settings+=['MEDIA_PRIVATE_ROOT'=>$private.'/media','MEDIA_PUBLIC_ENDPOINT'=>$url.'/media.php'];
             if(in_array('forum',$addons,true))$settings['FORUM_PRIVATE_ROOT']=$private.'/forum';
             // Verify atomic private config write before creating any tables.
