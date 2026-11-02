@@ -75,7 +75,6 @@
     if(!event.target.matches('[data-picker]'))update();
   });
   update();
-}
   const fontFamilies={
     'neutral-sans':'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
     'humanist-sans':'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
