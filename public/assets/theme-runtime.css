@@ -92,3 +92,32 @@ body[data-dendrila-theme] .d-home-tile--guided-assistant .d-orientation[data-ori
 @media(prefers-reduced-motion:reduce){
  [data-dendrila-theme] .d-card--linked{scroll-behavior:auto}
 }
+
+/* Every kit uses the same native details/summary navigation. An absolute
+ * dropdown may inherit offsets from a transformed/flex header or a toolbar.
+ * Anchor opened menus to the viewport so no part becomes unreachable. */
+@media (max-width:64rem) {
+  body[data-dendrila-theme] .d-header__inner > .d-mobile-menu[open] .d-mobile-menu__panel {
+    position:fixed!important;
+    top:4.5rem!important;
+    right:max(.75rem,env(safe-area-inset-right))!important;
+    left:auto!important;
+    bottom:auto!important;
+    transform:none!important;
+    margin:0!important;
+    width:min(27rem,calc(100vw - 1.5rem))!important;
+    max-width:calc(100vw - 1.5rem)!important;
+    max-height:calc(100dvh - 5.5rem)!important;
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+    overscroll-behavior:contain;
+    box-sizing:border-box!important;
+    z-index:9999!important;
+  }
+}
+@media (max-width:23rem) {
+  body[data-dendrila-theme] .d-header__inner > .d-mobile-menu[open] .d-mobile-menu__panel {
+    top:4.15rem!important;
+    max-height:calc(100dvh - 5rem)!important;
+  }
+}
