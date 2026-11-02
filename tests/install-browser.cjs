@@ -80,8 +80,21 @@ const php=process.env.PHP_BINARY||'php';
   assert.equal(await page.locator('[data-color-preview] .appearance-mini-button').evaluate(
     e=>getComputedStyle(e).backgroundColor),'rgb(157, 41, 65)',
     'Live preview updates button color before save');
+  // First-party media and typography use file pickers, never a URL field.
+  assert.equal(await page.locator('input[name=logo_url]').count(),0);
+  assert.equal(await page.locator('input[name="asset_file[logo_url]"]').count(),1);
+  const originalHeading=await page.locator('[data-font-target=heading_font] [data-font-sample]')
+    .evaluate(el=>getComputedStyle(el).fontFamily);
+  await page.locator('select[name=heading_font]').selectOption('editorial-serif');
+  assert((await page.locator('[data-font-target=heading_font] [data-font-sample]')
+    .evaluate(el=>getComputedStyle(el).fontFamily)).includes('Georgia'),'Font sample updates on selection');
+  assert(originalHeading !== '', 'Initial font remains inspectable');
+  const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9WlH8NwAAAAASUVORK5CYII=','base64');
   await page.locator('.appearance-details summary').click();
-  await page.locator('input[name=logo_url]').fill('https://atelier.example.test/assets/logo.svg');
+  await page.locator('input[name="asset_file[logo_url]"]').setInputFiles({
+    name:'brand-icon.png',mimeType:'image/png',buffer:png
+  });
+  assert(await page.locator('[data-brand-asset=logo_url] img').isVisible(),'Chosen logo is previewed');
   await page.getByRole('button',{name:'Enregistrer les changements'}).click();
   assert(await page.getByText('Apparence enregistrée.',{exact:false}).count(),'Successful appearance persistence');
   const branded=await (await page.request.get('http://127.0.0.1:8080/')).text();
@@ -101,8 +114,9 @@ const php=process.env.PHP_BINARY||'php';
   // Restore the originally installed theme before the independent six-theme parity suite.
   await page.locator('select[name=theme]').selectOption('quiet-elegant');
   await page.locator('input[name="enabled[]"][value="primary"]').uncheck();
+  await page.locator('select[name=heading_font]').selectOption('');
   await page.locator('.appearance-details summary').click();
-  await page.locator('input[name=logo_url]').fill('');
+  await page.locator('input[name="remove_asset[]"][value=logo_url]').check();
   await page.getByRole('button',{name:'Enregistrer les changements'}).click();
   const reverted=await (await page.request.get('http://127.0.0.1:8080/')).text();
   assert(reverted.includes('data-dendrila-theme="quiet-elegant"'),'Appearance can revert without losing content');
