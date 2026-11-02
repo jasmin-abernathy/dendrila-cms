@@ -4,8 +4,120 @@ body[data-dendrila-theme]{margin:0}
 [data-dendrila-theme] .d-brand{overflow-wrap:anywhere}
 [data-dendrila-theme] .d-brand img{width:40px;height:40px;object-fit:contain;flex-shrink:0}
 [data-dendrila-theme] .d-nav{flex-wrap:wrap}
-[data-dendrila-theme] .d-hero__grid:not(:has(>.d-hero__media)){grid-template-columns:minmax(0,1fr);min-height:0}
+[data-dendrila-theme] .d-hero__grid:not(:has(>.d-hero__media,>.d-hero__art)){grid-template-columns:minmax(0,1fr);min-height:0}
 [data-dendrila-theme] .d-media__image{max-width:100%}
 @media(max-width:38rem){[data-dendrila-theme] .d-header__inner{flex-wrap:wrap}[data-dendrila-theme] .d-nav{max-width:100%}}
+/* Shared native services, without brand-specific hard-coding. */
+.d-steps{list-style:none;margin:1.5rem 0 0;padding:0;display:grid;gap:1.25rem}
+.d-step{display:grid;grid-template-columns:auto 1fr;align-items:start;gap:1.1rem;padding:1.25rem 0;border-top:1px solid var(--dendrila-border,#d3d8d2)}
+.d-step__number{display:grid;place-items:center;width:2.5rem;height:2.5rem;flex-shrink:0;border:2px solid var(--accent);border-radius:50%;font-weight:700;font-variant-numeric:tabular-nums}
+.d-step h3,.d-pricing__card h3{margin:0 0 .35rem;font-size:1.2rem;line-height:1.35}
+.d-step p,.d-pricing__card p{margin:.25rem 0 0}
+.d-pricing{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr));align-items:stretch;gap:1.25rem;margin-top:1.5rem}
+.d-pricing__card{display:flex;flex-direction:column;align-items:start;gap:.8rem;border:1px solid var(--dendrila-border,#cbd7c6);padding:clamp(1rem,3vw,1.75rem);border-radius:var(--dendrila-radius);background:var(--paper);min-width:0}
+.d-pricing__amount{font-size:clamp(1.4rem,3vw,2rem);line-height:1.2;overflow-wrap:anywhere}
+.d-pricing__card .d-button{margin-top:auto}
+@media(prefers-contrast:more){.d-pricing__card,.d-step{border-width:2px}}
 
+/* Native guided orientation. Works in any theme; no external script or AI. */
+.d-orientation{max-width:70rem;margin-inline:auto}
+.d-orientation__intro{max-width:65ch;margin:0 0 1.5rem;line-height:1.65}
+.d-orientation__choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(.8rem,2vw,1.2rem)}
+.d-orientation__option{min-width:0;padding:clamp(1rem,2vw,1.5rem);border:1px solid var(--dendrila-color-border,#d5d5d5);border-radius:.8rem;background:var(--dendrila-color-surface,#fff)}
+.d-orientation__select{display:flex;align-items:center;justify-content:space-between;gap:.9rem;min-height:48px;width:100%;padding:.5rem 0;border:0;background:transparent;color:var(--dendrila-color-text,#111);font:700 clamp(1rem,2vw,1.15rem)/1.35 system-ui,sans-serif;text-align:left;cursor:pointer}
+.d-orientation__select{list-style:none}
+.d-orientation__select::-webkit-details-marker{display:none}
+.d-orientation__select:focus-visible{outline:3px solid currentColor;outline-offset:3px}
+.d-orientation__option[open]{border-color:var(--dendrila-color-primary,#333)}
+.d-orientation__option:not([open]) .d-orientation__answer{display:none}
+.d-orientation__answer{padding-top:1rem;border-top:1px solid var(--dendrila-color-border,#ddd)}
+.d-orientation__answer p{line-height:1.6;margin:0 0 1rem}
+.d-orientation__privacy{font-size:.87rem;opacity:.85;margin:1.1rem 0 0}
+.d-image-text{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:clamp(1.5rem,5vw,5rem);align-items:center;min-width:0}
+.d-image-text__copy{min-width:0}
+.d-image-text__copy>p{font-size:clamp(1rem,1.5vw,1.12rem);line-height:1.8;max-width:64ch}
+.d-image-text img{display:block;width:100%;height:100%;max-height:32rem;min-height:16rem;object-fit:cover;border-radius:clamp(.4rem,1vw,.8rem)}
+@media(max-width:48rem){
+.d-orientation__choices{grid-template-columns:minmax(0,1fr)}
+.d-image-text{grid-template-columns:minmax(0,1fr)}
+.d-image-text img{order:-1;min-height:13rem;max-height:19rem}
+}
+html.d-reading-readable .d-orientation__option,
+html.d-reading-readable .d-image-text{background:#fff!important;color:#111!important}
+html.d-reading-readable .d-orientation__select{color:#111!important;background:#fff!important}
 
+/* Optional guided journey: independent of the visual theme. */
+.d-orientation[data-orientation-presentation="list"] .d-orientation__choices{grid-template-columns:1fr!important;max-width:62rem}
+.d-orientation[data-orientation-presentation="list"] .d-orientation__option{border-radius:.25rem;padding:.75rem 1.2rem}
+.d-orientation[data-orientation-presentation="compact"] .d-orientation__choices{grid-template-columns:repeat(auto-fit,minmax(min(100%,12rem),1fr))!important;gap:.65rem}
+.d-orientation[data-orientation-presentation="compact"] .d-orientation__option{padding:.65rem .9rem;border-radius:.35rem}
+.d-orientation[data-orientation-presentation="compact"] .d-orientation__select{font-size:1rem;min-height:42px}
+@media(max-width:38rem){.d-orientation[data-orientation-presentation] .d-orientation__choices{grid-template-columns:1fr!important}}
+
+/* Override the professional theme's opt-in grid when another layout is selected. */
+body[data-dendrila-theme] .d-home-tile--guided-assistant .d-orientation[data-orientation-presentation="list"] .d-orientation__choices{grid-template-columns:1fr!important}
+body[data-dendrila-theme] .d-home-tile--guided-assistant .d-orientation[data-orientation-presentation="compact"] .d-orientation__choices{grid-template-columns:repeat(auto-fit,minmax(min(100%,12rem),1fr))!important}
+
+/* Native clickable cards: visible actions without a second link or underline. */
+[data-dendrila-theme] .d-card--linked{position:relative;cursor:pointer}
+[data-dendrila-theme] .d-card--linked .d-card__title a{
+  color:inherit;text-decoration:none!important
+}
+[data-dendrila-theme] .d-card--linked .d-card__title a::after{
+  content:"";position:absolute;inset:0;z-index:2
+}
+[data-dendrila-theme] .d-card--linked:focus-within{
+  outline:3px solid var(--dendrila-color-primary,#253f31);outline-offset:3px
+}
+[data-dendrila-theme] .d-card__action{
+  display:inline-flex;align-items:center;justify-content:flex-start;gap:.6rem;
+  align-self:end;max-width:100%;font-weight:750;font-size:.95rem;line-height:1.4;
+  color:var(--dendrila-color-primary,#253f31);
+  border:0;border-top:1px solid var(--dendrila-color-border,#ddd);
+  margin-top:auto;padding-top:.9rem;text-decoration:none!important;
+  pointer-events:none;overflow-wrap:anywhere
+}
+[data-dendrila-theme] .d-card__action-arrow{font-size:1.2em;line-height:1}
+[data-dendrila-theme="very-minimal"] .d-home-tile--cards .d-card-grid[data-card-count="2"] .d-card__action{
+  grid-column:2;justify-self:start;margin-top:0;border:0;padding:0
+}
+[data-dendrila-theme="very-minimal"] .d-home-tile--cards .d-card-grid[data-card-count="4"] .d-card__action{
+  justify-content:center;align-self:end;width:100%
+}
+@media(max-width:48rem){
+ [data-dendrila-theme="very-minimal"] .d-home-tile--cards .d-card-grid[data-card-count="2"] .d-card__action{
+   grid-column:1;justify-self:stretch;margin-top:.4rem;border-top:1px solid var(--dendrila-color-border,#ddd);padding-top:.8rem
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ [data-dendrila-theme] .d-card--linked{scroll-behavior:auto}
+}
+
+/* Every kit uses the same native details/summary navigation. An absolute
+ * dropdown may inherit offsets from a transformed/flex header or a toolbar.
+ * Anchor opened menus to the viewport so no part becomes unreachable. */
+@media (max-width:64rem) {
+  body[data-dendrila-theme] .d-header__inner > .d-mobile-menu[open] .d-mobile-menu__panel {
+    position:fixed!important;
+    top:4.5rem!important;
+    right:max(.75rem,env(safe-area-inset-right))!important;
+    left:auto!important;
+    bottom:auto!important;
+    transform:none!important;
+    margin:0!important;
+    width:min(27rem,calc(100vw - 1.5rem))!important;
+    max-width:calc(100vw - 1.5rem)!important;
+    max-height:calc(100dvh - 5.5rem)!important;
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+    overscroll-behavior:contain;
+    box-sizing:border-box!important;
+    z-index:9999!important;
+  }
+}
+@media (max-width:23rem) {
+  body[data-dendrila-theme] .d-header__inner > .d-mobile-menu[open] .d-mobile-menu__panel {
+    top:4.15rem!important;
+    max-height:calc(100dvh - 5rem)!important;
+  }
+}

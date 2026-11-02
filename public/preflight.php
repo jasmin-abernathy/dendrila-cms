@@ -18,7 +18,7 @@ $items=[
   'Dossier config/ privé et accessible'=>is_dir($base.'/config')&&is_writable($base.'/config')&&!is_link($base.'/config'),
   'Dossier storage/ privé et accessible'=>is_dir($base.'/storage')&&is_writable($base.'/storage')&&!is_link($base.'/storage'),
 ];
-foreach(['json','mbstring','pdo','pdo_mysql','gd','fileinfo','sodium','ctype'] as $ext){
+foreach(['json','mbstring','pdo','pdo_sqlite','gd','fileinfo','sodium','ctype'] as $ext){
     $items['Extension PHP : '.$ext]=extension_loaded($ext);
 }
 $ok=!in_array(false,$items,true);
@@ -29,6 +29,6 @@ foreach($items as $name=>$pass){
     echo '<li><strong class="'.($pass?'ok':'bad').'">'.($pass?'OK':'À corriger').'</strong> — '.$esc($name).'</li>';
 }
 echo '</ul>';
-if($ok)echo '<p>Les prérequis locaux sont satisfaits. Il faudra encore disposer d’une base MariaDB vide et de ses identifiants.</p><p><a href="/install.php">Reprendre l’installation</a></p>';
+if($ok)echo '<p>Les prérequis locaux sont satisfaits. Le CMS créera un fichier SQLite dans son stockage privé sans connexion à une base externe.</p><p><a href="/install.php">Reprendre l’installation</a></p>';
 else{http_response_code(503);echo '<p>Corrigez les éléments signalés, puis rechargez cette page. Vérifiez notamment la racine web dans le panneau de votre hébergeur. Ne publiez jamais config/, vendor/ ou storage/.</p>';}
 echo '</body></html>';

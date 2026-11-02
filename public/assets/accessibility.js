@@ -9,8 +9,9 @@
  const clean=value=>({size:['100','125','150','200'].includes(value?.size)?value.size:'100',...Object.fromEntries(['readable','spacing','motion','links'].map(k=>[k,value?.[k]===true]))});
  let prefs={...defaults};
  try { prefs=clean(JSON.parse(localStorage.getItem(key))); } catch (_) {}
+ const anchor=document.getElementById('d-reading-toolbar-anchor');
  const area=document.createElement('div');area.id='d-reading-tools';
- area.innerHTML=`<button type="button" id="d-reading-open" aria-haspopup="dialog" aria-controls="d-reading-dialog"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/></svg>${t('Accessibilité','Accessibility')}</button>
+ area.innerHTML=`<button type="button" id="d-reading-open" aria-label="${t('Accessibilité','Accessibility')}" title="${t('Accessibilité','Accessibility')}" aria-haspopup="dialog" aria-controls="d-reading-dialog"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/></svg><span class="d-reading-open__label">${t('Accessibilité','Accessibility')}</span></button>
  <dialog id="d-reading-dialog" aria-labelledby="d-reading-title" aria-describedby="d-reading-help">
  <h2 id="d-reading-title">${t('Confort de lecture','Reading preferences')}</h2>
  <button type="button" id="d-reading-close" autofocus>${t('Fermer','Close')}</button>
@@ -19,7 +20,7 @@
  ${[['readable',t('Lecture simplifiée : contraste élevé, police simple, sans décors','Simplified reading: high contrast, simple font, no decoration')],['spacing',t('Espacement du texte augmenté','Increased text spacing')],['motion',t('Réduire les animations','Reduce animations')],['links',t('Souligner les liens','Underline links')]].map(([k,label])=>`<label class="d-reading-option"><input type="checkbox" data-reading="${k}">${label}</label>`).join('')}
  <p>${t('La préférence de réduction des animations de votre appareil reste respectée.','Your device’s reduced motion preference remains respected.')}</p>
  <button type="button" id="d-reading-reset">${t('Réinitialiser les réglages','Reset preferences')}</button><p id="d-reading-status" role="status"></p></dialog>`;
- document.body.append(area);
+ (anchor || document.body).append(area);
  const dialog=area.querySelector('dialog'),opener=area.querySelector('#d-reading-open'),size=area.querySelector('select'),status=area.querySelector('[role=status]');
  const apply=()=>{
   document.documentElement.dataset.readingSize=prefs.size;

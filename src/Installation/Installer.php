@@ -8,9 +8,25 @@ use Dendrila\Cms\Content\ContentService;
 use Dendrila\Cms\Storage\PdoCmsStore;
 use Dendrila\Cms\Navigation\{NavigationService,PdoNavigationRepository};
 use PDO;
+use Dendrila\Cms\Storage\SqliteConnection;
 final class Installer
 {
     public static function connect(array $db):PDO {
+        if(($db['driver']??null)==='sqlite'){
+            $path=$db['path']??null;
+            if(!is_string($path)||!str_starts_with($path,'/')||str_contains($path,"\0")
+                ||!is_dir(dirname($path))||is_link($path)||is_link(dirname($path)))
+                throw new \InvalidArgumentException('Chemin SQLite privé incorrect.');
+            // Never import or overwrite an existing database; a first install is empty.
+            if(is_file($path)&&filesize($path)>0)
+                throw new \DomainException('Une base SQLite existe déjà. L’installation ne l’écrasera pas.');
+            $old=umask(0077);
+            try {
+                $pdo=new SqliteConnection('sqlite:'.$path);
+                @chmod($path,0600);
+            }finally{umask($old);}
+            return $pdo;
+        }
         foreach(['host','name','user','password','port'] as $key)if(!is_string($db[$key]??null))throw new \InvalidArgumentException('Configuration de base incomplète.');
         if(!preg_match('/^[a-zA-Z0-9.:-]{1,253}$/D',$db['host'])||!preg_match('/^[a-zA-Z0-9_-]{1,64}$/D',$db['name'])||!ctype_digit($db['port'])||(int)$db['port']<1||(int)$db['port']>65535||strlen($db['password'])>1024)throw new \InvalidArgumentException('Adresse de base invalide.');
         $pdo=new PDO(self::dsn($db),$db['user'],$db['password'],[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_EMULATE_PREPARES=>false,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC,PDO::ATTR_TIMEOUT=>5]);
@@ -21,6 +37,11 @@ final class Installer
     public static function install(array $state,array $account,string $directory):void {
         if(!isset(Catalog::themes()[$state['theme']??'']))throw new \InvalidArgumentException('Thème inconnu.');
         \Dendrila\Cms\Runtime\Presentation::forTheme($state['theme']);
+        $starterPages=StarterSiteCatalog::installationPages(
+            $state['theme'],
+            ($state['guided_journey']??'none')==='guided',
+            (string)($state['guided_presentation']??'cards'),
+        );
         $addons=Catalog::selection($state['addons']??[]);
         foreach(Catalog::requirements($addons)['extensions'] as $ext)if(!extension_loaded($ext))throw new \RuntimeException('Extension PHP manquante : '.$ext);
         $name=trim($account['name']??'');$email=strtolower(trim($account['email']??''));$password=$account['password']??'';
@@ -40,11 +61,20 @@ final class Installer
         $lock=fopen($directory.'/install.lock','c');if(!$lock||!flock($lock,LOCK_EX|LOCK_NB))throw new \RuntimeException('Installation déjà en cours.');
         try{
             if(is_file($directory.'/local.php'))throw new \DomainException('Le site est déjà installé.');
-            $pdo=self::connect($state['db']);
             $private=dirname($directory).'/storage';
+            if(!is_dir($private) && !mkdir($private,0700,true))
+                throw new \RuntimeException('Stockage privé inaccessible.');
+            if(is_link($private) || !is_writable($private))
+                throw new \RuntimeException('Stockage privé dangereux ou inaccessible.');
+            $sqlite=($state['db']['driver']??'')==='sqlite';
+            $db=$sqlite?['driver'=>'sqlite','path'=>$private.'/site.sqlite']:$state['db'];
+            $pdo=self::connect($db);
             if(!is_dir($private)&&!mkdir($private,0700,true))throw new \RuntimeException('Stockage privé inaccessible.');
             foreach(['media','forum'] as $module)if(in_array($module,$addons,true)&&!is_dir($private.'/'.$module)&&!mkdir($private.'/'.$module,0700,true))throw new \RuntimeException('Stockage du module inaccessible.');
-            $settings=['APP_ENV'=>'production','APP_BASE_URL'=>$url,'DB_DSN'=>self::dsn($state['db']),'DB_USERNAME'=>$state['db']['user'],'DB_PASSWORD'=>$state['db']['password'],'DENDRILA_SITE_ID'=>'default','DENDRILA_SITE_NAME'=>$name,'DENDRILA_IDENTITY_PROVIDER'=>'native','DENDRILA_THEME'=>$state['theme'],'DENDRILA_ADDONS'=>implode(',',$addons),'DENDRILA_AUTH_KEY'=>bin2hex(random_bytes(32))];
+            $settings=['APP_ENV'=>'production','APP_BASE_URL'=>$url,
+                'DB_DSN'=>$sqlite?'sqlite:'.$db['path']:self::dsn($db),
+                'DB_USERNAME'=>$sqlite?'':$db['user'],'DB_PASSWORD'=>$sqlite?'':$db['password'],
+                'DENDRILA_SITE_ID'=>'default','DENDRILA_SITE_NAME'=>$name,'DENDRILA_IDENTITY_PROVIDER'=>'native','DENDRILA_THEME'=>$state['theme'],'DENDRILA_ADDONS'=>implode(',',$addons),'DENDRILA_AUTH_KEY'=>bin2hex(random_bytes(32))];
             if(in_array('media',$addons,true))$settings+=['MEDIA_PRIVATE_ROOT'=>$private.'/media','MEDIA_PUBLIC_ENDPOINT'=>$url.'/media.php'];
             if(in_array('forum',$addons,true))$settings['FORUM_PRIVATE_ROOT']=$private.'/forum';
             // Verify atomic private config write before creating any tables.
@@ -52,7 +82,8 @@ final class Installer
             $old=umask(0077);$written=file_put_contents($tmp,"<?php\nreturn ".var_export($settings,true).";\n",LOCK_EX);umask($old);
             if($written===false)throw new \RuntimeException('Configuration non inscriptible.');
             try {
-                (new Migrator($pdo))->run();
+                if($sqlite){(new SqliteMigrator($pdo))->run();}
+                else{(new Migrator($pdo))->run();}
                 $pdo->beginTransaction();
                 $pdo->exec("INSERT INTO sites VALUES ('default',".$pdo->quote($name).",1,1,'{\"review_before_publish\":true,\"allow_offline_queue\":false}',UTC_TIMESTAMP(6),UTC_TIMESTAMP(6))");
                 $modules=in_array('media',$addons,true)?[\Dendrila\Cms\Api\MediaLibraryModule::definition()]:[];
@@ -65,9 +96,21 @@ final class Installer
                 $q=$pdo->prepare("INSERT INTO native_accounts (site_id,actor_id,email,password_hash,totp_cipher,last_totp_step,created_at) VALUES ('default','owner',?,?,?,?,UTC_TIMESTAMP(6))");$q->execute([$email,password_hash($password,PASSWORD_DEFAULT),$identity->encrypt($state['secret']),$step]);
                 $pdo->commit();
                 $store=new PdoCmsStore($pdo);$actor=new ActorContext('default','owner');$authz=new AuthorizationService($store);$content=new ContentService($store,$authz);
-                $home=$content->createDraft($actor,'page',['title'=>$name,'slug'=>'home','blocks'=>[['type'=>'text','text'=>'Bienvenue sur notre site.']]],'install-home');
-                $content->transition($actor,$home['content']['id'],'published',1,'install-publish-home');
-                $items=[['id'=>'home','label'=>'Accueil','url'=>'/','visible'=>true]];
+                // Seed the actual reference-derived page sections, not only the preview.
+                // Only the homepage is published initially: every other page starts
+                // as an editable draft, with its menu entry hidden until reviewed.
+                foreach($starterPages as $starter) {
+                    $slug=$starter['slug'];
+                    $draft=$content->createDraft($actor,'page',[
+                        'title'=>$starter['title'],'slug'=>$slug,'blocks'=>$starter['blocks'],
+                    ],'install-starter-'.$slug);
+                    if($slug==='home') {
+                        $content->transition($actor,$draft['content']['id'],'published',1,'install-publish-home');
+                    }
+                }
+                $items=StarterSiteCatalog::navigation($state['theme']);
+                foreach($items as &$item) $item['visible']=$item['id']==='home';
+                unset($item);
                 if(in_array('forum',$addons,true))$items[]=['id'=>'forum','label'=>'Forum','url'=>'/forum/','visible'=>true];
                 (new NavigationService(new PdoNavigationRepository($pdo),$store,$authz))->save($actor,'main','Menu principal','primary',$items,0);
                 if(!rename($tmp,$directory.'/local.php'))throw new \RuntimeException('Finalisation de la configuration impossible.');

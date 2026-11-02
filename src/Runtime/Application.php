@@ -6,7 +6,10 @@ use Dendrila\Cms\Auth\NativeIdentity;
 final class Application
 {
     public static function database(): PDO {
-        return new PDO(getenv('DB_DSN')?:'',getenv('DB_USERNAME')?:'',getenv('DB_PASSWORD')?:'',[
+        $dsn=getenv('DB_DSN')?:'';
+        if(str_starts_with($dsn,'sqlite:'))
+            return new \Dendrila\Cms\Storage\SqliteConnection($dsn);
+        return new PDO($dsn,getenv('DB_USERNAME')?:'',getenv('DB_PASSWORD')?:'',[
             PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC,PDO::ATTR_EMULATE_PREPARES=>false]);
     }
     public static function session(): void {
@@ -23,7 +26,7 @@ final class Application
     public static function site(): string {return getenv('DENDRILA_SITE_ID')?:throw new \RuntimeException('Site is not installed.');}
     public static function addons(): array {return array_filter(explode(',',getenv('DENDRILA_ADDONS')?:''));}
     public static function page(string $title,string $body): string {
-        return '<!doctype html><html lang="fr"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'.self::h($title).' — Dendrila</title><link rel="stylesheet" href="/backoffice-assets/backoffice.css"><link rel="stylesheet" href="/assets/install.css"><link rel="stylesheet" href="/assets/accessibility.css?v=1"><script src="/assets/accessibility.js?v=1" defer></script><body><main class="setup"><a href="/">Voir le site</a><h1>'.self::h($title).'</h1>'.$body.'</main></body></html>';
+        return '<!doctype html><html lang="fr"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'.self::h($title).' — Dendrila</title><link rel="stylesheet" href="/backoffice-assets/backoffice.css"><link rel="stylesheet" href="/assets/install.css?v=2"><link rel="stylesheet" href="/assets/accessibility.css?v=1"><script src="/assets/accessibility.js?v=1" defer></script><body><main class="setup"><a href="/">Voir le site</a><h1>'.self::h($title).'</h1>'.$body.'</main></body></html>';
     }
     public static function h(mixed $s):string{return htmlspecialchars((string)$s,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');}
 }

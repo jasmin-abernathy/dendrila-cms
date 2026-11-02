@@ -172,7 +172,7 @@ jobs:
           DB_USERNAME: root
           INSTALL_DB_PORT: '3306'
         run: |
-          env -u DB_DSN -u DB_USERNAME -u DB_PASSWORD php -S 127.0.0.1:8080 -t public public/router.php > /tmp/dendrila-http.log 2>&1 &
+          env -u DB_DSN -u DB_USERNAME -u DB_PASSWORD php -S 127.0.0.1:8080 -t public tests/browser-router.php > /tmp/dendrila-http.log 2>&1 &
           server_pid=$!
           trap 'kill "$server_pid"; cat /tmp/dendrila-http.log' EXIT
           node tests/install-browser.cjs

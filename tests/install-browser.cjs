@@ -5,13 +5,17 @@ const php=process.env.PHP_BINARY||'php';
  const token=cp.execFileSync(php,['bin/prepare-install.php'],{encoding:'utf8'}).trim().split('\n').pop();
  fs.mkdirSync('build/test-artifacts',{recursive:true});
  const browser=await chromium.launch({executablePath:process.env.CHROMIUM_EXECUTABLE||undefined,headless:true,args:['--no-sandbox']});
- const page=await browser.newPage({viewport:{width:1280,height:900}});const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ // Requests stay on loopback. A synthetic, DNS-shaped Host exercises HTTPS origin derivation.
+ const context=await browser.newContext({viewport:{width:1280,height:900}});
+ const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
  try {
   await page.goto('http://127.0.0.1:8080/install.php');
   await require('./accessibility-browser.cjs')(page);
   const csrf=await page.locator('input[name=csrf]').inputValue();
   const bypass=await page.request.post('http://127.0.0.1:8080/install.php',{form:{csrf,back:'1'}});assert.equal(bypass.status(),422);
-  await page.getByLabel('Clé d’installation').fill(token);await page.getByRole('button',{name:'Utiliser la clé',exact:true}).click();
+  await page.getByText('Option avancée : utiliser une clé de préparation',{exact:true}).click();
+  await page.getByLabel('Clé de préparation (facultative)').fill(token);
+  await page.getByRole('button',{name:'Continuer avec la clé'}).click();
   assert.equal(await page.locator('input[name=theme]').count(),6);
   // This is the real first-installation wizard, not a separate gallery.
   const themeCards=page.locator('.theme-card');
@@ -30,7 +34,7 @@ const php=process.env.PHP_BINARY||'php';
     const empty=await page.request.get('http://127.0.0.1:8080'+emptyLink);
     const demo=await page.request.get('http://127.0.0.1:8080'+demoLink);
     assert.equal(empty.status(),200);assert.equal(demo.status(),200);
-    assert((await empty.text()).includes('Bienvenue sur notre site.'),'Empty preview is the actual starter page');
+    assert((await empty.text()).includes('class="d-card-grid"'),'Starter preview includes real editable theme sections');
     const demoHtml=await demo.text();
     assert(demoHtml.includes('Démonstration')&&demoHtml.includes('class="d-button"'),'Thumbnail presents a usable site direction');
     assert(!/Lorem ipsum|Blog|Actualités/.test(demoHtml),'No generic blog feed in the theme chooser');
@@ -46,25 +50,76 @@ const php=process.env.PHP_BINARY||'php';
   assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'No mobile overflow');
   await page.screenshot({path:'build/test-artifacts/install-themes-mobile.png',fullPage:true});
   await page.locator('input[value="quiet-elegant"]').check();await page.getByRole('button',{name:'Continuer'}).click();
-  await page.locator('input[value=media]').check();await page.locator('input[value=forum]').check();await page.getByRole('button',{name:'Continuer'}).click();
-  await page.getByLabel('Serveur').fill('127.0.0.1');await page.getByLabel('Port',{exact:true}).fill(process.env.INSTALL_DB_PORT||'3308');
-  await page.getByLabel('Nom de la base').fill('cms_browser_test');await page.getByLabel('Utilisateur de la base').fill(process.env.DB_USERNAME||'root');
-  await page.getByLabel('Mot de passe de la base').fill(process.env.DB_PASSWORD||'test-only');await page.getByRole('button',{name:'Continuer'}).click();
+  await page.locator('input[value=media]').check();await page.locator('input[value=forum]').check();
+  assert(await page.getByText('Formulaire classique uniquement').count(),'Classic contact is offered');
+  assert(await page.locator('input[name=guided_journey][value=none]').isChecked(),'Guided journey is not imposed');
+  await page.getByRole('button',{name:'Continuer'}).click();
+  assert(await page.getByText('Votre stockage SQLite sera créé automatiquement.').count(),'SQLite needs no external connection');
+  assert.equal(await page.locator('input[name=host],input[name=url]').count(),0,'No SQL host or site URL must be entered');
   const secret=(await page.locator('code.secret').textContent()).trim();
   const code=(offset=0)=>cp.execFileSync(php,['-r',`require 'vendor/autoload.php';echo Dendrila\\Cms\\Auth\\Totp::code('${secret}',intdiv(time(),30)+${offset});`],{encoding:'utf8'}).trim();
-  await page.getByLabel('Nom du site').fill('Atelier de démonstration');await page.getByLabel('Adresse HTTPS du site').fill('https://atelier.example.test');
+  await page.getByLabel('Nom du site').fill('Atelier de démonstration');
   await page.getByLabel('Votre e-mail').fill('owner@atelier.example.test');await page.getByLabel('Votre mot de passe').fill('Browser-test-password-2026!');await page.getByLabel('Code actuel').fill(code());
-  await page.getByRole('button',{name:'Installer mon site'}).click();assert(await page.getByRole('heading',{name:'Votre site est prêt'}).count());
+  await page.getByRole('button',{name:'Installer mon site'}).click();
+  assert(await page.getByRole('heading',{name:'Votre site est prêt'}).count(),'Private SQLite installation completes');
+  assert(fs.existsSync('storage/site.sqlite'),'The installed database is private SQLite, not MariaDB');
+  const settings=cp.execFileSync(php,['-r',`$c=require 'config/local.php';echo $c['APP_BASE_URL'];`],{encoding:'utf8'}).trim();
+  assert.equal(settings,'https://atelier.example.test','HTTPS origin derived from current host, not entered by owner');
   await page.getByRole('link',{name:'Ouvrir l’administration'}).click();await page.getByLabel('E-mail',{exact:true}).fill('owner@atelier.example.test');await page.getByLabel('Mot de passe',{exact:true}).fill('Browser-test-password-2026!');await page.getByLabel('Code de votre application').fill(code(1));await page.getByRole('button',{name:'Se connecter'}).click();
   assert.equal(await page.locator('[data-page-editor]').count(),1,'Authenticated editor');
 
+  // A native SEO panel uses the existing account, not a second external tool.
+  assert(await page.getByRole('link',{name:'SEO',exact:true}).count(),'SEO tab appears in back-office');
+  await page.goto('http://127.0.0.1:8080/admin/seo.php');
+  assert(await page.getByRole('heading',{name:'SEO du site'}).count(),'Native SEO page is available');
+  assert(await page.getByText('Conseils de rédaction',{exact:true}).count(),'Local writing tips are shown');
+  await page.locator('textarea[name=topics]').fill('atelier de démonstration\nconseils pratiques');
+  await page.getByRole('button',{name:'Enregistrer les sujets'}).click();
+  assert(await page.getByText('Enregistrement effectué.',{exact:false}).count(),'Site topics persist');
+  await page.locator('textarea[name=page_topics]').fill('atelier de démonstration');
+  await page.locator('input[name=seo_title]').fill('Atelier de démonstration — services');
+  await page.locator('textarea[name=seo_description]').fill('Découvrez les services, les démarches et les informations pratiques de notre atelier de démonstration.');
+  await page.getByRole('button',{name:'Enregistrer le SEO de cette page'}).click();
+  assert(await page.getByText('Enregistrement effectué.',{exact:false}).count(),'Page metadata persists');
+  const seoLive=await (await page.request.get('http://127.0.0.1:8080/')).text();
+  assert(seoLive.includes('name="keywords" content="atelier de démonstration"'),'Published HTML contains selected SEO topics');
+  assert(seoLive.includes('<title>Atelier de démonstration — services</title>'),'Published SEO title overrides default');
+  assert(seoLive.includes('name="description"'),'Published meta description is server-rendered');
+  await page.setViewportSize({width:390,height:844});
+  assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),
+    'SEO interface is readable at phone width');
+  await page.screenshot({path:'build/test-artifacts/seo-mobile.png',fullPage:true});
+  await page.setViewportSize({width:1280,height:900});
+
+
   await page.goto('http://127.0.0.1:8080/admin/appearance.php');
   assert(await page.getByRole('heading',{name:'Apparence du site'}).count(),'Owner can open appearance panel');
+  assert.equal(await page.locator('[data-color-group]').count(),3,'Colors are grouped by use, not a flat field list');
+  assert.equal(await page.locator('[data-color-key]').count(),9,'Nine existing theme tokens remain editable');
+  assert.equal(await page.locator('[data-color-preview]').count(),1,'Live page preview is present');
   await page.locator('select[name=theme]').selectOption('editorial');
-  await page.locator('input[name="enabled[]"][value="primary"]').check();
   await page.locator('input[name="color[primary]"]').fill('#9d2941');
-  await page.locator('input[name=logo_url]').fill('https://atelier.example.test/assets/logo.svg');
-  await page.getByRole('button',{name:'Enregistrer l’apparence'}).click();
+  assert(await page.locator('input[name="enabled[]"][value="primary"]').isChecked(),
+    'Changing the swatch activates the override automatically');
+  assert.equal(await page.locator('[data-color-preview] .appearance-mini-button').evaluate(
+    e=>getComputedStyle(e).backgroundColor),'rgb(157, 41, 65)',
+    'Live preview updates button color before save');
+  // First-party media and typography use file pickers, never a URL field.
+  assert.equal(await page.locator('input[name=logo_url]').count(),0);
+  assert.equal(await page.locator('input[name="asset_file[logo_url]"]').count(),1);
+  const originalHeading=await page.locator('[data-font-target=heading_font] [data-font-sample]')
+    .evaluate(el=>getComputedStyle(el).fontFamily);
+  await page.locator('select[name=heading_font]').selectOption('editorial-serif');
+  assert((await page.locator('[data-font-target=heading_font] [data-font-sample]')
+    .evaluate(el=>getComputedStyle(el).fontFamily)).includes('Georgia'),'Font sample updates on selection');
+  assert(originalHeading !== '', 'Initial font remains inspectable');
+  const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAIAAAAmkwkpAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAFElEQVQImWOcq+nIAANMDEgANwcANL4BD1ttcPoAAAAASUVORK5CYII=','base64');
+  await page.locator('.appearance-details summary').click();
+  await page.locator('input[name="asset_file[logo_url]"]').setInputFiles({
+    name:'brand-icon.png',mimeType:'image/png',buffer:png
+  });
+  assert(await page.locator('[data-brand-asset=logo_url] img').isVisible(),'Chosen logo is previewed');
+  await page.getByRole('button',{name:'Enregistrer les changements'}).click();
   assert(await page.getByText('Apparence enregistrée.',{exact:false}).count(),'Successful appearance persistence');
   const branded=await (await page.request.get('http://127.0.0.1:8080/')).text();
   assert(branded.includes('data-dendrila-theme="editorial"')&&branded.includes('#9d2941'),'Public site uses saved theme and brand');
@@ -72,37 +127,56 @@ const php=process.env.PHP_BINARY||'php';
   await page.locator('input[name="color[text]"]').fill('#ffffff');
   await page.locator('input[name="enabled[]"][value="background"]').check();
   await page.locator('input[name="color[background]"]').fill('#ffffff');
-  await page.getByRole('button',{name:'Enregistrer l’apparence'}).click();
+  await page.getByRole('button',{name:'Enregistrer les changements'}).click();
   assert(await page.getByRole('alert').count(),'WCAG contrast rejection is visible');
   const afterRejection=await (await page.request.get('http://127.0.0.1:8080/')).text();
   assert(afterRejection.includes('data-dendrila-theme="editorial"'),'Unsafe appearance rejected without public changes');
   await page.setViewportSize({width:390,height:844});
   assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Appearance mobile has no horizontal overflow');
+  assert(await page.locator('[data-color-preview]').isVisible(),'Preview remains visible on mobile');
   await page.screenshot({path:'build/test-artifacts/appearance-mobile.png',fullPage:true});
   // Restore the originally installed theme before the independent six-theme parity suite.
   await page.locator('select[name=theme]').selectOption('quiet-elegant');
   await page.locator('input[name="enabled[]"][value="primary"]').uncheck();
-  await page.locator('input[name=logo_url]').fill('');
-  await page.getByRole('button',{name:'Enregistrer l’apparence'}).click();
+  await page.locator('select[name=heading_font]').selectOption('');
+  await page.locator('.appearance-details summary').click();
+  await page.locator('input[name="remove_asset[]"][value=logo_url]').check();
+  await page.getByRole('button',{name:'Enregistrer les changements'}).click();
   const reverted=await (await page.request.get('http://127.0.0.1:8080/')).text();
   assert(reverted.includes('data-dendrila-theme="quiet-elegant"'),'Appearance can revert without losing content');
   await page.goto('http://127.0.0.1:8080/admin/?section=textes');
 
-  await page.locator('textarea[name="blocks[0][text]"]').fill('Texte modifié depuis le navigateur.');await page.getByRole('button',{name:'Enregistrer ce bloc'}).click();
+  const introBlock=page.locator('.block-editor').first();
+  await introBlock.locator('textarea[name="blocks[0][text]"]').fill('Texte modifié depuis le navigateur.');
+  await introBlock.getByRole('button',{name:'Enregistrer ce bloc'}).click();
   const guest=await browser.newPage();await guest.goto('http://127.0.0.1:8080/');assert(!(await guest.textContent('body')).includes('Texte modifié depuis le navigateur.'));
   await page.getByRole('button',{name:'Publier le brouillon enregistré'}).click();await guest.reload();assert((await guest.textContent('body')).includes('Texte modifié depuis le navigateur.'));
   assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Admin has no mobile overflow');
-  await page.locator('select[name=type]').selectOption('rich_text');await page.getByRole('button',{name:'Ajouter le bloc',exact:true}).click();
-  await page.locator('textarea[name="blocks[1][text]"]').fill('Texte complémentaire');await page.locator('form').filter({has:page.locator('textarea[name="blocks[1][text]"]')}).getByRole('button',{name:'Enregistrer ce bloc'}).click();
-  await page.locator('select[name=type]').selectOption('faq');await page.getByRole('button',{name:'Ajouter le bloc',exact:true}).click();
-  await page.getByRole('button',{name:'Ajouter un élément',exact:true}).click();
-  await page.locator('textarea[name="blocks[2][items][0][question]"]').fill('Une question ?');await page.locator('textarea[name="blocks[2][items][0][answer]"]').fill('Une réponse.');
-  await page.locator('form').filter({has:page.locator('textarea[name="blocks[2][items][0][question]"]')}).getByRole('button',{name:'Enregistrer ce bloc'}).click();
-  await page.getByRole('button',{name:'Ajouter un élément',exact:true}).click();await page.getByRole('button',{name:'Retirer l’élément 2',exact:true}).click();
-  assert.equal(await page.locator('textarea[name*="[question]"]').count(),1);
-  await page.locator('select[name=type]').selectOption('embed_safe');await page.getByText('Options du contenu externe',{exact:true}).click();await page.locator('input[name="initial[url]"]').fill('https://www.youtube-nocookie.com/embed/example');await page.getByRole('button',{name:'Ajouter le bloc',exact:true}).click();
-  assert.equal(await page.locator('textarea[name="blocks[3][url]"]').inputValue(),'https://www.youtube-nocookie.com/embed/example');
-  await page.locator('form').filter({has:page.locator('textarea[name="blocks[3][url]"]')}).getByRole('button',{name:'Enregistrer ce bloc'}).click();
+  // The starter now seeds multiple editable blocks; appended blocks cannot assume indexes 1/2/3.
+  const blockCount=()=>page.locator('.block-editor').count();
+  const addBlock=async(type)=>{const index=await blockCount();await page.locator('select[name=type]').selectOption(type);await page.getByRole('button',{name:'Ajouter le bloc',exact:true}).click();return index};
+  const rich=await addBlock('rich_text');
+  const richInput=page.locator('textarea[name="blocks['+rich+'][text]"]');
+  await richInput.fill('Texte complémentaire');
+  await page.locator('form').filter({has:richInput}).getByRole('button',{name:'Enregistrer ce bloc'}).click();
+  const faq=await addBlock('faq');
+  const faqSection=page.locator('.block-editor').nth(faq);
+  await faqSection.getByRole('button',{name:'Ajouter un élément',exact:true}).click();
+  const q=page.locator('textarea[name="blocks['+faq+'][items][0][question]"]');
+  await q.fill('Une question ?');
+  await page.locator('textarea[name="blocks['+faq+'][items][0][answer]"]').fill('Une réponse.');
+  await page.locator('form').filter({has:q}).getByRole('button',{name:'Enregistrer ce bloc'}).click();
+  await page.locator('.block-editor').nth(faq).getByRole('button',{name:'Ajouter un élément',exact:true}).click();
+  await page.locator('.block-editor').nth(faq).getByRole('button',{name:'Retirer l’élément 2',exact:true}).click();
+  assert.equal(await page.locator('textarea[name^="blocks['+faq+'][items]"][name$="[question]"]').count(),1);
+  const embed=await blockCount();
+  await page.locator('select[name=type]').selectOption('embed_safe');
+  await page.getByText('Options du contenu externe',{exact:true}).click();
+  await page.locator('input[name="initial[url]"]').fill('https://www.youtube-nocookie.com/embed/example');
+  await page.getByRole('button',{name:'Ajouter le bloc',exact:true}).click();
+  const embedInput=page.locator('textarea[name="blocks['+embed+'][url]"]');
+  assert.equal(await embedInput.inputValue(),'https://www.youtube-nocookie.com/embed/example');
+  await page.locator('form').filter({has:embedInput}).getByRole('button',{name:'Enregistrer ce bloc'}).click();
   await page.getByRole('button',{name:'Publier le brouillon enregistré'}).click();
   await guest.route('https://www.youtube-nocookie.com/**',route=>route.fulfill({body:'External frame test',contentType:'text/html'}));await guest.goto('http://127.0.0.1:8080/');
   assert.equal(await guest.locator('iframe').getAttribute('src'),null,'External content waits for consent');

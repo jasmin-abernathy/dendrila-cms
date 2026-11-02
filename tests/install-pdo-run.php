@@ -22,7 +22,13 @@ $settings=require $base.'/config/local.php';foreach($settings as $k=>$v)putenv($
 $pdo=new PDO($settings['DB_DSN'],$settings['DB_USERNAME'],$settings['DB_PASSWORD'],[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC,PDO::ATTR_EMULATE_PREPARES=>false]);
 verifyInstall((new Migrator($pdo))->run()===[],'Migrations repeat safely');
 try{Installer::connect($db);throw new RuntimeException('Nonempty DB accepted');}catch(DomainException){}
-verifyInstall(str_contains((new PublicSite($pdo))->render('/'),'Bienvenue sur notre site.'),'Fresh site serves a published homepage');
+verifyInstall(str_contains((new PublicSite($pdo))->render('/'),'Un lieu à découvrir'),'Fresh site serves the selected theme homepage');
+$starterCount=(int)$pdo->query("SELECT COUNT(*) FROM contents WHERE site_id='default' AND type_id='page'")->fetchColumn();
+verifyInstall($starterCount===count(\Dendrila\Cms\Installation\StarterSiteCatalog::pages('quiet-elegant')),
+    'Installation seeds every reference-based page in the real database');
+$draftCount=(int)$pdo->query("SELECT COUNT(*) FROM contents WHERE site_id='default' AND type_id='page' AND status='draft'")->fetchColumn();
+verifyInstall($draftCount===$starterCount-1,'All secondary pages are private drafts');
+verifyInstall((new PublicSite($pdo))->render('/espaces/')===null,'Unpublished theme pages stay private');
 
 $appearance=\Dendrila\Cms\Runtime\AppearanceSettings::read($pdo,'default');
 verifyInstall($appearance['theme']==='quiet-elegant'&&$appearance['brand']===[],'Initial appearance follows installed theme');
@@ -55,15 +61,15 @@ verifyInstall(str_contains((new PublicSite($pdo))->render('/'),'data-dendrila-th
 
 $actor=new ActorContext('default','owner');$store=new PdoCmsStore($pdo);$authz=new AuthorizationService($store);$content=new ContentService($store,$authz);
 $core=new CoreData($store,new NavigationService(new PdoNavigationRepository($pdo),$store,$authz));
-$id=$core->createPage($actor,'presentation','Présentation','presentation');
+$id=$core->createPage($actor,'presentation','Présentation de test','presentation-test');
 $core->saveBlocks($actor,$id,1,[0=>['text'=>'Le corps de la page']],[]);
-verifyInstall((new PublicSite($pdo))->render('/presentation/')===null,'Draft invisible');
+verifyInstall((new PublicSite($pdo))->render('/presentation-test/')===null,'Draft invisible');
 $core->publishPage($actor,$id,2);
-verifyInstall(str_contains((new PublicSite($pdo))->render('/presentation/'),'Le corps de la page'),'Published body visible');
+verifyInstall(str_contains((new PublicSite($pdo))->render('/presentation-test/'),'Le corps de la page'),'Published body visible');
 $core->saveBlocks($actor,$id,3,[0=>['text'=>'Modifications non publiées']],[]);
-verifyInstall(!str_contains((new PublicSite($pdo))->render('/presentation/'),'Modifications non publiées'),'Draft edit does not leak');
+verifyInstall(!str_contains((new PublicSite($pdo))->render('/presentation-test/'),'Modifications non publiées'),'Draft edit does not leak');
 $core->addPageToMenu($actor,$id,'main',1);
-verifyInstall(str_contains((new PublicSite($pdo))->render('/'),'href="/presentation/"'),'Page added to public menu');
+verifyInstall(str_contains((new PublicSite($pdo))->render('/'),'href="/presentation-test/"'),'Page added to public menu');
 try{$core->saveBlocks(new ActorContext('default','unknown'),$id,4,[0=>['text'=>'intrusion']],[]);throw new RuntimeException('Unauthorized mutation');}catch(AccessDenied){}
 $identity=new NativeIdentity($pdo,'default',$settings['DENDRILA_AUTH_KEY']);
 verifyInstall(!$identity->login('owner@example.test',$password,$setupCode,'127.0.0.1'),'Setup TOTP cannot replay');
@@ -129,7 +135,7 @@ $galleryHtml=(new PublicSite($pdo))->render('/galerie/');
 verifyInstall(str_contains($galleryHtml,'media.php')&&str_contains($galleryHtml,'alt="Description"'),'Uploaded gallery preserves its media alternative');
 // The SQL uniqueness constraint protects even slugs beyond the first UI batch.
 for($i=0;$i<105;$i++)$core->createPage($actor,'free','Volume '.$i,'volume-'.$i);
-verifyInstall(count($core->pages($actor))===108,'Editor includes pages beyond the first 100');
+verifyInstall(count($core->pages($actor))===$starterCount+107,'Editor includes all starter pages and pages beyond the first 100');
 try{$core->createPage($actor,'free','Duplicate','presentation');throw new RuntimeException('Duplicate after 100 accepted');}catch(DomainException){}
 // Server-side ownership, publication and account administration remain distinct.
 foreach(['editor','contributor','viewer'] as $role){

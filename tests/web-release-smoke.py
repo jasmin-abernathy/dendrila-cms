@@ -15,15 +15,21 @@ import tempfile
 import time
 from urllib.parse import urlencode
 from urllib.error import URLError, HTTPError
-from urllib.request import build_opener, HTTPCookieProcessor
+from urllib.request import build_opener, HTTPCookieProcessor, Request
 from zipfile import ZipFile
 
 PORT = 18293
+# Use a real-looking Host value, while requests stay on local loopback.
+TEST_HOST = 'package.example.test'
 BASE = f"http://127.0.0.1:{PORT}"
 
 
+def local_request(url, data=None):
+    return Request(BASE + url, data=data, headers={"Host": TEST_HOST})
+
+
 def get(opener, url):
-    with opener.open(BASE + url, timeout=5) as response:
+    with opener.open(local_request(url), timeout=5) as response:
         return response.status, response.read().decode("utf-8")
 
 
@@ -50,6 +56,8 @@ def run(archive: Path):
         )
         try:
             opener = build_opener(HTTPCookieProcessor(CookieJar()))
+            # Explicit Host on every request is required: urllib's automatic
+            # Host uses 127.0.0.1 otherwise and the installer rejects IP origins.
             for attempt in range(40):
                 try:
                     status, body = get(opener, "/preflight.php")
@@ -64,20 +72,20 @@ def run(archive: Path):
             status, body = get(opener, "/")
             assert status == 200 and "ownership-challenge" in body, "First visit should open installer"
             csrf = re.search(r'name="csrf" value="([a-f0-9]{64})"', body)
-            challenge = re.search(r'id="ownership-challenge" class="secret">([a-f0-9]{48})<', body)
+            challenge = re.search(r'<code class="secret" id="ownership-challenge">([a-f0-9]{48})</code>', body)
             assert csrf and challenge, "Installer must show session-bound challenge and CSRF"
             proof = root / "config/ownership-proof.txt"
             proof.write_text(challenge.group(1) + "\n")
             proof.chmod(0o600)
             form = urlencode({"csrf": csrf.group(1), "auth_method": "file"}).encode()
-            with opener.open(BASE + "/install.php", data=form, timeout=6) as response:
+            with opener.open(local_request("/install.php", data=form), timeout=6) as response:
                 body = response.read().decode("utf-8")
                 assert response.status == 200 and 'name="theme"' in body, "Proof did not unlock theme chooser"
 
             # Validate the actual installation wizard, not only the preview endpoints.
             assert body.count('name="theme"') == 6, "Six selectable themes in the installer"
             assert body.count('class="theme-card__actions"') == 6, "Six theme cards offer links to full HTML previews"
-            assert body.count('mode=empty') == 6, "Six blank-site links only (not thumbnail default)"
+            assert body.count('mode=empty') == 6, "Six editable starter-site links"
             assert body.count('mode=demo') == 12, "Six rich photo thumbnails plus six full-page demo links"
             for style in ("simple-illustrated", "quiet-elegant", "image-forward",
                           "ultra-minimal", "graphic-rhythm", "editorial"):
@@ -85,10 +93,12 @@ def run(archive: Path):
                     status, html = get(opener, "/theme-preview.php?theme=" + style + "&mode=" + mode)
                     assert status == 200, (style, mode, status)
                     assert "data-dendrila-theme=" in html
-                    assert ("Bienvenue sur notre site." in html if mode == "empty" else "Démonstration" in html), (style, mode)
+                    assert ('class="d-card-grid"' in html if mode == "empty" else "Démonstration" in html), (style, mode)
                     if mode == "empty":
-                        assert 'class="d-gallery"' not in html and 'class="d-card-grid"' not in html
-                        assert "/assets/install-demo/" not in html
+                        assert '/theme-preview.php?theme=' + style in html, (style, 'starter navigation')
+                        # Locally shipped demonstration photos are allowed in an
+                        # offline preview; they do not become required CMS media.
+                        assert "https://images.pexels.com" not in html
                     else:
                         assert "Lorem ipsum" not in html and "Blog" not in html
                         assert 'class="d-button"' in html, "Each preview offers a clear primary action"
@@ -97,7 +107,7 @@ def run(archive: Path):
             for name in ("mountains", "forest", "architecture", "flowers"):
                 image_path = root / "public" / "assets" / "install-demo" / (name + ".webp")
                 assert image_path.is_file() and image_path.stat().st_size > 1024
-                with opener.open(BASE + "/assets/install-demo/" + name + ".webp", timeout=5) as response:
+                with opener.open(local_request("/assets/install-demo/" + name + ".webp"), timeout=5) as response:
                     body_bytes = response.read()
                     assert response.status == 200 and body_bytes[:4] == b"RIFF"
                     assert body_bytes[8:12] == b"WEBP"
@@ -118,29 +128,39 @@ def run(archive: Path):
                 body = denied.read().decode("utf-8")
             assert "PRIVATE_CONTENT_DO_NOT_EXPOSE" not in body, "Private file exposed by web router"
             private.unlink()
-            # Finish the wizard against MariaDB FROM THE EXTRACTED ZIP, not the checkout.
-            if not os.environ.get("PACKAGE_DB_NAME"):
-                raise AssertionError("PACKAGE_DB_NAME required for full package validation")
+            # Finish the wizard with private SQLite FROM THE EXTRACTED ZIP, not the checkout.
             def submit(fields):
                 _, current = get(opener, "/install.php")
                 fields["csrf"] = re.search(r'name="csrf" value="([a-f0-9]{64})"', current).group(1)
-                with opener.open(BASE + "/install.php", data=urlencode(fields, doseq=True).encode(), timeout=20) as response:
-                    return response.read().decode()
+                try:
+                    with opener.open(local_request("/install.php", data=urlencode(fields, doseq=True).encode()), timeout=20) as response:
+                        return response.read().decode()
+                except HTTPError as error:
+                    details = error.read().decode("utf-8", "replace")
+                    # Account credentials and the TOTP code are never included in diagnostics.
+                    alert = re.search(r'<p class="notice" role="alert">([^<]+)</p>', details)
+                    raise AssertionError(
+                        "Wizard rejected step with HTTP " + str(error.code) +
+                        ": " + (alert.group(1) if alert else "no visible validation reason")
+                    ) from None
             submit({"theme": "editorial"})
-            submit({"addons[]": ["media", "forum"]})
-            account = submit({"host": "127.0.0.1", "port": "3306", "name": os.environ["PACKAGE_DB_NAME"], "user": os.environ["PACKAGE_DB_USER"], "password": os.environ["PACKAGE_DB_PASSWORD"]})
+            account = submit({"addons[]": ["media", "forum"], "guided_journey": "none", "guided_presentation": "cards"})
+            assert 'Adresse HTTPS du site' not in account, "Site origin should not be entered manually"
             secret = re.search(r'<code class="secret">([^<]+)', account).group(1)
             key = base64.b32decode(secret + "=" * ((8 - len(secret) % 8) % 8))
             digest = hmac.new(key, struct.pack(">Q", int(time.time()) // 30), hashlib.sha1).digest()
             offset = digest[-1] & 15
             code = str((struct.unpack(">I", digest[offset:offset+4])[0] & 0x7fffffff) % 1000000).zfill(6)
-            completed = submit({"name": "Package test", "url": "https://package.example.test", "email": "package@example.test", "password": "Package-test-only-password", "code": code})
+            completed = submit({"name": "Package test", "email": "package@example.test", "password": "Package-test-only-password", "code": code})
             assert "Votre site est prêt" in completed
             assert (root / "config/local.php").is_file()
+            assert (root / "storage/site.sqlite").is_file(), "Private SQLite must be created"
+            assert "https://" + TEST_HOST in (root / "config/local.php").read_text(), "HTTPS origin must be deduced from Host"
             status, homepage = get(opener, "/")
-            assert status == 200 and "Bienvenue sur notre site." in homepage
+            assert status == 200 and "Présentez vos publications, vos sujets" in homepage
             assert 'data-dendrila-theme="editorial"' in homepage
-            print("PASS: extracted package completes real MariaDB installation, account creation and publication")
+            assert 'data-dendrila-orientation' not in homepage, "No guided assistant without explicit opt-in"
+            print("PASS: extracted package completes real SQLite installation, account creation and publication")
             print("PASS: release ZIP, Composer autoload, first-visit redirect, preflight, file-manager proof and private directory isolation")
         finally:
             proc.terminate()

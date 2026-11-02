@@ -85,6 +85,7 @@ final readonly class View
   <?php if(getenv('DENDRILA_SITE_ID')===$actor->siteId): ?>
   <a href="/admin/accounts.php">Comptes</a>
   <a href="/admin/appearance.php">Apparence</a>
+  <?php if($this->core->can($actor,'seo.manage')): ?><a href="/admin/seo.php">SEO</a><?php endif ?>
   <?php if(in_array('forum',explode(',',getenv('DENDRILA_ADDONS')?:''),true)): ?><a href="/forum/">Forum</a><?php endif ?>
   <form method="post" action="/admin/logout.php"><input type="hidden" name="csrf" value="<?=self::h($this->csrf)?>"><button class="button secondary">Déconnexion</button></form>
   <?php endif ?>
@@ -99,6 +100,7 @@ final readonly class View
    <?php if($id==='textes' && !$this->core->can($actor,'content.read'))continue; ?>
    <a href="<?= $this->link($id) ?>"<?= $id===$section?' aria-current="page"':'' ?>><?= self::h($label) ?></a>
   <?php endforeach ?>
+  <?php if($this->core->can($actor,'seo.manage')): ?><a href="/admin/seo.php">SEO</a><?php endif ?>
  </nav>
  <main id="main" class="admin-main">
  <?php if(($query['saved']??null)==='1'): ?><p role="status" class="notice">Modifications enregistrées.</p><?php endif ?>
@@ -141,6 +143,7 @@ final readonly class View
     <?php if($this->core->can($actor,'navigation.read')): ?><a class="action-tile" href="<?=$this->link('menu')?>"><strong>Menu</strong><span>Ordre et visibilité</span></a><?php endif ?>
     <?php if($this->media && $this->core->can($actor,'media.read')): ?><a class="action-tile" href="<?=$this->link('medias')?>"><strong>Photos</strong><span>Photothèque du site</span></a><?php endif ?>
     <?php if($this->core->can($actor,'users.manage')): ?><a class="action-tile" href="/admin/appearance.php"><strong>Apparence</strong><span>Thèmes, couleurs, polices et logo</span></a><?php endif ?>
+    <?php if($this->core->can($actor,'seo.manage')): ?><a class="action-tile" href="/admin/seo.php"><strong>SEO</strong><span>Mots-clés, métadonnées et conseils de rédaction</span></a><?php endif ?>
     <a class="action-tile" href="<?=$this->link('appli')?>"><strong>Appli</strong><span>Android et iPhone</span></a>
    </div>
   </div>
@@ -243,12 +246,13 @@ final readonly class View
         $hidden='<input type="hidden" name="csrf" value="'.self::h($this->csrf).'"><input type="hidden" name="page_id" value="'.self::h($page['content_id']).'"><input type="hidden" name="version" value="'.self::h($page['version']).'">';
         $html=(!$this->media?'<p class="notice">La médiathèque est désactivée sur ce site : les pages et blocs galerie ne sont pas disponibles.</p>':'').'<h2>Contenu de la page</h2><p>Enregistrez les blocs avant de les déplacer. La publication reste une action séparée.</p>';
         foreach($page['values']['blocks']??[] as $i=>$block){
-            $type=$block['type'];$html.='<section class="block-editor"><h3>Bloc '.($i+1).' — '.self::h(['text'=>'Texte','rich_text'=>'Texte','image'=>'Photo','gallery'=>'Galerie','cta'=>'Bouton','faq'=>'Questions et réponses','cards'=>'Cartes','key_values'=>'Informations','statistics'=>'Chiffres','embed_safe'=>'Contenu externe'][$type]??$type).'</h3>';
+            $type=$block['type'];$html.='<section class="block-editor"><h3>Bloc '.($i+1).' — '.self::h(['text'=>'Texte','rich_text'=>'Texte','image'=>'Photo','gallery'=>'Galerie','cta'=>'Bouton','faq'=>'Questions et réponses','cards'=>'Cartes','key_values'=>'Informations','statistics'=>'Chiffres','steps'=>'Étapes','pricing'=>'Tarifs','guided_assistant'=>'Parcours guidé','embed_safe'=>'Contenu externe'][$type]??$type).'</h3>';
             $html.='<form method="post" action="'.self::h($this->config->basePath).'">'.$hidden.'<input type="hidden" name="action" value="save_blocks"><fieldset'.(!$can?' disabled':'').'>';
             foreach(BlockEditor::FIELDS[$type]??[] as $key=>$label){
                 $name='blocks['.$i.']['.$key.']';$value=$block[$key]??'';
                 $html.='<label>'.self::h($label);
                 if($key==='provider'){$html.='<select name="'.$name.'">';foreach(['youtube-nocookie'=>'YouTube sans cookies','vimeo'=>'Vimeo','openstreetmap'=>'OpenStreetMap'] as $provider=>$caption)$html.='<option value="'.$provider.'"'.($value===$provider?' selected':'').'>'.$caption.'</option>';$html.='</select><small>Adresse d’intégration HTTPS du fournisseur choisi. Chargement après consentement.</small>';}
+                elseif($key==='presentation'){$html.='<select name="'.$name.'">';foreach(['cards'=>'Cartes','list'=>'Liste','compact'=>'Compacte'] as $option=>$caption)$html.='<option value="'.$option.'"'.($value===$option?' selected':'').'>'.$caption.'</option>';$html.='</select>';}
                 elseif($key==='media_id'){$html.='<select name="'.$name.'">';foreach($media as $photo)$html.='<option value="'.self::h($photo['id']).'"'.($value===$photo['id']?' selected':'').'>'.self::h($photo['title']).'</option>';$html.='</select>';}
                 else $html.='<textarea name="'.$name.'" rows="'.($key==='text'?7:2).'">'.self::h($value).'</textarea>';
                 $html.='</label>';
@@ -290,7 +294,7 @@ final readonly class View
             $html.='</section>';
         }
         if($can){$html.='<form method="post" action="'.self::h($this->config->basePath).'">'.$hidden.'<input type="hidden" name="action" value="change_block"><input type="hidden" name="operation" value="add"><label>Ajouter un bloc<select name="type">';
-            foreach(['text'=>'Texte','rich_text'=>'Texte avec retours à la ligne','embed_safe'=>'Contenu externe avec consentement','cta'=>'Bouton','cards'=>'Cartes','faq'=>'Questions et réponses','key_values'=>'Informations','statistics'=>'Chiffres'] as $key=>$label)$html.='<option value="'.$key.'">'.$label.'</option>';
+            foreach(['text'=>'Texte','rich_text'=>'Texte avec retours à la ligne','embed_safe'=>'Contenu externe avec consentement','cta'=>'Bouton','cards'=>'Cartes','faq'=>'Questions et réponses','key_values'=>'Informations','statistics'=>'Chiffres','steps'=>'Étapes','pricing'=>'Tarifs','image_text'=>'Présentation avec photo','guided_assistant'=>'Parcours guidé'] as $key=>$label)$html.='<option value="'.$key.'">'.$label.'</option>';
             if($this->media)$html.='<option value="gallery">Galerie</option>';
             if($media!==[])$html.='<option value="image">Photo</option>';
             $html.='</select></label>';if($media!==[]){$html.='<label>Photo (pour un bloc photo)<select name="media_id">';foreach($media as $photo)$html.='<option value="'.self::h($photo['id']).'">'.self::h($photo['title']).'</option>';$html.='</select></label>';}

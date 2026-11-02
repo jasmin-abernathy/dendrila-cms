@@ -30,7 +30,7 @@ final readonly class SeoService
      * @param array<string,mixed> $metadata
      * @return array{seo:array<string,mixed>,site_revision:int}
      */
-    public function save(ActorContext $actor, string $contentId, array $metadata, int $expectedVersion): array
+    public function save(ActorContext $actor, string $contentId, array $metadata, int $expectedVersion, ?callable $inSameTransaction = null): array
     {
         $this->authorization->require($actor, 'seo.manage');
         if (!preg_match('/^[A-Za-z0-9_-]{1,128}$/D', $contentId) || $expectedVersion < 0) {
@@ -38,7 +38,7 @@ final readonly class SeoService
         }
         $metadata = SeoMetadataDefinition::normalize($metadata);
 
-        return $this->store->transaction(function () use ($actor, $contentId, $metadata, $expectedVersion): array {
+        return $this->store->transaction(function () use ($actor, $contentId, $metadata, $expectedVersion, $inSameTransaction): array {
             if ($this->store->findContentForUpdate($actor->siteId, $contentId) === null) {
                 throw new ContentNotFound('SEO target content does not exist.');
             }
@@ -72,6 +72,7 @@ final readonly class SeoService
                 'allowed',
                 ['version' => $record['version'], 'indexable' => $record['indexable']],
             );
+            if($inSameTransaction !== null) $inSameTransaction();
             return ['seo' => $record, 'site_revision' => $siteRevision];
         });
     }

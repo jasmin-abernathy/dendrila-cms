@@ -7,6 +7,8 @@ use Dendrila\Cms\Installation\InstallThemePreview;
 function themeCheck(bool $ok,string $message):void{if(!$ok)throw new RuntimeException($message);}
 $root=dirname(__DIR__);$bundle=$root.'/public/design-kits';
 $lock=json_decode(file_get_contents($bundle.'/bundle-lock.json'),true,512,JSON_THROW_ON_ERROR);
+themeCheck((fileperms($bundle) & 0005) === 0005,
+    'The published design-kit root must be traversable by the web server (0755, not mkdtemp 0700)');
 themeCheck(preg_match('/^[a-f0-9]{40}$/D',$lock['revision'])===1,'Bundle pins an upstream revision');
 foreach($lock['files'] as $path=>$hash)themeCheck(hash_file('sha256',$bundle.'/'.$path)===$hash,'Bundled asset matches lock: '.$path);
 $structures=[];
@@ -14,9 +16,12 @@ $styles=['simple-illustrated'=>'simple-illustrated','quiet-elegant'=>'quiet-eleg
 foreach($styles as $style=>$theme){
     $empty=InstallThemePreview::page('empty',$style);
     $full=InstallThemePreview::page('demo',$style);
-    themeCheck($empty['blocks'] === [['type'=>'text','text'=>'Bienvenue sur notre site.']],'Blank installation has exactly the starter text');
-    themeCheck(count($full['blocks']) > count($empty['blocks']),'Rich demo never becomes the installed default');
-    themeCheck(InstallThemePreview::media('empty') === [],'Blank preview needs no image module or storage');
+    $starter=\Dendrila\Cms\Installation\StarterSiteCatalog::installationPages($style);
+    themeCheck($empty['blocks'] === $starter[0]['blocks'],'Starter preview matches real installation homepage');
+    themeCheck(count($starter)>=6,'Every style seeds a complete multi-page website');
+    themeCheck(count($empty['blocks'])>=3,'Homepage includes real reusable sections');
+    themeCheck($full['blocks'] !== $empty['blocks'],'Photo-rich demo remains separate from starter');
+    themeCheck(InstallThemePreview::media('empty') === [],'Starter pages require no image module or storage');
     $structures[]=implode(',',array_column($full['blocks'],'type'));
     $photos=InstallThemePreview::media('demo');
     themeCheck(count($photos)===4,'Four shared photos for every theme');
@@ -36,14 +41,144 @@ foreach($styles as $style=>$theme){
     $html=(new PublicPageRenderer())->render(['name'=>'Site test'],['title'=>'Une page','blocks'=>[['type'=>'text','text'=>'Contenu'],['type'=>'image','media_id'=>'photo','shape'=>'organic-soft']]],$p,$p['css_url'],['photo'=>'/assets/preview.svg']);
     themeCheck(str_contains($html,'data-dendrila-theme="'.$theme.'"')&&str_contains($html,$p['css_url']),'Rendered page uses matching CSS scope');
     themeCheck(!str_contains($html,'/assets/site.css'),'Native rendering no longer uses generic stylesheet');
+
+    // All six themes get the same accessible native navigation behavior,
+    // while their CSS determines the actual mobile composition.
+    $menuHtml=(new PublicPageRenderer())->render(
+        ['name'=>'Site de test','home_url'=>'/'],
+        ['title'=>'Accueil','slug'=>'home','blocks'=>[['type'=>'text','text'=>'Bienvenue']]],
+        $p,$p['css_url'],[],[
+            ['label'=>'Accueil','url'=>'/'],
+            ['label'=>'Galerie','url'=>'/galerie'],
+            ['label'=>'Contact','url'=>'/contact'],
+        ]
+    );
+    $contactHtml=(new PublicPageRenderer())->render(
+        ['name'=>'Demo','contact_form'=>['preview'=>true,'enabled'=>false]],
+        ['title'=>'Contact','slug'=>'contact','blocks'=>[
+            ['type'=>'contact_form','heading'=>'Écrivez-nous'],
+        ]], $p,$p['css_url']
+    );
+    themeCheck(str_contains($contactHtml,'class="d-contact-form"')
+        && str_contains($contactHtml,'Aperçu uniquement')
+        && str_contains($contactHtml,'type="submit" disabled'),
+        'Contact preview has a real-looking but non-sending form: '.$style);
+    themeCheck(str_contains(
+        (string)file_get_contents($p['design_kit']['entrypoint_path']),
+        'V13 first-class contact form'
+    ),'Theme styles contact form: '.$style);
+    themeCheck(substr_count($menuHtml,'class="d-mobile-menu"')===1,
+        'Every themed page has one native mobile menu: '.$style);
+    themeCheck(substr_count($menuHtml,'<summary aria-label="Ouvrir le menu de navigation">')===1,
+        'Mobile menu uses keyboard-friendly native HTML: '.$style);
+    themeCheck(substr_count($menuHtml,'<nav class="d-nav" aria-label="Navigation principale">')===2,
+        'Desktop and mobile navigation share identical links: '.$style);
+    themeCheck(substr_count($menuHtml,'href="/galerie"')>=2,
+        'The public gallery link is reachable in both menus: '.$style);
+    themeCheck(str_contains($menuHtml,'class="d-footer__links"'),
+        'Contact is available in the non-duplicative legal footer: '.$style);
+    themeCheck(substr_count($menuHtml,'href="/galerie"')===2,
+        'Gallery link should be in desktop/mobile menus, not repeated in footer: '.$style);
+    themeCheck(substr_count($menuHtml,'href="/contact"')===3,
+        'Contact remains in desktop/mobile navigation and legal footer: '.$style);
+    themeCheck(!str_contains($menuHtml,'<br>'),
+        'Shared footer does not stack links with break tags: '.$style);
+    $longNav = array_map(
+        static fn(int $i):array=>['label'=>'Page '.$i,'url'=>'/page-'.$i],
+        range(1,8)
+    );
+    $longHtml=(new PublicPageRenderer())->render(
+        ['name'=>'Test site'], ['title'=>'Test','slug'=>'home','blocks'=>[]],
+        $p,$p['css_url'],[], $longNav
+    );
+    themeCheck(substr_count($longHtml,'href="/page-8"')===2,
+        'Last page is accessible from desktop and mobile, never repeated in footer: '.$style);
+    themeCheck(!str_contains($longHtml,'class="d-footer__links"'),
+        'Footer must not invent irrelevant navigation or legal information: '.$style);
+    foreach(['.d-footer__links','grid-template-columns:repeat(4,minmax(0,1fr))',
+             'V8 concluding CTA across all six starter homepages',
+             '.d-home-composition>.d-home-tile--cta'] as $footerRule) {
+        themeCheck(str_contains((string)file_get_contents($p['design_kit']['entrypoint_path']),$footerRule),
+            'Theme has 4-column footer style: '.$style);
+    }
+
+    $cssText=(string)file_get_contents($p['design_kit']['entrypoint_path']);
+    foreach(['V3 responsive contract','@media(max-width:64rem)','@media(max-width:42rem)',
+             '.d-mobile-menu__panel','min-height:2.8rem!important',
+             '@media(prefers-reduced-motion:reduce)',
+             'V6 solid high-contrast native mobile navigation',
+             '.d-mobile-menu[open] > summary',
+             '.d-mobile-menu__panel .d-nav a:is(:hover,:focus-visible)'] as $responsiveRule) {
+        themeCheck(str_contains($cssText,$responsiveRule),
+            'Missing responsive contract '.$responsiveRule.' in '.$style);
+    }
     $branded=Presentation::forTheme($style,['primary'=>'#204060','body_font'=>'neutral-sans','logo_url'=>'https://site.example/logo.svg']);
     themeCheck(str_contains($branded['compiled_css'],'--dendrila-color-primary: #204060;'),'Brand overrides compile in the selected theme scope');
     themeCheck($branded['brand_assets']['logo_url']==='https://site.example/logo.svg','Logo is forwarded');
+    $localFont=Presentation::forTheme($style,[
+        'heading_font_file'=>'woff2:'.str_repeat('a',48),
+        'body_font_file'=>'opentype:'.str_repeat('b',48)
+    ]);
+    themeCheck(str_contains($localFont['compiled_css'],'font-family:"DendrilaImportedHeading"')
+        && str_contains($localFont['compiled_css'],'brand-font.php?font=woff2%3A')
+        && str_contains($localFont['compiled_css'],'format("opentype")'),
+        'First-party font imports generate safe font-face CSS: '.$style);
+}
+// Real landing compositions must be distinct before a customer uploads media.
+$layoutContracts=[
+ 'simple-illustrated'=>['d-hero__art img','d-card-grid>.d-card:first-child','d-home-composition'],
+ 'quiet-elegant'=>['d-hero__art img','d-card-grid .d-card:first-child','d-section--block-gallery'],
+ 'image-forward'=>['d-hero__art img','d-gallery__item:nth-child(1)','d-section--block-gallery'],
+ 'ultra-minimal'=>['d-card-grid .d-card','d-hero__copy .d-lead','d-section--block-pricing'],
+ 'graphic-rhythm'=>['d-hero__art::before','d-title','d-section--block-cards'],
+ 'editorial'=>['d-brand','d-section--block-cards .d-card:first-child','d-hero__copy .d-lead'],
+];
+foreach($layoutContracts as $design=>$features){
+ $css=(string)file_get_contents(Presentation::forTheme($design)['design_kit']['entrypoint_path']);
+ foreach($features as $feature)themeCheck(str_contains($css,$feature),'Missing distinct layout ' . $design . ': ' . $feature);
+}
+$photoRules=[
+ 'simple-illustrated'=>['community','flowers','nature'],
+ 'quiet-elegant'=>['forest','architecture'],
+ 'image-centered'=>['mountains','architecture','forest','flowers','nature'],
+ 'dynamic-graphic'=>['workshop'],
+ 'editorial'=>['workshop'],
+];
+foreach($photoRules as $kit=>$names){
+ foreach($names as $name){
+  $photo=$root.'/public/design-kits/themes/'.$kit.'/assets/'.$name.'.webp';
+  themeCheck(is_file($photo) && filesize($photo)>3000,
+   'Locally licensed WebP is bundled: '.$kit.'/'.$name);
+ }
+}
+foreach(['simple-illustrated','quiet-elegant','image-forward','graphic-rhythm','editorial'] as $design){
+ $starter=\Dendrila\Cms\Installation\StarterSiteCatalog::validatedPages($design)[0];
+ $presentation=Presentation::forTheme($design);
+ $html=(new PublicPageRenderer())->render(['name'=>'Test starter'],[
+    'title'=>$starter['title'],'slug'=>'home','blocks'=>$starter['blocks']
+ ],$presentation,$presentation['css_url']);
+ themeCheck(str_contains($html,'class="d-hero__art"'),'Home fallback is visible for ' . $design);
 }
 themeCheck(count(array_unique($structures))===6,'Six distinct demo content structures');
 try{InstallThemePreview::page('unknown');throw new RuntimeException('Unknown preview mode accepted');}catch(InvalidArgumentException){} 
 foreach(['../editorial','missing'] as $id){try{Presentation::forTheme($id,[]);throw new RuntimeException('Unknown style accepted');}catch(InvalidArgumentException){}}
 try{Presentation::forTheme('editorial',['primary'=>'red; background:url(https://evil.test)']);throw new RuntimeException('CSS injection accepted');}catch(InvalidArgumentException){}
 try{Presentation::forTheme('editorial',['logo_url'=>'javascript:alert(1)']);throw new RuntimeException('Unsafe logo accepted');}catch(InvalidArgumentException){}
+// Regression: business-service presentation keeps the reference hierarchy in the actual theme.
+$service=\Dendrila\Cms\Installation\StarterSiteCatalog::installationPages('ultra-minimal')[0];
+$serviceHtml=(new PublicPageRenderer())->render(
+  ['name'=>'Entreprise démo'], ['title'=>$service['title'],'slug'=>'home','blocks'=>$service['blocks']],
+  Presentation::forTheme('ultra-minimal'), Presentation::forTheme('ultra-minimal')['css_url']
+);
+themeCheck(str_contains($serviceHtml,'class="d-hero__media d-hero__media--kit"'), 'Service hero uses bundled reusable local photo');
+themeCheck(str_contains($serviceHtml,'data-card-count="2"') && str_contains($serviceHtml,'data-card-count="4"'),
+  'Service highlights and offerings remain separately editable native cards');
+themeCheck(str_contains($serviceHtml,'class="d-brand__mark" aria-hidden="true">E</span>'),
+  'Brand monogram derives from the site owner name');
+$serviceCss=(string)file_get_contents(Presentation::forTheme('ultra-minimal')['design_kit']['entrypoint_path']);
+foreach(['V17 — Native small-business reference','data-card-count="2"','data-card-count="4"',
+  'd-hero__media--kit','prefers-reduced-motion:reduce'] as $rule)
+  themeCheck(str_contains($serviceCss,$rule), 'Missing reusable service theme contract: '.$rule);
+
 echo "Six real design kits: mappings, pinned assets, rendering, brand and input validation passed.\n";
 

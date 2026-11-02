@@ -71,7 +71,7 @@ final readonly class PresentationResolver
             ],
             'brand_assets' => $this->brandCompiler->assets($brand),
             'css_variables' => $variables,
-            'compiled_css' => $this->compileVariables($selector, $variables),
+            'compiled_css' => $this->compileVariables($selector, $variables) . "\n" . $this->brandCompiler->fontFaces($brand),
             'media' => [
                 'default_shape' => 'auto',
                 'supported_shapes' => $theme['media_shapes'],

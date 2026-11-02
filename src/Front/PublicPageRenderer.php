@@ -81,32 +81,44 @@ final readonly class PublicPageRenderer
         }
 
         [$hero, $bodyBlocks] = $this->extractHero($blocks, $structure['hero']);
+        $isHome = ($page['slug'] ?? 'home') === 'home';
+        $composedHome = $isHome && count($bodyBlocks) > 1;
         $bodyMarkup = '';
         foreach ($bodyBlocks as $index => $block) {
             if (!is_array($block)) {
                 throw new InvalidArgumentException('Every page block must be an object.');
             }
             if (($block['type'] ?? null) === 'gallery') $block['media_alts'] = $mediaAlts;
-            $bodyMarkup .= $this->renderBlock(
-                $block,
-                (int) $index,
-                $mediaUrls,
-                $supportedShapes,
-                $structure,
-                $language,
+            $markup = $this->renderBlock(
+                $block, (int) $index, $mediaUrls, $supportedShapes, $structure, $language, $site,
             );
+            // Every section remains independent in storage and in the editor.
+            // Homepages get a theme-driven composition; articles and inside
+            // pages keep an ordinary semantic document flow.
+            if ($composedHome) {
+                $kind = is_string($block['type'] ?? null) ? str_replace('_', '-', $block['type']) : 'unknown';
+                $bodyMarkup .= '<div class="d-home-tile d-home-tile--' . self::escape($kind)
+                    . '" data-section="' . $index . '">' . $markup . '</div>';
+            } else {
+                $bodyMarkup .= $markup;
+            }
+        }
+        if ($composedHome) {
+            $bodyMarkup = '<div class="d-home-composition d-home-composition--'
+                . self::escape($theme['id']) . '">' . $bodyMarkup . '</div>';
         }
 
         $logoUrl = $presentation['brand_assets']['logo_url'] ?? null;
         $logo = is_string($logoUrl) && $logoUrl !== ''
             ? '<img src="' . self::escape(self::safeAssetUrl($logoUrl)) . '" alt="" width="40" height="40">'
-            : '<span class="d-brand__mark" aria-hidden="true">✦</span>';
+            : '<span class="d-brand__mark" aria-hidden="true">' . ($theme['id'] === 'very-minimal'
+                ? self::escape(mb_strtoupper(mb_substr($siteName, 0, 1, 'UTF-8'), 'UTF-8')) : '✦') . '</span>';
 
         $attributes = sprintf(
             'data-dendrila-theme="%s" data-dendrila-hero="%s" data-dendrila-alignment="%s" '
             . 'data-dendrila-gallery="%s" data-dendrila-media-crop="%s" data-dendrila-full-bleed="%s" '
             . 'data-dendrila-illustration-frequency="%s" data-dendrila-illustration-style="%s" '
-            . 'data-dendrila-heading-style="%s" data-dendrila-body-style="%s"',
+            . 'data-dendrila-heading-style="%s" data-dendrila-body-style="%s" data-dendrila-page="%s"',
             self::escape($theme['id']),
             self::escape($structure['hero']),
             self::escape($structure['alignment']),
@@ -117,6 +129,7 @@ final readonly class PublicPageRenderer
             self::escape($structure['illustration_style']),
             self::escape($structure['heading_style']),
             self::escape($structure['body_style']),
+            self::escape(is_string($page['slug'] ?? null) && preg_match('/^[a-z0-9][a-z0-9-]{0,189}$/D', $page['slug']) ? $page['slug'] : 'home'),
         );
 
         return '<!doctype html><html lang="' . self::escape($language) . '"><head>'
@@ -125,21 +138,27 @@ final readonly class PublicPageRenderer
             . '<link rel="stylesheet" href="' . self::escape($themeCssUrl) . '">'
             . (isset($presentation['support_css_url']) ? '<link rel="stylesheet" href="'.self::escape(self::safeAssetUrl($presentation['support_css_url'])).'">' : '')
             . '<style data-dendrila-presentation>' . $compiledCss . '</style>'
-            . '<link rel="stylesheet" href="/assets/accessibility.css?v=1"><script src="/assets/accessibility.js?v=1" defer></script>'
+            . '<link rel="stylesheet" href="/assets/accessibility.css?v=2"><script src="/assets/accessibility.js?v=2" defer></script>'
+            . (count(array_filter($blocks, static fn(mixed $block):bool =>
+                is_array($block) && ($block['type'] ?? null) === 'guided_assistant')) > 0
+                ? '<script src="/assets/guided-assistant.js?v=1" defer></script>' : '')
             . '</head><body ' . $attributes . '>'
             . '<a class="d-skip-link" href="#contenu">' . ($language === 'en' ? 'Skip to content' : 'Aller au contenu') . '</a>'
             . '<header class="d-header"><div class="d-shell d-header__inner">'
             . '<a class="d-brand" href="' . self::escape($homeUrl) . '">' . $logo . '<span>' . self::escape($siteName) . '</span></a>'
             . $this->renderNavigation($navigation, $language)
+            . $this->renderMobileNavigation($navigation, $language)
+            . '<div id="d-reading-toolbar-anchor" class="d-reading-header-anchor"></div>'
             . '</div></header><main id="contenu">'
-            . $this->renderHero($title, $tagline, $hero, $mediaUrls, $supportedShapes, $structure)
+            . $this->renderHero($title, $tagline, $hero, $mediaUrls, $supportedShapes, $structure, $theme['id'], ($page['slug'] ?? 'home') === 'home',
+                $presentation['brand_assets']['hero_image_url'] ?? null)
             // Minimal kit has a real two-column index, not a faux grid spread over
             // many implicit rows. Other themes keep their existing DOM structure.
             . ($theme['id'] === 'very-minimal' ? '<div class="d-main-content">' : '')
             . $bodyMarkup
             . ($theme['id'] === 'very-minimal' ? '</div>' : '')
             . '</main>'
-            . $this->renderFooter($siteName, $navigation, $language)
+            . $this->renderFooter($siteName, $navigation, $language, $site['footer_links'] ?? [], $theme['id'], $site)
             . $privacyMarkup
             . '</body></html>';
     }
@@ -163,42 +182,89 @@ final readonly class PublicPageRenderer
 
     private function extractHero(array $blocks, string $heroLayout): array
     {
-        $introIndex = null; $mediaIndex = null; $ctaIndex = null;
+        $introIndex = null; $mediaIndex = null; $ctaIndex = null; $secondaryCtaIndex = null;
         foreach ($blocks as $index => $block) {
             if (!is_array($block) || !is_string($block['type'] ?? null)) continue;
             if ($introIndex === null && in_array($block['type'], ['text', 'rich_text'], true)) $introIndex = $index;
             if ($mediaIndex === null && in_array($heroLayout, ['split', 'media_first'], true) && $block['type'] === 'image') $mediaIndex = $index;
-            if ($ctaIndex === null && $index <= 2 && $block['type'] === 'cta') $ctaIndex = $index;
+            if ($index <= 3 && $block['type'] === 'cta') {
+                if($ctaIndex === null)$ctaIndex=$index;
+                elseif($secondaryCtaIndex===null)$secondaryCtaIndex=$index;
+            }
         }
         $hero = [
             'intro' => $introIndex !== null ? $blocks[$introIndex] : null,
             'media' => $mediaIndex !== null ? $blocks[$mediaIndex] : null,
             'cta' => $ctaIndex !== null ? $blocks[$ctaIndex] : null,
+            'secondary_cta' => $secondaryCtaIndex !== null ? $blocks[$secondaryCtaIndex] : null,
         ];
-        $consumed = array_filter([$introIndex, $mediaIndex, $ctaIndex], static fn ($value): bool => $value !== null);
+        $consumed = array_filter([$introIndex, $mediaIndex, $ctaIndex, $secondaryCtaIndex], static fn ($value): bool => $value !== null);
         $body = [];
         foreach ($blocks as $index => $block) if (!in_array($index, $consumed, true)) $body[] = $block;
         return [$hero, $body];
     }
 
-    private function renderHero(string $title, string $tagline, array $hero, array $mediaUrls, array $supportedShapes, array $structure): string
+    private function renderHero(string $title, string $tagline, array $hero, array $mediaUrls, array $supportedShapes, array $structure, string $themeId, bool $isHome, ?string $heroBrandImage=null): string
     {
         $intro = '';
         if (is_array($hero['intro'])) {
             $intro = '<p class="d-lead">' . nl2br(self::escape(self::longText($hero['intro']['text'] ?? null, 'hero text')), false) . '</p>';
         }
         $eyebrow = $tagline !== '' ? '<p class="d-eyebrow">' . self::escape($tagline) . '</p>' : '';
-        $cta = is_array($hero['cta']) ? '<div class="d-actions">' . $this->renderCtaLink($hero['cta']) . '</div>' : '';
+        $buttons=[];
+        foreach(['cta','secondary_cta'] as $key) {
+            if(is_array($hero[$key]??null))$buttons[]=$this->renderCtaLink($hero[$key]);
+        }
+        $cta=$buttons!==[]?'<div class="d-actions">'.implode('', $buttons).'</div>':'';
         $media = '';
         if (is_array($hero['media']) && $structure['hero'] !== 'minimal') {
             $media = '<div class="d-hero__media">' . $this->renderMediaFrame($hero['media'], $mediaUrls, $supportedShapes, true) . '</div>';
+        }
+        // Theme-owned artwork makes empty homepages visually distinct without
+        // pretending the site has uploaded content or creating fake media records.
+        // It disappears when the editor provides an actual hero image.
+        if ($media === '' && $isHome && is_string($heroBrandImage)
+            && $heroBrandImage !== '') {
+            $src=self::safeAssetUrl($heroBrandImage);
+            $media='<div class="d-hero__media d-hero__media--brand">'
+                .'<img class="d-hero__brand-image" src="'.self::escape($src).'"'
+                .' alt="" loading="eager" decoding="async"></div>';
+        }
+        // The native service theme has a real image-led hero from the first install,
+        // even before the owner uploads a photograph. A configured brand hero or
+        // an actual hero image always takes priority over this bundled asset.
+        if ($media === '' && $isHome && $themeId === 'very-minimal') {
+            $media = '<div class="d-hero__media d-hero__media--kit">'
+                . '<img src="/design-kits/themes/very-minimal/assets/office.webp"'
+                . ' alt="" loading="eager" decoding="async"></div>';
+        }
+        if ($media === '' && $isHome) {
+            // Explicitly licensed local photos belonging to the theme kit, not
+            // remote requests or generated artwork; see docs/PHOTO-SOURCES.md.
+            $photos = match($themeId) {
+                'simple-illustrated' => ['community', 'flowers'],
+                'quiet-elegant' => ['forest', 'architecture'],
+                'image-centered' => ['mountains', 'architecture', 'forest'],
+                'dynamic-graphic' => ['workshop'],
+                'editorial' => ['workshop'],
+                default => [],
+            };
+            if ($photos !== []) {
+                $art = '<div class="d-hero__art" aria-hidden="true">';
+                foreach($photos as $name) {
+                    $art .= '<img loading="eager" decoding="async" alt="" src="'
+                        . '/design-kits/themes/' . self::escape($themeId) . '/assets/'
+                        . self::escape($name) . '.webp">';
+                }
+                $media = $art . '</div>';
+            }
         }
         return '<section class="d-hero"><div class="d-shell d-hero__grid"><div class="d-hero__copy">'
             . $eyebrow . '<h1 class="d-title">' . self::escape($title) . '</h1>' . $intro . $cta
             . '</div>' . $media . '</div></section>';
     }
 
-    private function renderBlock(array $block, int $index, array $mediaUrls, array $supportedShapes, array $structure, string $locale): string
+    private function renderBlock(array $block, int $index, array $mediaUrls, array $supportedShapes, array $structure, string $locale, array $site): string
     {
         $type = $block['type'] ?? null;
         if (!is_string($type)) throw new InvalidArgumentException('Block type is missing.');
@@ -219,6 +285,18 @@ final readonly class PublicPageRenderer
                 . $this->renderSectionHeading($block) . $this->renderKeyValues($block) . '</div></section>',
             'statistics' => '<section class="' . $sectionClass . '"><div class="d-shell">'
                 . $this->renderSectionHeading($block) . $this->renderStatistics($block) . '</div></section>',
+            'steps' => '<section class="' . $sectionClass . '"><div class="d-shell">'
+                . $this->renderSectionHeading($block) . $this->renderSteps($block) . '</div></section>',
+            'pricing' => '<section class="' . $sectionClass . '"><div class="d-shell">'
+                . $this->renderSectionHeading($block) . $this->renderPricing($block) . '</div></section>',
+            'guided_assistant' => '<section id="assistant" class="' . $sectionClass . '"><div class="d-shell">'
+                . $this->renderSectionHeading($block) . $this->renderGuidedAssistant($block)
+                . '</div></section>',
+            'image_text' => '<section class="' . $sectionClass . '"><div class="d-shell">'
+                . $this->renderImageText($block) . '</div></section>',
+            'contact_form' => '<section class="' . $sectionClass . '"><div class="d-shell">'
+                . $this->renderSectionHeading($block) . $this->renderContactForm($site, $locale)
+                . '</div></section>',
             'cta' => '<section class="d-cta-band"><div class="d-shell d-cta-band__inner">'
                 . $this->renderCtaLink($block) . '</div></section>',
             'embed_safe' => '<section class="' . $sectionClass . '"><div class="d-shell">'
@@ -226,6 +304,92 @@ final readonly class PublicPageRenderer
                 . '</div></div></section>',
             default => throw new InvalidArgumentException("Unsupported public block type '{$type}'."),
         };
+    }
+
+    /** A client-side, deterministic orientation tool: no automatic AI or network calls. */
+    private function renderGuidedAssistant(array $block):string
+    {
+        $intro=self::escape(self::longText($block['text']??'', 'guided assistant introduction'));
+        $choices=[];
+        foreach(self::items($block,'guided assistant') as $index=>$item){
+            $title=self::shortText($item['title']??null,'choice label',280);
+            $advice=self::longText($item['text']??null,'choice advice');
+            $url=self::safeLinkUrl((string)($item['url']??'/contact'));
+            $choices[]='<details class="d-orientation__option" data-orientation-choice>'
+                .'<summary class="d-orientation__select">'
+                .self::escape($title).'<span aria-hidden="true"> →</span></summary>'
+                .'<div class="d-orientation__answer">'
+                .'<p>'.nl2br(self::escape($advice),false).'</p>'
+                .'<a class="d-button" href="'.self::escape($url).'">Continuer</a>'
+                .'</div></details>';
+        }
+        $layout=$block['presentation']??'cards';
+        if(!in_array($layout,['cards','list','compact'],true))throw new InvalidArgumentException('Invalid guided layout.');
+        return '<div class="d-orientation" data-dendrila-orientation data-orientation-presentation="'.self::escape($layout).'">'
+            .'<p class="d-orientation__intro">'.$intro.'</p>'
+            .'<div class="d-orientation__choices">'.implode('', $choices).'</div>'
+            .'<p class="d-orientation__privacy">Un parcours guidé sans IA obligatoire. '
+            .'Votre choix reste sur cet appareil ; rien n’est transmis automatiquement.</p>'
+            .'</div>';
+    }
+
+    private function renderImageText(array $block):string
+    {
+        $heading=self::escape(self::shortText($block['heading']??null,'image text heading',1000));
+        $src=self::escape(self::safeAssetUrl($block['image_url']??''));
+        $alt=self::escape(self::shortText($block['alt']??'','image text alt',500,true));
+        $body=self::escape(self::longText($block['text']??'','image text content'));
+        return '<div class="d-image-text"><div class="d-image-text__copy">'
+            .'<h2 class="d-heading">'.$heading.'</h2><p>'.nl2br($body,false).'</p></div>'
+            .'<img loading="lazy" decoding="async" src="'.$src.'" alt="'.$alt.'"></div>';
+    }
+
+    /** Native contact form, disabled explicitly for read-only previews. */
+    private function renderContactForm(array $site, string $locale): string
+    {
+        $settings=is_array($site['contact_form'] ?? null) ? $site['contact_form'] : [];
+        $preview=($settings['preview'] ?? false)===true;
+        $enabled=($settings['enabled'] ?? false)===true && !$preview;
+        $token=$enabled && is_string($settings['token'] ?? null)
+            && preg_match('/^[a-f0-9]{64}$/D',$settings['token'])===1
+                ? $settings['token'] : '';
+        if ($token==='') $enabled=false;
+        $notice=is_string($settings['notice'] ?? null)
+            ? self::shortText($settings['notice'], 'contact notice', 500, true) : '';
+        $disabled=$enabled ? '' : ' disabled';
+        $name=$locale==='en'?'Your name':'Votre nom';
+        $email=$locale==='en'?'Your email':'Votre adresse e-mail';
+        $subject=$locale==='en'?'Subject (optional)':'Objet (facultatif)';
+        $message=$locale==='en'?'Your message':'Votre message';
+        $send=$locale==='en'?'Send message':'Envoyer le message';
+        $status=$preview
+            ? ($locale==='en'
+                ? 'Preview only: the form is not connected to an inbox and no message will be sent.'
+                : 'Aperçu uniquement : aucun message ne sera envoyé. Le formulaire sera utilisable une fois la réception configurée.')
+            : ($enabled ? 'Les informations saisies servent à répondre à votre demande.'
+                : 'Formulaire de contact non encore configuré : aucun message ne peut être envoyé.');
+        if ($notice!=='') $status=$notice;
+        $inputs='<div class="d-contact-form__grid">'
+            . '<label for="d-contact-name">' . self::escape($name) . '<span aria-hidden="true"> *</span>'
+            . '<input id="d-contact-name" name="name" type="text" autocomplete="name" maxlength="120" required></label>'
+            . '<label for="d-contact-email">' . self::escape($email) . '<span aria-hidden="true"> *</span>'
+            . '<input id="d-contact-email" name="email" type="email" autocomplete="email" maxlength="254" required></label>'
+            . '</div>'
+            . '<label for="d-contact-subject">' . self::escape($subject)
+            . '<input id="d-contact-subject" name="subject" type="text" maxlength="140"></label>'
+            . '<label for="d-contact-message">' . self::escape($message) . '<span aria-hidden="true"> *</span>'
+            . '<textarea id="d-contact-message" name="message" rows="7" maxlength="5000" required></textarea></label>'
+            . '<div class="d-contact-form__trap" aria-hidden="true"><label>Website'
+            . '<input name="website" type="text" tabindex="-1" autocomplete="off"></label></div>'
+            . ($enabled ? '<input type="hidden" name="csrf" value="' . self::escape($token) . '">' : '');
+        return '<div class="d-contact-form__frame">'
+            . '<p id="d-contact-status" class="d-contact-form__status" role="status">' . self::escape($status) . '</p>'
+            . '<form class="d-contact-form" method="post" action="' . ($enabled?'/contact':'#d-contact-status') . '">'
+            . '<fieldset class="d-contact-form__fields"' . $disabled . '><legend class="d-visually-hidden">'
+            . ($locale==='en'?'Contact form':'Formulaire de contact') . '</legend>'
+            . $inputs
+            . '<button class="d-button d-contact-form__submit" type="submit"' . $disabled . '>'
+            . self::escape($send) . '</button></fieldset></form></div>';
     }
 
     private function renderSectionHeading(array $block): string
@@ -291,12 +455,20 @@ final readonly class PublicPageRenderer
                 $media = '<div class="d-card__media"><img src="' . self::escape(self::safeAssetUrl($mediaUrls[$item['media_id']])) . '" alt="" loading="lazy" decoding="async"></div>';
             }
             $text = isset($item['text']) ? '<p>' . nl2br(self::escape(self::longText($item['text'], 'card text')), false) . '</p>' : '';
-            $titleMarkup = isset($item['url'])
-                ? '<h2 class="d-card__title"><a href="' . self::escape(self::safeLinkUrl((string) $item['url'])) . '">' . self::escape($title) . '</a></h2>'
+            $linked = isset($item['url']) && is_string($item['url']) && $item['url'] !== '';
+            $titleMarkup = $linked
+                ? '<h2 class="d-card__title"><a href="' . self::escape(self::safeLinkUrl($item['url'])) . '">' . self::escape($title) . '</a></h2>'
                 : '<h2 class="d-card__title">' . self::escape($title) . '</h2>';
-            $markup[] = '<article class="d-card">' . $media . $titleMarkup . $text . '</article>';
+            // Visible action is a non-interactive label: the heading link is
+            // stretched over the card, so there is only one keyboard target.
+            $label = $linked && is_string($item['label'] ?? null) && trim($item['label']) !== ''
+                ? self::shortText($item['label'], 'card action label', 300) : 'En savoir plus';
+            $action = $linked ? '<span class="d-card__action" aria-hidden="true">' . self::escape($label)
+                . '<span class="d-card__action-arrow">→</span></span>' : '';
+            $markup[] = '<article class="d-card' . ($linked ? ' d-card--linked' : '') . '">'
+                . $media . $titleMarkup . $text . $action . '</article>';
         }
-        return '<div class="d-card-grid">' . implode('', $markup) . '</div>';
+        return '<div class="d-card-grid" data-card-count="' . count($markup) . '">' . implode('', $markup) . '</div>';
     }
 
     private function renderFaq(array $block): string
@@ -331,6 +503,41 @@ final readonly class PublicPageRenderer
         return '<div class="d-stats">' . implode('', $markup) . '</div>';
     }
 
+    /** Reusable, accessible service blocks. No payment processing inside presentation. */
+    private function renderSteps(array $block): string
+    {
+        $steps = [];
+        foreach (self::items($block, 'steps') as $i => $item) {
+            $steps[] = '<li class="d-step"><span class="d-step__number" aria-hidden="true">'
+                . ($i + 1) . '</span><div><h3>'
+                . self::escape(self::shortText($item['title'] ?? null, 'step title', 1000))
+                . '</h3><p>' . nl2br(self::escape(self::longText($item['text'] ?? null, 'step text')), false)
+                . '</p></div></li>';
+        }
+        return '<ol class="d-steps">' . implode('', $steps) . '</ol>';
+    }
+
+    private function renderPricing(array $block): string
+    {
+        $cards = [];
+        foreach (self::items($block, 'pricing') as $item) {
+            $action = '';
+            if (($item['label'] ?? '') !== '' && ($item['url'] ?? '') !== '') {
+                $action = '<a class="d-button" href="'
+                    . self::escape(self::safeLinkUrl(self::shortText($item['url'], 'offer URL', 2000)))
+                    . '">' . self::escape(self::shortText($item['label'], 'offer action', 300)) . '</a>';
+            }
+            $cards[] = '<article class="d-pricing__card"><h3>'
+                . self::escape(self::shortText($item['title'] ?? null, 'offer title', 1000))
+                . '</h3><strong class="d-pricing__amount">'
+                . self::escape(self::shortText($item['price'] ?? null, 'offer price', 500))
+                . '</strong><p>'
+                . nl2br(self::escape(self::longText($item['text'] ?? null, 'offer details')), false)
+                . '</p>' . $action . '</article>';
+        }
+        return '<div class="d-pricing">' . implode('', $cards) . '</div>';
+    }
+
     private function renderEmbed(array $block, string $locale): string
     {
         $provider = self::shortText($block['provider'] ?? null, 'embed provider', 100);
@@ -357,15 +564,81 @@ final readonly class PublicPageRenderer
         return $links === [] ? '' : '<nav class="d-nav" aria-label="' . ($language === 'en' ? 'Main navigation' : 'Navigation principale') . '">' . implode('', $links) . '</nav>';
     }
 
-    private function renderFooter(string $siteName, array $navigation, string $language): string
+    /** Native details/summary is operable by touch, keyboard and without JavaScript. */
+    private function renderMobileNavigation(array $navigation, string $language): string
     {
+        if ($navigation === []) return '';
+        $label = $language === 'en' ? 'Menu' : 'Menu';
+        $accessibleLabel = $language === 'en' ? 'Open the navigation menu' : 'Ouvrir le menu de navigation';
+        return '<details class="d-mobile-menu"><summary aria-label="' . $accessibleLabel
+            . '"><span class="d-mobile-menu__label">' . $label . '</span>'
+            . '<span class="d-mobile-menu__icon" aria-hidden="true"><i></i><i></i><i></i></span></summary>'
+            . '<div class="d-mobile-menu__panel">' . $this->renderNavigation($navigation, $language)
+            . '</div></details>';
+    }
+
+    /**
+     * Footer is for verified legal/privacy information, not a second site map.
+     * Legal links are supplied only by the front controller when the document
+     * is actually published and current. Contact remains a useful exception.
+     * @param list<array{label:string,url:string}> $legalLinks
+     */
+    private function renderFooter(string $siteName, array $navigation, string $language, array $legalLinks, string $themeId, array $site): string
+    {
+        if (!array_is_list($legalLinks) || count($legalLinks) > 3) {
+            throw new InvalidArgumentException('Footer legal links must be a bounded list.');
+        }
+        $allowed = ['/mentions-legales', '/confidentialite', '/cookies'];
+        $previewTheme = $site['preview_theme'] ?? null;
+        if (is_string($previewTheme)
+            && preg_match('/^[a-z][a-z0-9-]{0,50}$/D', $previewTheme) === 1
+            && ($site['preview_kit'] ?? null) === $themeId) {
+            foreach (['mentions-legales','confidentialite','cookies'] as $slug) {
+                $allowed[] = '/theme-preview.php?theme='.$previewTheme.'&mode=empty&page='.$slug;
+            }
+        }
         $links = [];
-        foreach (array_slice($navigation, 0, 6) as $item) {
-            if (!is_array($item) || !isset($item['label'], $item['url'])) continue;
-            $links[] = '<a href="' . self::escape(self::safeLinkUrl((string) $item['url'])) . '">' . self::escape(self::shortText($item['label'], 'footer label', 190)) . '</a>';
+        $seen = [];
+        foreach ($legalLinks as $item) {
+            if (!is_array($item)) throw new InvalidArgumentException('Invalid footer entry.');
+            $url = self::safeLinkUrl(self::shortText($item['url'] ?? null, 'footer URL', 2000));
+            if (!in_array($url, $allowed, true)) {
+                throw new InvalidArgumentException('Footer legal destinations must use approved document paths.');
+            }
+            if (isset($seen[$url])) continue;
+            $seen[$url] = true;
+            $links[] = '<a href="' . self::escape($url) . '">'
+                . self::escape(self::shortText($item['label'] ?? null, 'footer label', 190)) . '</a>';
+        }
+        $contactUrl = null;
+        foreach ($navigation as $item) {
+            if (!is_array($item) || !is_string($item['url'] ?? null)) continue;
+            $path = trim((string)parse_url($item['url'], PHP_URL_PATH), '/');
+            $query = [];
+            parse_str((string)parse_url($item['url'], PHP_URL_QUERY), $query);
+            if ($path === 'contact') {
+                $contactUrl = self::safeLinkUrl($item['url']);
+                break;
+            }
+            // Preview links route all pages through theme-preview.php, so
+            // check the query rather than the path for a contact page.
+            if ($path === 'theme-preview.php' && $previewTheme !== null
+                && ($query['theme'] ?? '') === $previewTheme
+                && ($query['page'] ?? '') === 'contact') {
+                $contactUrl = self::safeLinkUrl($item['url']);
+                break;
+            }
+        }
+        if ($contactUrl === null && $previewTheme !== null
+            && ($site['preview_kit'] ?? null) === $themeId) {
+            $contactUrl = '/theme-preview.php?theme='.$previewTheme.'&mode=empty&page=contact';
+        }
+        if ($contactUrl !== null && !isset($seen[$contactUrl])) {
+            $links[] = '<a href="' . self::escape($contactUrl) . '">'
+                . ($language === 'en' ? 'Contact' : 'Contact') . '</a>';
         }
         return '<footer class="d-footer"><div class="d-shell d-footer__grid"><div><strong>' . self::escape($siteName) . '</strong></div>'
-            . ($links !== [] ? '<nav aria-label="' . ($language === 'en' ? 'Secondary navigation' : 'Navigation secondaire') . '">' . implode('<br>', $links) . '</nav>' : '')
+            . ($links !== [] ? '<nav class="d-footer__links" aria-label="' . ($language === 'en' ? 'Legal information' : 'Informations légales et contact') . '">' . implode('', $links) . '</nav>' : '')
             . '</div></footer>';
     }
 
@@ -373,7 +646,7 @@ final readonly class PublicPageRenderer
     {
         return match ($mode) {
             'alternating' => $index % 2 === 1,
-            'soft_sections' => in_array($type, ['cards', 'faq', 'key_values', 'statistics'], true),
+            'soft_sections' => in_array($type, ['cards', 'faq', 'key_values', 'statistics', 'steps', 'pricing'], true),
             default => false,
         };
     }

@@ -118,6 +118,15 @@ final readonly class ContentTypeDefinition
         return $validOne($value);
     }
 
+    private static function safeAssetBlockUrl(mixed $url):bool
+    {
+        if(!is_string($url)||strlen($url)>2048||preg_match('/[\x00-\x20]/',$url))return false;
+        if(str_starts_with($url,'/')&&!str_starts_with($url,'//'))return true;
+        return filter_var($url,FILTER_VALIDATE_URL)!==false
+            && parse_url($url,PHP_URL_SCHEME)==='https'
+            && parse_url($url,PHP_URL_USER)===null;
+    }
+
     private function validBlocks(mixed $value): bool
     {
         if (!is_array($value) || !array_is_list($value) || count($value) > 200) {
@@ -129,10 +138,15 @@ final readonly class ContentTypeDefinition
             'image' => ['type', 'media_id', 'alt', 'caption', 'shape', 'focal_x', 'focal_y'],
             'gallery' => ['type', 'media_ids', 'alt', 'heading'],
             'cta' => ['type', 'label', 'url'],
+            'contact_form' => ['type', 'heading'],
+            'guided_assistant' => ['type', 'heading', 'text', 'items', 'presentation'],
+            'image_text' => ['type', 'heading', 'text', 'image_url', 'alt'],
             'cards' => ['type', 'items', 'heading'],
             'faq' => ['type', 'items', 'heading'],
             'key_values' => ['type', 'items', 'heading'],
             'statistics' => ['type', 'items', 'heading'],
+            'steps' => ['type', 'items', 'heading'],
+            'pricing' => ['type', 'items', 'heading'],
             'embed_safe' => ['type', 'provider', 'url', 'label', 'heading'],
         ];
         foreach ($value as $block) {
@@ -145,6 +159,19 @@ final readonly class ContentTypeDefinition
                 && (!is_string($block['text'] ?? null) || strlen($block['text']) > 100000)) {
                 return false;
             }
+            if ($type === 'image_text' && (
+                !is_string($block['heading']??null)
+                || !is_string($block['text']??null)
+                || strlen($block['text'])>100000
+                || !is_string($block['alt']??null)
+                || strlen($block['alt'])>500
+                || !self::safeAssetBlockUrl($block['image_url']??null))) return false;
+            if ($type === 'guided_assistant' && isset($block['presentation'])
+                && !in_array($block['presentation'], ['cards', 'list', 'compact'], true)) return false;
+            if ($type === 'guided_assistant' && (
+                !is_string($block['heading']??null)
+                || !is_string($block['text']??null)
+                || strlen($block['text'])>5000)) return false;
             if ($type === 'image' && !$this->validReference(['multiple' => false], $block['media_id'] ?? null)) {
                 return false;
             }
@@ -164,7 +191,7 @@ final readonly class ContentTypeDefinition
             if ($type === 'gallery' && !$this->optionalText($block, 'alt')) {
                 return false;
             }
-            if (in_array($type, ['gallery', 'cards', 'faq', 'key_values', 'statistics', 'embed_safe'], true)
+            if (in_array($type, ['gallery', 'cards', 'faq', 'key_values', 'statistics', 'steps', 'pricing', 'embed_safe', 'contact_form'], true)
                 && !$this->optionalText($block, 'heading')) {
                 return false;
             }
@@ -174,11 +201,11 @@ final readonly class ContentTypeDefinition
             if ($type === 'cta' && strlen($block['label']) > 300) {
                 return false;
             }
-            if (in_array($type, ['cards', 'faq', 'key_values', 'statistics'], true)
+            if (in_array($type, ['cards', 'faq', 'key_values', 'statistics', 'steps', 'pricing', 'guided_assistant'], true)
                 && (!is_array($block['items'] ?? null) || !array_is_list($block['items']) || count($block['items']) > 50)) {
                 return false;
             }
-            if (in_array($type, ['cards', 'faq', 'key_values', 'statistics'], true)
+            if (in_array($type, ['cards', 'faq', 'key_values', 'statistics', 'steps', 'pricing', 'guided_assistant'], true)
                 && !$this->validBlockItems($type, $block['items'])) {
                 return false;
             }
@@ -192,10 +219,13 @@ final readonly class ContentTypeDefinition
     private function validBlockItems(string $type, array $items): bool
     {
         [$required, $allowed] = match ($type) {
-            'cards' => [['title'], ['title', 'text', 'url', 'media_id']],
+            'guided_assistant' => [['title','text','url'], ['title','text','url']],
+            'cards' => [['title'], ['title', 'text', 'url', 'media_id', 'label']],
             'faq' => [['question', 'answer'], ['question', 'answer']],
             'key_values' => [['label', 'value'], ['label', 'value']],
             'statistics' => [['label', 'value'], ['label', 'value', 'note']],
+            'steps' => [['title', 'text'], ['title', 'text']],
+            'pricing' => [['title', 'price', 'text'], ['title', 'price', 'text', 'label', 'url']],
         };
         foreach ($items as $item) {
             if (!is_array($item) || array_diff(array_keys($item), $allowed) !== []
@@ -204,6 +234,9 @@ final readonly class ContentTypeDefinition
             }
             foreach ($item as $key => $value) {
                 if (!is_string($value) || strlen($value) > 100000) {
+                    return false;
+                }
+                if ($type === 'cards' && $key === 'label' && strlen($value) > 300) {
                     return false;
                 }
                 if ($key === 'url' && !$this->safeBlockLink($value)) {

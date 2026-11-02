@@ -22,7 +22,8 @@ final class AppearanceSettings
         'neutral-sans'=>'Sans serif neutre', 'humanist-sans'=>'Sans serif humaniste',
         'editorial-serif'=>'Serif éditoriale', 'system-serif'=>'Serif système',
     ];
-    public const ASSETS = ['logo_url'=>'URL du logo', 'wordmark_url'=>'URL du logotype'];
+    public const ASSETS = ['logo_url'=>'Logo (symbole)', 'wordmark_url'=>'Logo avec nom', 'hero_image_url'=>'Image du bandeau'];
+    public const CUSTOM_FONTS = ['heading_font_file'=>'Police importée des titres','body_font_file'=>'Police importée du texte'];
     public const THEMES = [
         'simple-illustrated'=>'Simple avec quelques illustrations',
         'quiet-elegant'=>'Sobre et élégant', 'image-forward'=>'Centré sur les images',
@@ -41,7 +42,7 @@ final class AppearanceSettings
         if(!is_array($data)||($data!==[] && array_is_list($data)))throw new \RuntimeException('Invalid stored appearance.');
         $style=$data['design_style']??(getenv('DENDRILA_THEME')?:'quiet-elegant');
         if(!is_string($style)||!isset(self::THEMES[$style]))throw new \RuntimeException('Invalid stored design style.');
-        $brand=array_intersect_key($data,array_flip(array_merge(array_keys(self::COLORS),array_keys(self::ASSETS),['heading_font','body_font'])));
+        $brand=array_intersect_key($data,array_flip(array_merge(array_keys(self::COLORS),array_keys(self::ASSETS),array_keys(self::CUSTOM_FONTS),['heading_font','body_font'])));
         self::validate($style,$brand);
         return ['raw'=>$raw,'theme'=>$style,'brand'=>$brand];
     }
@@ -67,20 +68,26 @@ final class AppearanceSettings
     {
         self::validate($theme,$brand);
         if(!preg_match('/^[a-f0-9]{64}$/D',$expectedHash))throw new \InvalidArgumentException('Version de formulaire invalide.');
-        $pdo->beginTransaction();
+        $sqlite=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='sqlite';
+        // SQLite has no SELECT ... FOR UPDATE; acquire the write lock before
+        // checking the optimistic form version, without changing MySQL behavior.
+        if($sqlite)$pdo->exec('BEGIN IMMEDIATE');
+        else $pdo->beginTransaction();
         try {
-            $q=$pdo->prepare('SELECT branding_json FROM site_api_settings WHERE site_id=? FOR UPDATE');
+            $q=$pdo->prepare('SELECT branding_json FROM site_api_settings WHERE site_id=?'
+                .($sqlite?'':' FOR UPDATE'));
             $q->execute([$siteId]);$raw=$q->fetchColumn();
             if(!is_string($raw)||!hash_equals(hash('sha256',$raw),$expectedHash))throw new \DomainException('Les réglages ont changé dans un autre onglet. Rechargez la page.');
             $previous=json_decode($raw,true,32,JSON_THROW_ON_ERROR);
             if(!is_array($previous))throw new \RuntimeException('Stored appearance corrupted.');
-            $allowed=array_flip(array_merge(array_keys(self::COLORS),array_keys(self::ASSETS),['heading_font','body_font','design_style']));
+            $allowed=array_flip(array_merge(array_keys(self::COLORS),array_keys(self::ASSETS),array_keys(self::CUSTOM_FONTS),['heading_font','body_font','design_style']));
             $new=array_diff_key($previous,$allowed);
             $new['design_style']=$theme;
             foreach($brand as $k=>$v)$new[$k]=$v;
             $json=json_encode((object)$new,JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
             if($json!==$raw) {
-                $q=$pdo->prepare('UPDATE site_api_settings SET branding_json=?,updated_at=UTC_TIMESTAMP(6) WHERE site_id=?');
+                $q=$pdo->prepare('UPDATE site_api_settings SET branding_json=?,updated_at='
+                    .($sqlite?"strftime('%Y-%m-%d %H:%M:%f','now')":'UTC_TIMESTAMP(6)').' WHERE site_id=?');
                 $q->execute([$json,$siteId]);
                 $q=$pdo->prepare('UPDATE sites SET config_version=config_version+1 WHERE site_id=?');
                 $q->execute([$siteId]);

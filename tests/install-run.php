@@ -11,14 +11,28 @@ foreach([59=>'94287082',1111111109=>'07081804',1111111111=>'14050471',1234567890
 installCheck(Totp::verify($secret,Totp::code($secret,100),99,3000)===100,'Valid step');
 installCheck(Totp::verify($secret,Totp::code($secret,100),100,3000)===null,'Replay rejected');
 installCheck(count(Catalog::themes())===6,'Six themes are installable');
+installCheck(str_contains(file_get_contents(dirname(__DIR__).'/public/install.php'),'name="guided_journey"'),'Installer exposes the guided choice.');
+installCheck(str_contains(file_get_contents(dirname(__DIR__).'/public/install.php'),'Formulaire classique uniquement'),'Installer defaults to a classic contact form.');
+installCheck(!str_contains(file_get_contents(dirname(__DIR__).'/public/install.php'),"\$input('Adresse HTTPS du site'"),'The site address is not asked of the owner.');
+installCheck(str_contains(file_get_contents(dirname(__DIR__).'/public/install.php'),"\$account['url']='https://'.\$host"),'Origin is derived server-side from HTTPS host.');
 installCheck(!in_array('gd',Catalog::requirements([])['extensions'],true),'No image requirement without module');
 installCheck(in_array('gd',Catalog::requirements(['media'])['extensions'],true),'Media requirements resolved');
+installCheck(Catalog::requirements([])['driver']==='sqlite'
+    && Catalog::requirements([])['database']===false
+    && in_array('pdo_sqlite',Catalog::requirements([])['extensions'],true),
+    'Plain site uses local SQLite and requires no external connection.');
+installCheck(str_contains((string)file_get_contents(dirname(__DIR__).'/public/install.php'),
+    'input type="checkbox" disabled aria-describedby="booking-addon-status"'),
+    'Booking is visibly listed but cannot be falsely activated.');
+installCheck(Catalog::requirements(['media','forum'])['database']===false,
+    'Optional media and forum can use private SQLite without MariaDB.');
+
 try{Catalog::selection(['unknown']);throw new RuntimeException('Unknown addon accepted');}catch(InvalidArgumentException){}
 $blocks=[['type'=>'text','text'=>'Original'],['type'=>'gallery','media_ids'=>['photo']],['type'=>'image','media_id'=>'photo','shape'=>'arch','focal_x'=>20]];
 $updated=BlockEditor::update($blocks,[0=>['text'=>'Edited'],1=>['media_ids'=>['']]],['photo']);
 installCheck($updated[0]['text']==='Edited'&&$updated[1]['media_ids']===[]&&$updated[2]===$blocks[2],'Block updates preserve unrelated structure');
 try{BlockEditor::update($blocks,[1=>['media_ids'=>['foreign']]],['photo']);throw new RuntimeException('Foreign photo accepted');}catch(InvalidArgumentException){}
-foreach(['text','rich_text','gallery','cta','embed_safe','cards','faq','key_values','statistics'] as $type)installCheck(BlockEditor::blank($type)['type']===$type,'All offered blocks initialize');
+foreach(['text','rich_text','gallery','cta','embed_safe','cards','faq','key_values','statistics','steps','pricing'] as $type)installCheck(BlockEditor::blank($type)['type']===$type,'All offered blocks initialize');
 $collection=['type'=>'faq','heading'=>'Titre','items'=>[['question'=>'A','answer'=>'A'],['question'=>'B','answer'=>'B']]];
 $moved=BlockEditor::collection($collection,'item_up',1);
 installCheck($moved['items'][0]['question']==='B'&&$moved['heading']==='Titre','Collection reorders while preserving metadata');

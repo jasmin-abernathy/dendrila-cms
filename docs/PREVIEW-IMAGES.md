@@ -22,3 +22,15 @@ Ces fichiers sont des dérivés techniques redimensionnés/compressés de ces or
 - `bin/build-web-release.py` les inclut déjà dans l'archive puisque le répertoire `public/` entier y figure.
 - Le contrôle de l'archive exige la présence des quatre fichiers.
 - La galerie est un **aperçu fictif**, indépendant de l'activation des modules ; seule la page vierge est créée lors de l'installation réelle.
+
+## Photographies complémentaires (1er novembre 2026)
+
+Les images ci-dessous sont des fichiers locaux WebP, redimensionnés et compressés, avec des pages de source vérifiables. Les photos sont utilisées comme illustrations de thèmes ou dans les **aperçus en lecture seule** ; aucune photo n'est ajoutée comme contenu utilisateur dans la base du CMS.
+
+| Fichier | Source | Photographe | Statut |
+|---|---|---|---|
+| \`community.webp\` | https://commons.wikimedia.org/wiki/File:People_seated_at_table_participating_in_group_discussion_during_meeting.jpg | Harless Todd, US Fish and Wildlife Service | Domaine public |
+| \`nature.webp\` | https://commons.wikimedia.org/wiki/File:People_stand_in_line_on_the_road_and_look_at_nature.jpg | Hollingsworth John et Karen, US Fish and Wildlife Service | Domaine public |
+| \`workshop.webp\` | https://commons.wikimedia.org/wiki/File:Cooperation_meeting_(35371853444).jpg | Michiel Pols | CC0 1.0 |
+
+Les fichiers des kits \`themes/*/assets/*.webp\` sont des copies locales de ces photos et de la collection déjà documentée ci-dessus. Une attribution par respect pour les auteurs reste souhaitable, même quand la licence n'en fait pas une obligation.

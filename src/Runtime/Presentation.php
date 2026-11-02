@@ -24,7 +24,8 @@ final class Presentation
         $theme = $presentation['design_kit'];
         $presentation['css_url'] = '/design-kits/themes/'.$theme['id'].'/'.$theme['entrypoint']
             .'?v='.substr(hash_file('sha256', $theme['entrypoint_path']), 0, 16);
-        $presentation['support_css_url'] = '/assets/theme-runtime.css';
+        $presentation['support_css_url'] = '/assets/theme-runtime.css?v='
+            .substr(hash_file('sha256',$root.'/public/assets/theme-runtime.css'),0,16);
         return $presentation;
     }
     /** Site presentation resolves the published database brand for both previews and visitors. */
