@@ -82,6 +82,19 @@ try {
             hash('sha256','stale'),[],[]);
         throw new RuntimeException('Stale site SEO settings accepted.');
     }catch(\DomainException $expected){}
+    // A rejected form must release its manually opened SQLite write lock.
+    $peer=new SqliteConnection($settings['DB_DSN']);
+    $peer->exec('BEGIN IMMEDIATE');
+    $peer->exec('ROLLBACK');
+    // A caller-owned transaction remains open and can undo SEO changes.
+    $before=\Dendrila\Cms\Seo\SeoKeywordSettings::read($pdo,'default');
+    $pdo->beginTransaction();
+    \Dendrila\Cms\Seo\SeoKeywordSettings::save($pdo,'default',
+        hash('sha256',$before['raw']),['temporary'],[]);
+    if(!$pdo->inTransaction())throw new RuntimeException('SEO committed the caller transaction.');
+    $pdo->rollBack();
+    if(\Dendrila\Cms\Seo\SeoKeywordSettings::read($pdo,'default')['raw']!==$before['raw'])
+        throw new RuntimeException('SEO changes escaped the caller rollback.');
     // Appearance editor must work on the default SQLite installation too.
     $startAppearance=\Dendrila\Cms\Runtime\AppearanceSettings::read($pdo,'default');
     $brand=['primary'=>'#9d2941','text'=>'#161616','background'=>'#ffffff'];
@@ -97,6 +110,8 @@ try {
             hash('sha256',$startAppearance['raw']),'editorial',[]);
         throw new RuntimeException('Stale SQLite appearance form accepted.');
     }catch(\DomainException $expected){}
+    $peer->exec('BEGIN IMMEDIATE');
+    $peer->exec('ROLLBACK');
     \Dendrila\Cms\Runtime\AppearanceSettings::save($pdo,'default',
         hash('sha256',$savedAppearance['raw']),'ultra-minimal',[]);
     if(\Dendrila\Cms\Runtime\AppearanceSettings::read($pdo,'default')['brand']!==[])
