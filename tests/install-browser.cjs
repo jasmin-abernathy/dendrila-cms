@@ -58,6 +58,9 @@ const php=process.env.PHP_BINARY||'php';
   assert(await page.getByText('Formulaire classique uniquement').count(),'Classic contact is offered');
   assert(await page.locator('input[name=guided_journey][value=none]').isChecked(),'Guided journey is not imposed');
   await page.getByRole('button',{name:'Continuer'}).click();
+  assert(await page.getByRole('heading',{name:'À quoi doit servir Booking ?'}).count(),'Booking mode step displayed');
+  await page.locator('input[name=booking_mode][value=payments]').check();
+  await page.getByRole('button',{name:'Continuer'}).click();
   assert(await page.getByText('Votre stockage SQLite sera créé automatiquement.').count(),'SQLite needs no external connection');
   assert.equal(await page.locator('input[name=host],input[name=url]').count(),0,'No SQL host or site URL must be entered');
   const secret=(await page.locator('code.secret').textContent()).trim();
@@ -69,14 +72,15 @@ const php=process.env.PHP_BINARY||'php';
   assert(fs.existsSync('storage/site.sqlite'),'The installed database is private SQLite, not MariaDB');
   const settings=cp.execFileSync(php,['-r',`$c=require 'config/local.php';echo $c['APP_BASE_URL'];`],{encoding:'utf8'}).trim();
   assert.equal(settings,'https://atelier.example.test','HTTPS origin derived from current host, not entered by owner');
-   const bookingState=cp.execFileSync(php,['-r',"$c=require 'config/local.php';echo $c['DENDRILA_BOOKING_SETUP_REQUESTED'].'|'.$c['DENDRILA_ADDONS'];"],{encoding:'utf8'}).trim();
-   assert(bookingState.startsWith('1|')&&!bookingState.includes('booking'),
+   const bookingState=cp.execFileSync(php,['-r',"$c=require 'config/local.php';echo $c['DENDRILA_BOOKING_SETUP_REQUESTED'].'|'.$c['DENDRILA_BOOKING_MODE'].'|'.$c['DENDRILA_BOOKING_STORAGE_DRIVER'].'|'.$c['DENDRILA_ADDONS'];"],{encoding:'utf8'}).trim();
+   assert(bookingState.startsWith('1|payments|sqlite|')&&!bookingState.includes('|booking'),
      'Booking intent persists while payment routes remain inactive');
   await page.getByRole('link',{name:'Ouvrir l’administration'}).click();await page.getByLabel('E-mail',{exact:true}).fill('owner@atelier.example.test');await page.getByLabel('Mot de passe',{exact:true}).fill('Browser-test-password-2026!');await page.getByLabel('Code de votre application').fill(code(1));await page.getByRole('button',{name:'Se connecter'}).click();
   assert.equal(await page.locator('[data-page-editor]').count(),1,'Authenticated editor');
    await page.getByRole('link',{name:'Booking · à configurer'}).click();
    assert(await page.getByRole('heading',{name:'Booking : configuration en attente'}).count(),
      'Booking setup status remains explicit in back-office');
+   assert(await page.getByText('Usage sélectionné : Paiements ponctuels.').count(),'Selected Booking mode visible');
    await page.goto('http://127.0.0.1:8080/admin/?section=textes');
 
   // A native SEO panel uses the existing account, not a second external tool.

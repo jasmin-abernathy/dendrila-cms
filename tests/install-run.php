@@ -32,6 +32,17 @@ installCheck(!str_contains((string)file_get_contents(dirname(__DIR__).'/public/i
 installCheck(Catalog::requirements(['media','forum'])['database']===false,
     'Optional media and forum can use private SQLite without MariaDB.');
 
+foreach(['appointments','payments','both'] as $mode)
+    installCheck(Catalog::bookingMode($mode,true)===$mode,'Booking mode valid');
+installCheck(Catalog::bookingMode(null,false)==='none','No Booking is disabled');
+foreach([null,'none','invalid',[],123] as $mode){
+    try{Catalog::bookingMode($mode,true);throw new RuntimeException('Invalid Booking mode accepted');}
+    catch(InvalidArgumentException $expected){}
+}
+try{Catalog::bookingMode('payments',false);throw new RuntimeException('Stale Booking mode accepted');}
+catch(InvalidArgumentException $expected){}
+installCheck(str_contains(file_get_contents(dirname(__DIR__).'/public/install.php'),'name="booking_mode"'),
+    'Wizard contains Booking choice step');
 try{Catalog::selection(['unknown']);throw new RuntimeException('Unknown addon accepted');}catch(InvalidArgumentException){}
 $blocks=[['type'=>'text','text'=>'Original'],['type'=>'gallery','media_ids'=>['photo']],['type'=>'image','media_id'=>'photo','shape'=>'arch','focal_x'=>20]];
 $updated=BlockEditor::update($blocks,[0=>['text'=>'Edited'],1=>['media_ids'=>['']]],['photo']);
