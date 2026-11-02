@@ -68,6 +68,30 @@ const php=process.env.PHP_BINARY||'php';
   await page.getByRole('link',{name:'Ouvrir l’administration'}).click();await page.getByLabel('E-mail',{exact:true}).fill('owner@atelier.example.test');await page.getByLabel('Mot de passe',{exact:true}).fill('Browser-test-password-2026!');await page.getByLabel('Code de votre application').fill(code(1));await page.getByRole('button',{name:'Se connecter'}).click();
   assert.equal(await page.locator('[data-page-editor]').count(),1,'Authenticated editor');
 
+  // A native SEO panel uses the existing account, not a second external tool.
+  assert(await page.getByRole('link',{name:'SEO',exact:true}).count(),'SEO tab appears in back-office');
+  await page.goto('http://127.0.0.1:8080/admin/seo.php');
+  assert(await page.getByRole('heading',{name:'SEO du site'}).count(),'Native SEO page is available');
+  assert(await page.getByText('Conseils de rédaction',{exact:true}).count(),'Local writing tips are shown');
+  await page.locator('textarea[name=topics]').fill('atelier de démonstration\nconseils pratiques');
+  await page.getByRole('button',{name:'Enregistrer les sujets'}).click();
+  assert(await page.getByText('Enregistrement effectué.',{exact:false}).count(),'Site topics persist');
+  await page.locator('textarea[name=page_topics]').fill('atelier de démonstration');
+  await page.locator('input[name=seo_title]').fill('Atelier de démonstration — services');
+  await page.locator('textarea[name=seo_description]').fill('Découvrez les services, les démarches et les informations pratiques de notre atelier de démonstration.');
+  await page.getByRole('button',{name:'Enregistrer le SEO de cette page'}).click();
+  assert(await page.getByText('Enregistrement effectué.',{exact:false}).count(),'Page metadata persists');
+  const seoLive=await (await page.request.get('http://127.0.0.1:8080/')).text();
+  assert(seoLive.includes('name="keywords" content="atelier de démonstration"'),'Published HTML contains selected SEO topics');
+  assert(seoLive.includes('<title>Atelier de démonstration — services</title>'),'Published SEO title overrides default');
+  assert(seoLive.includes('name="description"'),'Published meta description is server-rendered');
+  await page.setViewportSize({width:390,height:844});
+  assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),
+    'SEO interface is readable at phone width');
+  await page.screenshot({path:'build/test-artifacts/seo-mobile.png',fullPage:true});
+  await page.setViewportSize({width:1280,height:900});
+
+
   await page.goto('http://127.0.0.1:8080/admin/appearance.php');
   assert(await page.getByRole('heading',{name:'Apparence du site'}).count(),'Owner can open appearance panel');
   assert.equal(await page.locator('[data-color-group]').count(),3,'Colors are grouped by use, not a flat field list');
