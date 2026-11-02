@@ -81,3 +81,25 @@
 @media(max-width:1000px){.appearance-workspace{grid-template-columns:minmax(0,1fr)}.appearance-preview-column{position:static;grid-row:1}}
 @media(max-width:620px){.appearance-intro{align-items:start;flex-direction:column}.appearance-swatch-grid{grid-template-columns:minmax(0,1fr)}.appearance-fields{grid-template-columns:minmax(0,1fr)}.appearance-mini-nav{gap:.4rem}.appearance-mini-nav>span:nth-of-type(2){display:none}.appearance-bottom{flex-direction:column;align-items:stretch}.appearance-save{width:100%}}
 @media(prefers-reduced-motion:reduce){.appearance-screen *{transition:none!important;animation:none!important}}
+
+/* Native fonts and visual first-party brand previews */
+.appearance-fonts{display:grid;gap:1rem}.appearance-font-card{border:1px solid #d8e3d9;border-radius:.85rem;padding:1rem;background:#f9fbf9;min-width:0}
+.appearance-font-card>label:first-child{display:block;font-weight:800}.appearance-font-card select{margin:.5rem 0}
+.appearance-font-sample{display:flex;align-items:center;min-height:5rem;padding:1rem;border:1px solid #d6e0d6;border-radius:.6rem;background:#fff;color:#212d23;font:1.1rem/1.5 var(--ap-font-example,system-ui);overflow-wrap:anywhere}
+.appearance-font-card[data-font-target="heading_font"] .appearance-font-sample{font-size:1.6rem;font-weight:700}
+.appearance-font-upload-label{display:block;margin:1rem 0 .35rem;font-size:.86rem;font-weight:700}
+.setup .appearance-font-card input[type=file]{width:100%!important;min-width:0;min-height:46px;margin:.3rem 0!important;border:1px solid #becfc1;border-radius:.55rem;padding:.5rem!important;font-size:.83rem}
+.appearance-font-status{font-size:.8rem;color:#516654;line-height:1.4;margin:.4rem 0}
+.appearance-remove{display:flex;align-items:center;gap:.5rem;font-size:.85rem;font-weight:650;margin:.65rem 0}
+.setup .appearance-remove input{width:1rem!important;height:1rem!important;min-height:1rem!important;margin:0}
+.appearance-preview{font-family:var(--ap-body-font,system-ui,sans-serif)}
+.appearance-mini-nav strong,.appearance-mini-hero h4,.appearance-mini-section h4{font-family:var(--ap-heading-font,Georgia,serif)!important}
+.appearance-asset{padding:1rem 0;border-top:1px solid #e0e8e0;min-width:0}
+.appearance-asset h4{font-size:1rem;margin:0 0 .4rem}.appearance-asset p{font-size:.83rem;color:#5a6b5e;margin:.3rem 0 .7rem;line-height:1.5}
+.appearance-asset-preview{border:1px dashed #b8c9ba;background:#f4f7f4;display:flex;align-items:center;justify-content:center;min-height:110px;max-height:200px;overflow:hidden;border-radius:.7rem;margin:.7rem 0}
+.appearance-asset-preview--banner{min-height:150px}.appearance-asset-preview img{display:block;width:100%;max-height:195px;object-fit:contain}
+.appearance-asset-preview--banner img{height:190px;object-fit:cover}.appearance-asset-preview [hidden]{display:none!important}
+.appearance-asset-preview>span{font-size:.82rem;color:#637669}.appearance-asset>label{display:block;font-weight:750;font-size:.87rem}
+.setup .appearance-asset-file{font-size:.8rem;max-width:100%;border:1px solid #b6c6b8;border-radius:.6rem;padding:.5rem!important;background:#fff;min-height:45px;margin:.45rem 0!important}
+@media(min-width:820px){.appearance-fonts{grid-template-columns:1fr 1fr;gap:.75rem}.appearance-fonts>legend,.appearance-fonts>.appearance-helper{grid-column:1/-1}}
+@media(max-width:500px){.appearance-font-card{padding:.85rem}.appearance-font-card[data-font-target="heading_font"] .appearance-font-sample{font-size:1.35rem}}
