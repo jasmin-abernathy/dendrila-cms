@@ -100,6 +100,7 @@ final readonly class View
    <?php if($id==='textes' && !$this->core->can($actor,'content.read'))continue; ?>
    <a href="<?= $this->link($id) ?>"<?= $id===$section?' aria-current="page"':'' ?>><?= self::h($label) ?></a>
   <?php endforeach ?>
+  <?php if($this->core->can($actor,'seo.manage')): ?><a href="/admin/seo.php">SEO</a><?php endif ?>
  </nav>
  <main id="main" class="admin-main">
  <?php if(($query['saved']??null)==='1'): ?><p role="status" class="notice">Modifications enregistrées.</p><?php endif ?>
