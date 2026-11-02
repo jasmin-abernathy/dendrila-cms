@@ -115,6 +115,14 @@ foreach($styles as $style=>$theme){
     $branded=Presentation::forTheme($style,['primary'=>'#204060','body_font'=>'neutral-sans','logo_url'=>'https://site.example/logo.svg']);
     themeCheck(str_contains($branded['compiled_css'],'--dendrila-color-primary: #204060;'),'Brand overrides compile in the selected theme scope');
     themeCheck($branded['brand_assets']['logo_url']==='https://site.example/logo.svg','Logo is forwarded');
+    $localFont=Presentation::forTheme($style,[
+        'heading_font_file'=>'woff2:'.str_repeat('a',48),
+        'body_font_file'=>'opentype:'.str_repeat('b',48)
+    ]);
+    themeCheck(str_contains($localFont['compiled_css'],'font-family:"DendrilaImportedHeading"')
+        && str_contains($localFont['compiled_css'],'brand-font.php?font=woff2%3A')
+        && str_contains($localFont['compiled_css'],'format("opentype")'),
+        'First-party font imports generate safe font-face CSS: '.$style);
 }
 // Real landing compositions must be distinct before a customer uploads media.
 $layoutContracts=[

@@ -39,7 +39,29 @@ final class BrandTokenCompiler
         if (isset($brand['body_font'])) {
             $variables['--dendrila-font-body'] = self::FONT_MAP[$brand['body_font']];
         }
+        foreach (['heading_font_file'=>'heading','body_font_file'=>'body'] as $key=>$target) {
+            if(isset($brand[$key])) {
+                $family=$target==='heading'?'DendrilaImportedHeading':'DendrilaImportedBody';
+                $variables['--dendrila-font-'.$target] = '"'.$family.'", system-ui, sans-serif';
+            }
+        }
         return $variables;
+    }
+
+    /** First-party CSS generated only from validated font tokens. */
+    public function fontFaces(array $brand): string
+    {
+        $rules=[];
+        $formats=['woff2'=>'woff2','woff'=>'woff','truetype'=>'truetype','opentype'=>'opentype'];
+        foreach(['heading_font_file'=>'DendrilaImportedHeading','body_font_file'=>'DendrilaImportedBody'] as $key=>$family) {
+            if(!isset($brand[$key]))continue;
+            $ref=$brand[$key];
+            if(!is_string($ref)||!preg_match('/^(woff2|woff|truetype|opentype):[a-f0-9]{48}$/D',$ref,$match))
+                throw new \InvalidArgumentException('Invalid uploaded font reference.');
+            $rules[]='@font-face{font-family:"'.$family.'";src:url("/brand-font.php?font='
+                .rawurlencode($ref).'") format("'.$formats[$match[1]].'");font-display:swap;}';
+        }
+        return implode("\n",$rules);
     }
 
     /** @param array<string, string> $brand @return array<string, string> */

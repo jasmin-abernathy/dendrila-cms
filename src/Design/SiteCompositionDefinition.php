@@ -12,6 +12,7 @@ final readonly class SiteCompositionDefinition
         'text', 'muted', 'accent_soft', 'border',
     ];
     private const URL_KEYS = ['logo_url', 'wordmark_url', 'hero_image_url'];
+    private const FONT_FILE_KEYS = ['heading_font_file','body_font_file'];
     private const FONT_KEYS = ['heading_font', 'body_font'];
     private const FONT_CHOICES = [
         'neutral-sans', 'humanist-sans', 'editorial-serif', 'system-serif',
@@ -42,7 +43,7 @@ final readonly class SiteCompositionDefinition
         if (!is_array($brand) || ($brand !== [] && array_is_list($brand))) {
             throw new InvalidArgumentException('Brand overrides must be an object.');
         }
-        $allowed = array_merge(self::COLOR_KEYS, self::URL_KEYS, self::FONT_KEYS);
+        $allowed = array_merge(self::COLOR_KEYS, self::URL_KEYS, self::FONT_KEYS, self::FONT_FILE_KEYS);
         if (array_diff(array_keys($brand), $allowed) !== []) {
             throw new InvalidArgumentException('Unknown brand override.');
         }
@@ -55,6 +56,12 @@ final readonly class SiteCompositionDefinition
         foreach (self::URL_KEYS as $key) {
             if (array_key_exists($key, $brand) && !self::httpsUrl($brand[$key])) {
                 throw new InvalidArgumentException("Invalid brand asset URL '{$key}'.");
+            }
+        }
+        foreach (self::FONT_FILE_KEYS as $key) {
+            if (array_key_exists($key, $brand)
+                && (!is_string($brand[$key]) || preg_match('/^(woff2|woff|truetype|opentype):[a-f0-9]{48}$/D', $brand[$key]) !== 1)) {
+                throw new InvalidArgumentException("Invalid custom font asset.");
             }
         }
         foreach (self::FONT_KEYS as $key) {

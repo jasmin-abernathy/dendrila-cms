@@ -22,7 +22,8 @@ final class AppearanceSettings
         'neutral-sans'=>'Sans serif neutre', 'humanist-sans'=>'Sans serif humaniste',
         'editorial-serif'=>'Serif éditoriale', 'system-serif'=>'Serif système',
     ];
-    public const ASSETS = ['logo_url'=>'URL du logo', 'wordmark_url'=>'URL du logotype', 'hero_image_url'=>'Image du bandeau (HTTPS)'];
+    public const ASSETS = ['logo_url'=>'Logo (symbole)', 'wordmark_url'=>'Logo avec nom', 'hero_image_url'=>'Image du bandeau'];
+    public const CUSTOM_FONTS = ['heading_font_file'=>'Police importée des titres','body_font_file'=>'Police importée du texte'];
     public const THEMES = [
         'simple-illustrated'=>'Simple avec quelques illustrations',
         'quiet-elegant'=>'Sobre et élégant', 'image-forward'=>'Centré sur les images',
@@ -41,7 +42,7 @@ final class AppearanceSettings
         if(!is_array($data)||($data!==[] && array_is_list($data)))throw new \RuntimeException('Invalid stored appearance.');
         $style=$data['design_style']??(getenv('DENDRILA_THEME')?:'quiet-elegant');
         if(!is_string($style)||!isset(self::THEMES[$style]))throw new \RuntimeException('Invalid stored design style.');
-        $brand=array_intersect_key($data,array_flip(array_merge(array_keys(self::COLORS),array_keys(self::ASSETS),['heading_font','body_font'])));
+        $brand=array_intersect_key($data,array_flip(array_merge(array_keys(self::COLORS),array_keys(self::ASSETS),array_keys(self::CUSTOM_FONTS),['heading_font','body_font'])));
         self::validate($style,$brand);
         return ['raw'=>$raw,'theme'=>$style,'brand'=>$brand];
     }
@@ -79,7 +80,7 @@ final class AppearanceSettings
             if(!is_string($raw)||!hash_equals(hash('sha256',$raw),$expectedHash))throw new \DomainException('Les réglages ont changé dans un autre onglet. Rechargez la page.');
             $previous=json_decode($raw,true,32,JSON_THROW_ON_ERROR);
             if(!is_array($previous))throw new \RuntimeException('Stored appearance corrupted.');
-            $allowed=array_flip(array_merge(array_keys(self::COLORS),array_keys(self::ASSETS),['heading_font','body_font','design_style']));
+            $allowed=array_flip(array_merge(array_keys(self::COLORS),array_keys(self::ASSETS),array_keys(self::CUSTOM_FONTS),['heading_font','body_font','design_style']));
             $new=array_diff_key($previous,$allowed);
             $new['design_style']=$theme;
             foreach($brand as $k=>$v)$new[$k]=$v;
