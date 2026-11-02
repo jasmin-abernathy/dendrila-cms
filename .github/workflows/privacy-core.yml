@@ -2,7 +2,7 @@ name: Native privacy core
 
 on:
   push:
-    branches: ['work/native-privacy-*']
+    branches: ['work/native-privacy-*', 'feature/booking-installer-request-20261102']
   workflow_dispatch:
   pull_request:
     paths:
