@@ -21,9 +21,14 @@ installCheck(Catalog::requirements([])['driver']==='sqlite'
     && Catalog::requirements([])['database']===false
     && in_array('pdo_sqlite',Catalog::requirements([])['extensions'],true),
     'Plain site uses local SQLite and requires no external connection.');
-installCheck(str_contains((string)file_get_contents(dirname(__DIR__).'/public/install.php'),
+installCheck(isset(Catalog::addons()['booking'])
+    && in_array('booking',Catalog::selection(['booking']),true)
+    && Catalog::requirements(['booking'])['driver']==='sqlite'
+    && Catalog::addons()['booking']['setup_pending']===true,
+    'Booking is selectable as a pending setup request without activating payments.');
+installCheck(!str_contains((string)file_get_contents(dirname(__DIR__).'/public/install.php'),
     'input type="checkbox" disabled aria-describedby="booking-addon-status"'),
-    'Booking is visibly listed but cannot be falsely activated.');
+    'Booking checkbox is no longer deliberately disabled.');
 installCheck(Catalog::requirements(['media','forum'])['database']===false,
     'Optional media and forum can use private SQLite without MariaDB.');
 
