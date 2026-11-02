@@ -8,6 +8,10 @@ final class SeoHeadRenderer
     /** @param array<string,mixed> $site @param array<string,mixed> $page @param array<string,mixed> $metadata */
     public function render(array $site, array $page, array $metadata): string
     {
+        // Metadata comes from the existing SEO repository; keywords are a
+        // separate editorial setting. Validate before emitting any HTML.
+        $keywords=SeoKeywordSettings::normalize($metadata['keywords']??[],5);
+        unset($metadata['keywords']);
         $metadata = SeoMetadataDefinition::normalize($metadata);
         $siteName = $this->text($site['name'] ?? null, 190, 'site name');
         $pageTitle = $this->text($page['title'] ?? null, 300, 'page title');
@@ -35,6 +39,9 @@ final class SeoHeadRenderer
         if ($metadata['description'] !== null) {
             $parts[] = '<meta name="description" content="' . self::escape($metadata['description']) . '">';
         }
+        // Legacy tag requested for interoperability. Google Search ignores it:
+        // title, description and useful visible copy are the main recommendations.
+        if($keywords!==[])$parts[]='<meta name="keywords" content="'.self::escape(implode(', ',$keywords)).'">';
         if ($canonical !== null) {
             $parts[] = '<link rel="canonical" href="' . self::escape($canonical) . '">';
         }
