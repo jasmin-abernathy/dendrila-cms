@@ -44,6 +44,40 @@ try {
     $content->transition($actor,$id['content']['id'],'published',1,'sqlite-test-publish');
     if(!str_contains((string)(new PublicSite($pdo))->render('/sqlite-test/'),'Vérification réelle SQLite'))
         throw new RuntimeException('SQLite published page not visible.');
+    // Site-level terms, scoped page terms and metadata work after an installed
+    // SQLite schema with no extra migration or external SEO provider.
+    $topics=\Dendrila\Cms\Seo\SeoKeywordSettings::read($pdo,'default');
+    \Dendrila\Cms\Seo\SeoKeywordSettings::save($pdo,'default',
+        hash('sha256',$topics['raw']),['services administratifs','documents'],
+        [$id['content']['id']=>['services administratifs']]);
+    $topics=\Dendrila\Cms\Seo\SeoKeywordSettings::read($pdo,'default');
+    if($topics['keywords']!==['services administratifs','documents'])
+        throw new RuntimeException('SEO site topic bank did not persist in SQLite.');
+    $seoSvc=new \Dendrila\Cms\Seo\SeoService(
+        new \Dendrila\Cms\Seo\PdoSeoRepository($pdo),$store,$auth);
+    $seoSvc->save($actor,$id['content']['id'],[
+        'title'=>'Services administratifs — exemple',
+        'description'=>'Détails pratiques sur les documents et les démarches administratives.',
+        'canonical_url'=>'/sqlite-test/',
+        'social_title'=>null,'social_description'=>null,'social_image_url'=>null,
+        'indexable'=>true,
+    ],0);
+    $result=(new PublicSite($pdo))->render('/sqlite-test/');
+    if(!str_contains($result,'<title>Services administratifs — exemple</title>')
+       || !str_contains($result,'name="description"')
+       || !str_contains($result,'name="keywords" content="services administratifs"')
+       || !str_contains($result,'rel="canonical" href="https://example.test/sqlite-test/"'))
+        throw new RuntimeException('Live SQLite page does not emit configured SEO tags.');
+    $advisor=\Dendrila\Cms\Seo\SeoWritingAdvisor::review(
+        ['title'=>'Documents','blocks'=>[['type'=>'text','text'=>'Détails sur les documents administratifs.']]],
+        ['description'=>''],['services administratifs']);
+    if(!$advisor['checks'] || !$advisor['total'])
+        throw new RuntimeException('Local writing recommendations not computed.');
+    try{
+        \Dendrila\Cms\Seo\SeoKeywordSettings::save($pdo,'default',
+            hash('sha256','stale'),[],[]);
+        throw new RuntimeException('Stale site SEO settings accepted.');
+    }catch(\DomainException $expected){}
     // Appearance editor must work on the default SQLite installation too.
     $startAppearance=\Dendrila\Cms\Runtime\AppearanceSettings::read($pdo,'default');
     $brand=['primary'=>'#9d2941','text'=>'#161616','background'=>'#ffffff'];

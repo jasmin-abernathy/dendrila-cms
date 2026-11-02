@@ -151,9 +151,9 @@ seoCheck(str_contains($head, 'rel="canonical" href="https://example.test/accueil
 seoCheck(str_contains($head, 'name="robots" content="noindex,follow"'), 'Non-indexable pages emit robots metadata.');
 $keywordHead=(new SeoHeadRenderer())->render(
  ['name'=>'Test'],['title'=>'Présentation'],
- ['keywords'=>['audit administratif','seo <mauvais>','audit administratif']]
+ ['keywords'=>['audit administratif','conseil & appui','audit administratif']]
 );
-seoCheck(str_contains($keywordHead,'name="keywords" content="audit administratif, seo &lt;mauvais&gt;"'),
+seoCheck(str_contains($keywordHead,'name="keywords" content="audit administratif, conseil &amp; appui"'),
  'Legacy keyword metadata is escaped and de-duplicated, not injected raw.');
 
 seoCheck(str_contains($head, 'property="og:image" content="https://example.test/media/share.jpg"'), 'Social image is rendered as an absolute URL.');

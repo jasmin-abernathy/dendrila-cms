@@ -30,7 +30,7 @@ final class SeoWritingAdvisor
     /** @return array{checks:list<array{status:string,label:string,detail:string}>,total:int} */
     public static function review(array $page,array $metadata,array $keywords):array
     {
-        $title=(string)($metadata['title']?:($page['title']??''));
+        $title=(string)(($metadata['title']??null)?:($page['title']??''));
         $description=trim((string)($metadata['description']??''));
         $body=self::pageText(['blocks'=>$page['blocks']??[]]);
         $terms=SeoKeywordSettings::normalize($keywords,5);
