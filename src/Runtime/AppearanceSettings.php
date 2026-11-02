@@ -68,6 +68,8 @@ final class AppearanceSettings
     {
         self::validate($theme,$brand);
         if(!preg_match('/^[a-f0-9]{64}$/D',$expectedHash))throw new \InvalidArgumentException('Version de formulaire invalide.');
+        // PDO does not track transactions opened with SQL BEGIN IMMEDIATE.
+        // Pair these with SQL COMMIT/ROLLBACK; leave caller-owned PDO transactions alone.
         $sqlite=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='sqlite';
         // SQLite has no SELECT ... FOR UPDATE; acquire the write lock before
         // checking the optimistic form version, without changing MySQL behavior.
@@ -92,8 +94,12 @@ final class AppearanceSettings
                 $q=$pdo->prepare('UPDATE sites SET config_version=config_version+1 WHERE site_id=?');
                 $q->execute([$siteId]);
             }
-            $pdo->commit();
-        }catch(\Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw $e;}
+            if($sqlite)$pdo->exec('COMMIT');else $pdo->commit();
+        }catch(\Throwable $e){
+            if($sqlite)$pdo->exec('ROLLBACK');
+            elseif($pdo->inTransaction())$pdo->rollBack();
+            throw $e;
+        }
     }
 
     private static function contrast(string $a,string $b):float

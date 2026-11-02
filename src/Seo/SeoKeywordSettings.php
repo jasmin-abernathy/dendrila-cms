@@ -62,6 +62,8 @@ final class SeoKeywordSettings
             // A targeted topic may be authored independently of the global bank.
             if($value!==[])$norm[$id]=$value;
         }
+        // PDO does not track transactions opened with SQL BEGIN IMMEDIATE.
+        // Pair these with SQL COMMIT/ROLLBACK; leave caller-owned PDO transactions alone.
         $sqlite=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='sqlite';
         $ownTransaction=!$pdo->inTransaction();
         if($ownTransaction){if($sqlite)$pdo->exec('BEGIN IMMEDIATE');else $pdo->beginTransaction();}
@@ -82,8 +84,14 @@ final class SeoKeywordSettings
                 $q=$pdo->prepare('UPDATE sites SET config_version=config_version+1 WHERE site_id=?');
                 $q->execute([$siteId]);
             }
-            if($ownTransaction)$pdo->commit();
-        }catch(\Throwable $e){if($ownTransaction&&$pdo->inTransaction())$pdo->rollBack();throw $e;}
+            if($ownTransaction){if($sqlite)$pdo->exec('COMMIT');else $pdo->commit();}
+        }catch(\Throwable $e){
+            if($ownTransaction){
+                if($sqlite)$pdo->exec('ROLLBACK');
+                elseif($pdo->inTransaction())$pdo->rollBack();
+            }
+            throw $e;
+        }
     }
 
     /** Explicit per-page selection wins; otherwise only relevant site topics are emitted. */

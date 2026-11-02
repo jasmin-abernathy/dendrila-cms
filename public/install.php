@@ -13,18 +13,14 @@ if(realpath((string)($_SERVER['DOCUMENT_ROOT']??''))!==realpath(__DIR__)){
     exit(App::page('Racine du site incorrecte','<p>Pour protéger les données privées, le domaine doit pointer uniquement vers le sous-dossier <code>public/</code> de Dendrila. Corrigez ce réglage dans votre hébergement avant de commencer.</p>'));
 }
 header("Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; frame-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'");
-$csrf=new SessionCsrf();$error='';$steps=['Accès','Thème','Modules','Base de données','Administrateur'];
+$csrf=new SessionCsrf();$error='';
 $state=$_SESSION['install']??['step'=>0];
 if(($state['authorized_until']??PHP_INT_MAX)<time())$state=['step'=>0];
 if(($state['step']??0)===0 && !isset($state['ownership_challenge'])){
     $state['ownership_challenge']=WebOwnerProof::createChallenge();
 }
-// Older sessions can still be on the now-obsolete MariaDB connection step.
-// Preserve the selected theme and modules, but continue with private SQLite.
-if (($state['step']??0)===3 && ($state['authorized_until']??0)>=time()) {
-    $state['addons']=Catalog::selection($state['addons']??[]);
-    $state['db']=['driver'=>'sqlite'];
-    $state['secret']=$state['secret']??Totp::secret();
+// Only requested Booking installations enter the extra step; storage is SQLite everywhere.
+if(($state['step']??0)===3&&!in_array('booking',is_array($state['addons']??null)?$state['addons']:[],true)){
     $state['step']=4;
 }
 // Downloading the text proof is optional but avoids hand-copying a random code.
@@ -55,8 +51,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
         if (isset($_POST['show_guide']) && ($state['step']??0)===0) {
             // Fallback if JavaScript is disabled: update the host-specific guide.
         } elseif(isset($_POST['back']) && $state['step']>1 && ($state['authorized_until']??0)>=time()){
-            $state['step']=($state['step']===4 && ($state['db']['driver']??'')==='sqlite')
-                ? 2 : max(1,$state['step']-1);
+            $state['step']=$state['step']===4?(in_array('booking',$state['addons']??[],true)?3:2):max(1,$state['step']-1);
         }
         else switch($state['step']){
             case 0:
@@ -102,14 +97,17 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
                 $requirements=Catalog::requirements($state['addons']);
                 foreach($requirements['extensions'] as $ext)
                     if(!extension_loaded($ext))throw new InvalidArgumentException('Extension PHP à activer : '.$ext);
+                $booking=in_array('booking',$state['addons'],true);
+                if(!$booking)unset($state['booking_mode']);
                 $state['db']=['driver'=>'sqlite'];
                 $state['secret']=$state['secret']??Totp::secret();
-                // No external database connection step for local SQLite.
-                $state['step']=4;break;
+                $state['step']=$booking?3:4;break;
             case 3:
-    $body.='<h2>Stockage local automatique</h2><p>SQLite sera créé dans le dossier privé du CMS. '
-        .'Aucune base externe ni connexion SQL n’est nécessaire.</p>';break;
-case 4:
+                if(!in_array('booking',$state['addons']??[],true))
+                    throw new \InvalidArgumentException('Booking non sélectionné.');
+                $state['booking_mode']=Catalog::bookingMode($_POST['booking_mode']??null,true);
+                $state['step']=4;break;
+            case 4:
                 $account=[];foreach(['name','email','password','code'] as $key)
                     $account[$key]=is_string($_POST[$key]??null)?$_POST[$key]:'';
                 // The site origin comes from the already-verified HTTPS host,
@@ -133,8 +131,9 @@ case 4:
     catch(Throwable $e){error_log('Dendrila installation: '.$e::class);$error='Installation interrompue. Consultez les journaux serveur. Si des tables ont été créées, utilisez une nouvelle base vide ; aucune donnée existante ne sera effacée.';http_response_code(500);}
 }
 $_SESSION['install']=$state;
-$steps=['Accès','Thème','Modules','Administrateur'];
-$visibleStep=($state['step']??0)===4?3:(int)($state['step']??0);
+$hasBooking=in_array('booking',$state['addons']??[],true);
+$steps=$hasBooking?['Accès','Thème','Modules','Booking','Administrateur']:['Accès','Thème','Modules','Administrateur'];
+$visibleStep=($state['step']??0)===4?count($steps)-1:(int)($state['step']??0);
 $body='<ol class="setup-steps" aria-label="Étapes de l’installation">';
 foreach($steps as $i=>$label)$body.='<li'.($i===$visibleStep?' aria-current="step"':'').'><span class="setup-step-num">'.($i+1).'</span><span class="setup-step-label">'.App::h($label).'</span></li>';
 $body.='</ol><p class="setup-progress-label">Étape '.($visibleStep+1).' sur '.count($steps).' — '.App::h($steps[$visibleStep]??'').'</p>';
@@ -215,21 +214,23 @@ case 2:
     foreach(['cards'=>'Cartes','list'=>'Liste','compact'=>'Compacte'] as $id=>$label)
         $body.='<option value="'.$id.'"'.(($state['guided_presentation']??'cards')===$id?' selected':'').'>'.$label.'</option>';
     $body.='</select></label></fieldset>';
-    $body.='<div class="addon-card addon-card--unavailable" role="group" aria-labelledby="booking-addon-title">'
-        .'<label><input type="checkbox" disabled aria-describedby="booking-addon-status"> '
-        .'<strong id="booking-addon-title">Réservations (Booking)</strong></label>'
-        .'<span>Créneaux, disponibilités, synchronisation calendrier et paiements : le module Dendrila Booking '
-        .'existe, mais son intégration dans cet installateur n’est pas terminée. '
-        .'Aucune réservation ni transaction ne sera activée par ce choix.</span>'
-        .'<span id="booking-addon-status" class="setup-addon-status">En cours d’intégration — non disponible</span></div>';
+    $body.='<p class="notice"><strong>Booking :</strong> si vous le cochez, une étape supplémentaire proposera rendez-vous, paiements ponctuels ou les deux. SQLite est conservé et aucune transaction ne sera activée avant les tests.</p>';
     break;
 case 3:
-    $body.='<h2>Relier votre base de données</h2><ul>';foreach(Catalog::requirements($state['addons'])['database_reasons'] as $reason)$body.='<li>'.App::h($reason).'</li>';
-    $body.='</ul><p>Une base MariaDB vide suffit. Voici comment la préparer :</p>'
-        .HostingGuide::databaseGuide((string)($state['hosting_provider']??'other'))
-        .'<p>Complétez les informations indiquées par votre hébergeur :</p>'.$input('Serveur','host','text',$state['db']['host']??'localhost').$input('Port','port','number',$state['db']['port']??'3306').$input('Nom de la base','name','text',$state['db']['name']??'').$input('Utilisateur de la base','user','text',$state['db']['user']??'').$input('Mot de passe de la base','password','password');break;
+    $body.='<h2>À quoi doit servir Booking ?</h2>'
+        .'<p>Sélectionnez les fonctions à préparer ; elles seront configurées après l’installation.</p>'
+        .'<p class="notice"><strong>Stockage :</strong> SQLite privé pour tous les modes. Aucune base MySQL ou MariaDB à créer.</p>'
+        .'<fieldset class="setup-guided-choice"><legend>Type de Booking</legend>';
+    foreach(Catalog::bookingModes() as $id=>$mode){
+        $body.='<label class="addon-card"><input type="radio" required name="booking_mode" value="'.App::h($id).'"'
+            .(($state['booking_mode']??'')===$id?' checked':'')
+            .'><span><strong>'.App::h($mode['label']).'</strong><br>'.App::h($mode['description']).'</span></label>';
+    }
+    $body.='</fieldset><p class="notice">Le moteur Booking doit encore être adapté à SQLite et validé : '
+        .'les réservations et paiements resteront désactivés jusque-là.</p>';
+    break;
 case 4:
-    $body.='<h2>Votre site et votre compte</h2><p><strong>Votre stockage SQLite sera créé automatiquement.</strong> Vous n’avez aucun raccordement MariaDB à effectuer.</p>'.$input('Nom du site','name').$input('Votre e-mail','email','email').$input('Votre mot de passe (12 caractères minimum)','password','password').'<h3>Protéger votre compte</h3><p>Ajoutez un compte dans votre application d’authentification : clé ci-dessous, codes à 6 chiffres, période de 30 secondes.</p><p><code class="secret">'.App::h($state['secret']).'</code></p><p>Conservez cette clé dans votre gestionnaire de mots de passe : elle permet de rétablir votre second facteur.</p>'.$input('Code actuel à 6 chiffres','code');break;
+    $body.='<h2>Votre site et votre compte</h2><p><strong>Votre stockage SQLite sera créé automatiquement.</strong> Vous n’avez aucun serveur de base de données externe à renseigner.</p>'.$input('Nom du site','name').$input('Votre e-mail','email','email').$input('Votre mot de passe (12 caractères minimum)','password','password').'<h3>Protéger votre compte</h3><p>Ajoutez un compte dans votre application d’authentification : clé ci-dessous, codes à 6 chiffres, période de 30 secondes.</p><p><code class="secret">'.App::h($state['secret']).'</code></p><p>Conservez cette clé dans votre gestionnaire de mots de passe : elle permet de rétablir votre second facteur.</p>'.$input('Code actuel à 6 chiffres','code');break;
 }
 $body.='<div class="setup-actions">';if($state['step']>1)$body.='<button class="button secondary" name="back" value="1" formnovalidate>Retour</button>';
 if($state['step']===0){

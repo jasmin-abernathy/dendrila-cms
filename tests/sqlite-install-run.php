@@ -11,13 +11,19 @@ mkdir($base.'/config',0700,true);
 $secret=Totp::secret();
 try {
     Installer::install(
-        ['theme'=>'ultra-minimal','addons'=>['media','forum'],'db'=>['driver'=>'sqlite'],'secret'=>$secret],
+        ['theme'=>'ultra-minimal','addons'=>['media','forum','booking'],'booking_mode'=>'both','db'=>['driver'=>'sqlite'],'secret'=>$secret],
         ['name'=>'Example site','email'=>'owner@example.test',
          'password'=>'example-long-password-sqlite','url'=>'https://example.test',
          'code'=>Totp::code($secret,intdiv(time(),30))],
         $base.'/config'
     );
     $settings=require $base.'/config/local.php';
+    if(($settings['DENDRILA_BOOKING_SETUP_REQUESTED']??null)!=='1')
+        throw new RuntimeException('Booking request not retained.');
+    if(($settings['DENDRILA_BOOKING_MODE']??null)!=='both'||($settings['DENDRILA_BOOKING_STORAGE_DRIVER']??null)!=='sqlite')
+        throw new RuntimeException('Booking mode or storage not persisted.');
+    if(in_array('booking',explode(',',$settings['DENDRILA_ADDONS']),true))
+        throw new RuntimeException('Unconfigured Booking must never be marked active.');
     foreach($settings as $key=>$value) putenv($key.'='.$value);
     $pdo=new SqliteConnection($settings['DB_DSN']);
     $dbFile=substr($settings['DB_DSN'],7);
@@ -78,6 +84,19 @@ try {
             hash('sha256','stale'),[],[]);
         throw new RuntimeException('Stale site SEO settings accepted.');
     }catch(\DomainException $expected){}
+    // A rejected form must release its manually opened SQLite write lock.
+    $peer=new SqliteConnection($settings['DB_DSN']);
+    $peer->exec('BEGIN IMMEDIATE');
+    $peer->exec('ROLLBACK');
+    // A caller-owned transaction remains open and can undo SEO changes.
+    $before=\Dendrila\Cms\Seo\SeoKeywordSettings::read($pdo,'default');
+    $pdo->beginTransaction();
+    \Dendrila\Cms\Seo\SeoKeywordSettings::save($pdo,'default',
+        hash('sha256',$before['raw']),['temporary'],[]);
+    if(!$pdo->inTransaction())throw new RuntimeException('SEO committed the caller transaction.');
+    $pdo->rollBack();
+    if(\Dendrila\Cms\Seo\SeoKeywordSettings::read($pdo,'default')['raw']!==$before['raw'])
+        throw new RuntimeException('SEO changes escaped the caller rollback.');
     // Appearance editor must work on the default SQLite installation too.
     $startAppearance=\Dendrila\Cms\Runtime\AppearanceSettings::read($pdo,'default');
     $brand=['primary'=>'#9d2941','text'=>'#161616','background'=>'#ffffff'];
@@ -93,6 +112,8 @@ try {
             hash('sha256',$startAppearance['raw']),'editorial',[]);
         throw new RuntimeException('Stale SQLite appearance form accepted.');
     }catch(\DomainException $expected){}
+    $peer->exec('BEGIN IMMEDIATE');
+    $peer->exec('ROLLBACK');
     \Dendrila\Cms\Runtime\AppearanceSettings::save($pdo,'default',
         hash('sha256',$savedAppearance['raw']),'ultra-minimal',[]);
     if(\Dendrila\Cms\Runtime\AppearanceSettings::read($pdo,'default')['brand']!==[])
