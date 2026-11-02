@@ -63,7 +63,8 @@ final class SeoKeywordSettings
             if($value!==[])$norm[$id]=$value;
         }
         $sqlite=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='sqlite';
-        if($sqlite)$pdo->exec('BEGIN IMMEDIATE');else $pdo->beginTransaction();
+        $ownTransaction=!$pdo->inTransaction();
+        if($ownTransaction){if($sqlite)$pdo->exec('BEGIN IMMEDIATE');else $pdo->beginTransaction();}
         try{
             $q=$pdo->prepare('SELECT branding_json FROM site_api_settings WHERE site_id=?'.($sqlite?'':' FOR UPDATE'));
             $q->execute([$siteId]);$raw=$q->fetchColumn();
@@ -81,8 +82,8 @@ final class SeoKeywordSettings
                 $q=$pdo->prepare('UPDATE sites SET config_version=config_version+1 WHERE site_id=?');
                 $q->execute([$siteId]);
             }
-            $pdo->commit();
-        }catch(\Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw $e;}
+            if($ownTransaction)$pdo->commit();
+        }catch(\Throwable $e){if($ownTransaction&&$pdo->inTransaction())$pdo->rollBack();throw $e;}
     }
 
     /** Explicit per-page selection wins; otherwise only relevant site topics are emitted. */

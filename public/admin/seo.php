@@ -71,13 +71,14 @@ try{
                 throw new DomainException('Cette page a été modifiée dans un autre onglet.');
             if(!hash_equals(hash('sha256',$settings['raw']),(string)($_POST['settings_hash']??'')))
                 throw new DomainException('La liste de mots-clés a changé dans un autre onglet.');
-            // SEO metadata uses the existing audited, versioned service. Topic
-            // assignments remain independently stored and are never added to
-            // draft/published content or auto-rewritten by this editor.
-            $service->save($actor,$pageId,$metadata,$version);
+            // SEO metadata and topic assignments commit together, while the
+            // content revision itself remains untouched and versioned.
             $pageLists=$settings['pages'];$pageLists[$pageId]=$pageTerms;
-            SeoKeywordSettings::save($pdo,$siteId,(string)$_POST['settings_hash'],
-                $settings['keywords'],$pageLists);
+            $service->save($actor,$pageId,$metadata,$version,
+                static function()use($pdo,$siteId,$settings,$pageLists):void {
+                    SeoKeywordSettings::save($pdo,$siteId,hash('sha256',$settings['raw']),
+                        $settings['keywords'],$pageLists);
+                });
             header('Location: /admin/seo.php?saved=page&page='.rawurlencode($pageId),true,303);exit;
         }catch(InvalidArgumentException|DomainException $e){
             http_response_code(422);$error=$e->getMessage();
