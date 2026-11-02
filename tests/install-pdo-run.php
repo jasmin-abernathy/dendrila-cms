@@ -104,6 +104,16 @@ $request=new \Dendrila\Cms\Http\Request('GET','/v1/config',[
 $mobileActor=$runtime->authenticator->authenticate($request);
 verifyInstall($mobileActor->siteId==='default'&&$mobileActor->actorId==='owner',
     'Device token restores real CMS membership and permissions.');
+// A still-valid token must not bypass account suspension or site isolation.
+$pdo->exec("UPDATE native_accounts SET enabled=0 WHERE site_id='default' AND actor_id='owner'");
+try{$runtime->authenticator->authenticate($request);throw new RuntimeException('Disabled account token accepted.');}
+catch(\Dendrila\Cms\Api\Unauthorized){}
+$pdo->exec("UPDATE native_accounts SET enabled=1 WHERE site_id='default' AND actor_id='owner'");
+$otherSiteAuthenticator=new \Dendrila\Cms\Api\NativeMmwDeviceAuthenticator($pdo,'different-site');
+try{$otherSiteAuthenticator->authenticate($request);throw new RuntimeException('Cross-site device token accepted.');}
+catch(\Dendrila\Cms\Api\Unauthorized){}
+verifyInstall($runtime->authenticator->authenticate($request)->actorId==='owner',
+    'The original site accepts the enabled account again.');
 $devices=$mmw->devices($actor);
 verifyInstall(count($devices)===1,'Paired Android device is visible in the back-office.');
 $mmw->revoke($actor,$devices[0]['device_id']);
