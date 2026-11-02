@@ -17,7 +17,7 @@ final class Catalog
             'media'=>['label'=>'Photos et galeries','description'=>'Photothèque, images optimisées et galeries dans vos pages.','requires'=>['gd','fileinfo'],'database'=>false],
             'forum'=>['label'=>'Forum modéré','description'=>'Discussions et réponses modérées, avec stockage local SQLite.','requires'=>['gd','fileinfo'],'database'=>false],
             'booking'=>['label'=>'Réservations et paiements — Booking',
-                'description'=>'Préparer Booking pour une activation ultérieure. Storage SQLite privé pour les rendez-vous, paiements ponctuels ou les deux. Activation différée jusqu’aux tests.',
+                'description'=>'Préparer Booking pour une activation ultérieure. Stockage SQLite privé pour les rendez-vous, paiements ponctuels ou les deux. Activation différée jusqu’aux tests.',
                 'requires'=>[],'database'=>false,'setup_pending'=>true],
         ];
     }
