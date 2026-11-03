@@ -101,7 +101,7 @@ final readonly class View
    <a href="<?= $this->link($id) ?>"<?= $id===$section?' aria-current="page"':'' ?>><?= self::h($label) ?></a>
   <?php endforeach ?>
   <?php if($this->core->can($actor,'seo.manage')): ?><a href="/admin/seo.php">SEO</a><?php endif ?>
-   <?php if(getenv('DENDRILA_BOOKING_SETUP_REQUESTED')==='1'): ?><a href="/admin/booking-status.php">Booking · à configurer</a><?php endif ?>
+   <?php if(getenv('DENDRILA_BOOKING_SETUP_REQUESTED')==='1'): ?><a href="/admin/booking-status.php">Booking<?= is_file(dirname(__DIR__,2).'/public/admin/booking.php') ? ' · mode test' : ' · à configurer' ?></a><?php endif ?>
  </nav>
  <main id="main" class="admin-main">
  <?php if(($query['saved']??null)==='1'): ?><p role="status" class="notice">Modifications enregistrées.</p><?php endif ?>

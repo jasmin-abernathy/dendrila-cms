@@ -118,6 +118,43 @@ try {
         hash('sha256',$savedAppearance['raw']),'ultra-minimal',[]);
     if(\Dendrila\Cms\Runtime\AppearanceSettings::read($pdo,'default')['brand']!==[])
         throw new RuntimeException('Reset to native theme colors failed on SQLite.');
+    // MMW must work on the default SQLite install, not only the historical MySQL fixture.
+    $runtime=\Dendrila\Cms\Api\IdentityRuntimeFactory::fromEnvironment($pdo,
+        static fn(string $key):?string=>isset($settings[$key])?(string)$settings[$key]:null);
+    $mmw=new \Dendrila\Cms\Api\NativeMmwPairing($pdo,'default',$settings['DENDRILA_AUTH_KEY']);
+    $pairCode=$mmw->issueCode($actor);
+    $paired=$runtime->authentication->pair(['code'=>$pairCode,'device_name'=>'SQLite Android']);
+    $request=new \Dendrila\Cms\Http\Request('GET','/v1/config',[
+        'x-lepotager-device-token'=>$paired['device_token'],'x-lepotager-protocol'=>'1'], '');
+    $mobile=$runtime->authenticator->authenticate($request);
+    if($mobile->actorId!=='owner')throw new RuntimeException('SQLite MMW pairing failed.');
+    $pdo->exec("UPDATE native_accounts SET enabled=0 WHERE site_id='default' AND actor_id='owner'");
+    try{$runtime->authenticator->authenticate($request);throw new RuntimeException('Disabled MMW account accepted.');}
+    catch(\Dendrila\Cms\Api\Unauthorized){}
+    $pdo->exec("UPDATE native_accounts SET enabled=1 WHERE site_id='default' AND actor_id='owner'");
+    try{(new \Dendrila\Cms\Api\NativeMmwDeviceAuthenticator($pdo,'other'))->authenticate($request);throw new RuntimeException('Cross-site MMW token accepted.');}
+    catch(\Dendrila\Cms\Api\Unauthorized){}
+    $pageId=$id['content']['id'];$previous=$content->get($mobile,$pageId);
+    $payload=['item_id'=>$pageId,'expected_version'=>(int)$previous['version'],
+        'title'=>'Depuis MMW','body'=>'Texte MMW SQLite'];
+    \Dendrila\Cms\Api\NativePagesModule::apply($content,$mobile,'update_item',$payload,'sqlite-mmw-edit');
+    if(str_contains((string)(new PublicSite($pdo))->render('/sqlite-test/'),'Texte MMW SQLite'))
+        throw new RuntimeException('MMW draft was published implicitly.');
+    try{\Dendrila\Cms\Api\NativePagesModule::apply($content,$mobile,'update_item',$payload,'sqlite-mmw-stale');throw new RuntimeException('Stale MMW revision accepted.');}
+    catch(\Dendrila\Cms\Content\VersionConflict){}
+    $changed=$content->get($mobile,$pageId);
+    \Dendrila\Cms\Api\NativePagesModule::apply($content,$mobile,'item_action',[
+        'item_id'=>$pageId,'expected_version'=>(int)$changed['version'],'action_id'=>'publish'],'sqlite-mmw-publish');
+    if(!str_contains((string)(new PublicSite($pdo))->render('/sqlite-test/'),'Texte MMW SQLite'))
+        throw new RuntimeException('MMW publish failed on SQLite.');
+    $readModel=new \Dendrila\Cms\Api\PdoSiteReadModel($pdo);
+    if(!isset($readModel->snapshot($mobile)['data']->pages['items']))throw new RuntimeException('MMW snapshot missing pages.');
+    $device=$mmw->devices($actor)[0]['device_id'];$mmw->revoke($actor,$device);
+    try{$runtime->authenticator->authenticate($request);throw new RuntimeException('Revoked MMW device accepted.');}
+    catch(\Dendrila\Cms\Api\Unauthorized){}
+    try{$mmw->pair($pairCode);throw new RuntimeException('MMW pairing code replay accepted.');}
+    catch(\Dendrila\Cms\Api\AuthenticationFailure){}
+
     session_start();
     $identity=new \Dendrila\Cms\Auth\NativeIdentity($pdo,'default',$settings['DENDRILA_AUTH_KEY']);
     if($identity->login('owner@example.test','invalid-password',

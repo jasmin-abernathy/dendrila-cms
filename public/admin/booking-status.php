@@ -10,6 +10,7 @@ try{
     if($actor->siteId!==App::site()||getenv('DENDRILA_BOOKING_SETUP_REQUESTED')!=='1'){
         http_response_code(404);exit;
     }
+    if(is_file(__DIR__.'/booking.php') && in_array(getenv('DENDRILA_BOOKING_MODE'),['payments','both'],true)){header('Location: /admin/booking.php',true,303);exit;}
     header('Cache-Control: no-store');
     header('X-Robots-Tag: noindex,nofollow');
     $mode=getenv('DENDRILA_BOOKING_MODE')?:'';
