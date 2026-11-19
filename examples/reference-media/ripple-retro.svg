@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800">
+  <defs>
+    <linearGradient id="night" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#080d2a"/><stop offset=".57" stop-color="#3f1552"/><stop offset="1" stop-color="#ee4874"/>
+    </linearGradient>
+    <linearGradient id="sun" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#fff78a"/><stop offset="1" stop-color="#ff5d72"/>
+    </linearGradient>
+    <clipPath id="sun-clip"><circle cx="850" cy="368" r="214"/></clipPath>
+    <pattern id="grid" width="64" height="64" patternUnits="userSpaceOnUse">
+      <path d="M64 0H0V64" fill="none" stroke="#a6e9ff" stroke-opacity=".16" stroke-width="2"/>
+    </pattern>
+  </defs>
+  <rect width="1280" height="800" fill="url(#night)"/>
+  <path d="M0 555L1280 310V800H0Z" fill="url(#grid)" opacity=".8"/>
+  <circle cx="850" cy="368" r="214" fill="url(#sun)"/>
+  <g clip-path="url(#sun-clip)" fill="#3b1451">
+    <rect x="600" y="424" width="500" height="12"/>
+    <rect x="600" y="449" width="500" height="17"/>
+    <rect x="600" y="482" width="500" height="25"/>
+    <rect x="600" y="529" width="500" height="40"/>
+    <rect x="600" y="588" width="500" height="55"/>
+  </g>
+  <circle cx="850" cy="368" r="238" fill="none" stroke="#ffae92" opacity=".32" stroke-width="4"/>
+  <circle cx="275" cy="255" r="132" fill="none" stroke="#89e1fd" stroke-width="14" stroke-opacity=".78"/>
+  <circle cx="275" cy="255" r="90" fill="none" stroke="#89e1fd" stroke-width="3" stroke-opacity=".45"/>
+  <g fill="#d8f9ff"><circle cx="135" cy="112" r="4"/><circle cx="1152" cy="183" r="6"/><circle cx="103" cy="654" r="7"/><circle cx="1111" cy="665" r="4"/><circle cx="544" cy="137" r="3"/></g>
+  <path d="M30 640 Q250 480 470 612T910 610T1280 580" fill="none" stroke="#83efff" stroke-opacity=".7" stroke-width="8"/>
+  <path d="M0 706 Q300 546 620 690T1280 700" fill="none" stroke="#ffc0cf" stroke-opacity=".45" stroke-width="4"/>
+  <rect x="34" y="34" width="1212" height="732" rx="0" fill="none" stroke="#fce5ff" stroke-opacity=".3" stroke-width="2"/>
+</svg>
