@@ -16,7 +16,8 @@
   const offText = control.dataset.pauseLabel || "Mettre le fond en pause";
   const onText = control.dataset.resumeLabel || "Reprendre le fond animé";
   const pointer = [0.5, 0.5];
-  const gl = canvas.getContext("webgl", { alpha: false, antialias: false, powerPreference: "low-power" });
+  const gl = (motion.matches || connection?.saveData) ? null
+    : canvas.getContext("webgl", { alpha: false, antialias: false, powerPreference: "low-power" });
   let program, posBuffer, texture, locations, visible = true, paused = false, ready = false;
   let frame = 0, lastDraw = 0, time = 0, previous = 0, width = 0, height = 0;
   let observer;
