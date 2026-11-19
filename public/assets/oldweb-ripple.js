@@ -12,7 +12,8 @@
   const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
   const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
   const speed = Math.min(2, Math.max(0.25, Number(host.dataset.speed) || 1));
-  const intensity = Math.min(1, Math.max(0, Number(host.dataset.intensity) || 0.5));
+  const intensity = Math.min(1, Math.max(0, Number(host.dataset.intensity ?? 0.5)));
+  if (!Number.isFinite(intensity) || intensity === 0) return;
   const offText = control.dataset.pauseLabel || "Mettre le fond en pause";
   const onText = control.dataset.resumeLabel || "Reprendre le fond animé";
   const pointer = [0.5, 0.5];
@@ -20,7 +21,6 @@
     : canvas.getContext("webgl", { alpha: false, antialias: false, powerPreference: "low-power" });
   let program, posBuffer, texture, locations, visible = true, paused = false, ready = false;
   let frame = 0, lastDraw = 0, time = 0, previous = 0, width = 0, height = 0;
-  let observer;
 
   const vertex = `
     attribute vec2 a_position;
@@ -73,7 +73,7 @@
   }
 
   function init() {
-    if (!gl) return false;
+    if (!gl || !image.naturalWidth || gl.isContextLost()) return false;
     try {
       const vert = shader(gl.VERTEX_SHADER, vertex);
       const frag = shader(gl.FRAGMENT_SHADER, fragment);
@@ -101,7 +101,17 @@
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+      const maxTextureSize = Math.min(gl.getParameter(gl.MAX_TEXTURE_SIZE), 2048);
+      const scale = Math.min(1, maxTextureSize / Math.max(image.naturalWidth, image.naturalHeight));
+      let source = image;
+      if (scale < 1) {
+        source = document.createElement("canvas");
+        source.width = Math.max(1, Math.round(image.naturalWidth * scale));
+        source.height = Math.max(1, Math.round(image.naturalHeight * scale));
+        source.getContext("2d").drawImage(image, 0, 0, source.width, source.height);
+      }
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source);
+      if (gl.getError() !== gl.NO_ERROR) throw new Error("Ripple texture upload failed");
       gl.useProgram(program);
       gl.uniform1i(locations.sampler, 0);
       gl.uniform2f(locations.imageSize, image.naturalWidth, image.naturalHeight);
@@ -158,13 +168,12 @@
   }
 
   function sync() {
-    if (motion.matches || connection?.saveData || !gl) {
+    if (motion.matches || connection?.saveData || !ready) {
       stop(); host.dataset.ready = "false";
       control.hidden = true;
       return;
     }
     control.hidden = false;
-    control.setAttribute("aria-pressed", String(paused));
     control.textContent = paused ? onText : offText;
     if (permitted()) {
       if (!frame) frame = requestAnimationFrame(draw);
@@ -178,6 +187,7 @@
     sync();
   });
   window.addEventListener("pointermove", event => {
+    if (!permitted()) return;
     const bounds = host.getBoundingClientRect();
     if (!bounds.width || !bounds.height) return;
     pointer[0] = Math.max(0, Math.min(1, (event.clientX - bounds.left) / bounds.width));
@@ -192,7 +202,7 @@
   });
   canvas.addEventListener("webglcontextrestored", () => { ready = false; if (init()) sync(); });
   if ("IntersectionObserver" in window) {
-    observer = new IntersectionObserver(entries => {
+    const observer = new IntersectionObserver(entries => {
       visible = entries[0]?.isIntersecting ?? false;
       sync();
     });

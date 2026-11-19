@@ -1,4 +1,4 @@
-# Oldweb-kit : fond Ripple sans Flash (prototype fonctionnel)
+# Oldweb-kit · thèmes rétro et fond Ripple
 
 ## Portée et état
 
@@ -11,9 +11,20 @@ Première implémentation **originale** d'un fond Ripple décoratif, inspirée d
 - Aucun CDN, bibliothèque JS ni média chargé depuis un tiers.
 - Aucune animation ajoutée aux pages existantes : **activation explicite nécessaire**.
 
-C'est un prototype fonctionnel dans le rendu public et le constructeur de site de référence, **pas encore une interface d'administration**. Aucun schéma `design-style v1` ou contrat MMW n'a été modifié ; les réglages seront raccordés à l'éditeur après versionnage et intégration du modèle de publication.
+Les styles `oldweb-personal`, `oldweb-portal` et `oldweb-blog` utilisent le catalogue de rendu fourni par le CMS et les fichiers JSON installés par Oldweb-kit. La composition, les blocs et les médias continuent de passer par le renderer public. Les schémas v1 et le contrat MMW restent compatibles.
 
 ## Démonstration locale
+
+Après installation des trois styles depuis Oldweb-kit, lancer depuis le CMS :
+
+```sh
+composer install
+php -S 127.0.0.1:8080 -t public examples/oldweb/demo.php
+```
+
+Ouvrir [la démonstration locale](http://127.0.0.1:8080/). Les liens donnent accès aux trois thèmes et à Ripple. Dans **Personnaliser**, sélectionner un thème, une couleur de liens, un fond et ses paramètres. L’aperçu, la publication et la restauration sont distincts et utilisent uniquement les données de session de la démonstration.
+
+### Constructeur de référence
 
 Avec PHP 8.5+, Composer et un catalogue de `dendrila-design-kits` compatible (voir `README.md`) :
 
@@ -58,10 +69,10 @@ php tests/reference-site-run.php
 node --check public/assets/oldweb-ripple.js
 ```
 
-Ces tests vérifient les contrats, la sécurité de la configuration, le repli et l'absence de régression de l'opt-in. Une validation visuelle réelle sur navigateur mobile/desktop, les performances et le comportement WebGL sur appareils modestes restent à réaliser avant activation en production.
+La suite PHP couvre les contrats et le fonctionnement des chemins existants. Vérifier aussi les trois thèmes dans un navigateur avec le moteur WebGL actif, puis avec mouvement réduit et en simulant une perte de contexte. Dans la démonstration, essayer un aperçu, vérifier la page publiée dans un deuxième onglet de la même session, publier et restaurer la version précédente.
 
-## À poursuivre
+## Intégration au site
 
-1. Tester le rendu mobile/desktop sur un site effectivement servi avec CSS de thème et contenus réels.
-2. Ajouter le contrôle déclaratif au back-office Dendrila/MMW après lecture/versionnage des contrats (prévisualisation, publication, rollback).
-3. Comparer les coûts réseau et batterie avec des vidéos courtes optimisées, puis décider si d'autres préréglages (kaléidoscope, slitscan) sont justifiés.
+Le site fournit sa composition et sa carte de médias publics à `OldwebAppearance::resolve()`. Le front utilise la présentation résultante et sert `/assets/oldweb/themes/retro.css` pour les thèmes Oldweb. Les réglages de l’éditeur de démonstration illustrent la prévisualisation et la publication. Le back-office du site doit encore fournir son authentification, sa persistance par site et sa sélection de médias. Tester ensuite les droits, l’édition concurrente et le retour arrière sur une instance de préproduction.
+
+Mesurer CPU/GPU, batterie et EcoIndex sur un appareil modeste avant toute affirmation sur la consommation. Les autres préréglages de fond restent à étudier.

@@ -1,6 +1,6 @@
 /* Oldweb-kit: Ripple backdrop. Optional, scoped and zero third-party assets. */
 .d-ripple-enabled { background-color: transparent !important; isolation: isolate; }
-.d-ripple-enabled > :not(.d-ripple-backdrop):not(.d-ripple-toggle):not(script) {
+.d-ripple-enabled > :where(header, main, footer) {
   position: relative;
   z-index: 1;
 }
