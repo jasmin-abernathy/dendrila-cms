@@ -66,6 +66,16 @@ La galerie statique de démonstration des six directions visuelles se trouve dan
 
 Par défaut, les réglages d'API d'un site commencent avec une liste de modules vide. Une fois un mapping de module renseigné en base, le snapshot projette les contenus par l'intermédiaire des services et permissions du CMS ; il ne renvoie que les champs explicitement déclarés. La configuration des modules n'a pas encore d'écran d'administration, et le manifeste de découverte n'est pas publié.
 
+## Fonds rétro animés sans Flash (opt-in)
+
+Une première implémentation **Ripple** WebGL, avec image fixe de repli et contrôle pause, est disponible comme extension facultative du renderer public et du site de référence. Pour la démonstration locale :
+
+```sh
+php bin/build-reference-site.php /chemin/design-kits/catalog.json build/ripple-demo --ripple
+```
+
+Puis servir `build/ripple-demo` et ouvrir `/ripple-preview.html`. Le renderer n'active aucun effet sans configuration explicite. Le raccordement à l'administration est encore à développer. Voir [docs/OLDWEB-RIPPLE.md](docs/OLDWEB-RIPPLE.md).
+
 ## Principes
 
 - Pas de code spécifique client dans MMW.
