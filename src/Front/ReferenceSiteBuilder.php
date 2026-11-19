@@ -51,6 +51,10 @@ final readonly class ReferenceSiteBuilder
             if (!mkdir($assetTarget, 0775, true) && !is_dir($assetTarget)) {
                 throw new RuntimeException('Unable to create backdrop asset directory.');
             }
+            $previewSource = dirname(__DIR__, 2) . '/examples/ripple-preview.html';
+            if (!is_file($previewSource) || !copy($previewSource, $outputDirectory . '/ripple-preview.html')) {
+                throw new RuntimeException('Unable to copy the Ripple preview.');
+            }
             foreach (['oldweb-ripple.css', 'oldweb-ripple.js'] as $filename) {
                 $source = dirname(__DIR__, 2) . '/public/assets/' . $filename;
                 if (!is_file($source) || !copy($source, $assetTarget . '/' . $filename)) {
