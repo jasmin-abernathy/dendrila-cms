@@ -1,0 +1,26 @@
+/* Oldweb-kit: Ripple backdrop. Optional, scoped and zero third-party assets. */
+.d-ripple-enabled { background-color: transparent !important; isolation: isolate; }
+.d-ripple-enabled > :not(.d-ripple-backdrop):not(.d-ripple-toggle):not(script) {
+  position: relative;
+  z-index: 1;
+}
+.d-ripple-backdrop { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; background: #161021; }
+.d-ripple-backdrop .d-ripple-poster,
+.d-ripple-backdrop .d-ripple-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; object-fit: cover; }
+.d-ripple-backdrop .d-ripple-canvas { opacity: 0; transition: opacity .25s ease; }
+.d-ripple-backdrop[data-ready="true"] .d-ripple-canvas { opacity: 1; }
+.d-ripple-toggle {
+  position: fixed !important; z-index: 100 !important; right: 1rem; bottom: 1rem;
+  min-width: 44px; min-height: 44px; max-width: calc(100vw - 2rem);
+  border: 2px solid currentColor; border-radius: .3rem; padding: .55rem .85rem;
+  background: #15121b; color: #fff; font: 600 .9rem/1.25 system-ui, sans-serif;
+  cursor: pointer; box-shadow: 0 2px 12px rgba(0,0,0,.35);
+}
+.d-ripple-toggle:focus-visible { outline: 3px solid #ffd94f; outline-offset: 3px; }
+.d-ripple-toggle[hidden] { display: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  .d-ripple-backdrop .d-ripple-canvas { display: none !important; transition: none; }
+}
+@media (forced-colors: active) {
+  .d-ripple-toggle { forced-color-adjust: auto; }
+}
