@@ -12,9 +12,10 @@ use Dendrila\Cms\Front\ReferenceSiteBuilder;
 
 $catalogPath = $argv[1] ?? getenv('DENDRILA_DESIGN_KITS_CATALOG') ?: null;
 $outputDirectory = $argv[2] ?? dirname(__DIR__) . '/build/reference-site';
+$enableRipple = ($argv[3] ?? null) === '--ripple';
 
 if (!is_string($catalogPath) || $catalogPath === '') {
-    fwrite(STDERR, "Usage: php bin/build-reference-site.php <design-kits/catalog.json> [output-directory]\n");
+    fwrite(STDERR, "Usage: php bin/build-reference-site.php <design-kits/catalog.json> [output-directory] [--ripple]\n");
     exit(2);
 }
 
@@ -44,6 +45,14 @@ try {
     }
 
     (new ContentTypeDefinition($pageType))->validateValues($fixture['page'] ?? []);
+    if ($enableRipple) {
+        // Demo opt-in only: no site settings, content, schemas or production database are changed.
+        $fixture['media_urls']['ripple-demo'] = '/media/ripple-retro.svg';
+        $fixture['backdrop'] = [
+            'type' => 'ripple', 'media_id' => 'ripple-demo',
+            'speed' => 0.85, 'intensity' => 0.75,
+        ];
+    }
     $builder = new ReferenceSiteBuilder(
         new PresentationResolver($root . '/design-styles', new DesignKitCatalog($catalogPath)),
     );
@@ -55,6 +64,9 @@ try {
     );
 
     fwrite(STDOUT, "Reference site built: {$result['index_path']}\n");
+    if ($enableRipple) {
+        fwrite(STDOUT, "Ripple demo: {$result['output_directory']}/ripple-preview.html\n");
+    }
 } catch (Throwable $error) {
     fwrite(STDERR, $error->getMessage() . "\n");
     exit(1);
