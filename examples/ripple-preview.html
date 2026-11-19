@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Oldweb-kit · Ripple sans Flash</title>
+  <link rel="stylesheet" href="/assets/oldweb-ripple.css">
+  <style>
+    :root{color-scheme:dark}
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh;background:#140e25;color:#fff;font-family:system-ui, sans-serif}
+    main{min-height:100vh;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:clamp(1.25rem,7vw,7rem)}
+    .panel{background:rgba(11,12,28,.83);max-width:42rem;padding:clamp(1.25rem,4vw,3rem);border:3px solid #b0f8ff;box-shadow:9px 9px 0 #fd6b8b}
+    .label{letter-spacing:.22em;font-size:.85rem;font-weight:bold;color:#b8f4ff}
+    h1{font-size:clamp(3rem,10vw,7rem);line-height:.91;text-transform:uppercase;margin:.6rem 0 1rem;letter-spacing:-.06em}
+    p{line-height:1.55;font-size:1.1rem}
+    a{color:#b4edff;text-underline-offset:.2em}
+    a:focus-visible{outline:3px solid #ffe28d;outline-offset:4px}
+    .chip{font-family:monospace;background:#242849;border:1px solid #a2eafb;padding:.3rem .55rem}
+    @media(prefers-reduced-motion:reduce){.panel{box-shadow:none}}
+  </style>
+</head>
+<body class="d-ripple-enabled">
+  <a href="#demo" style="position:absolute;z-index:50;left:1rem;top:1rem;color:#fff">Aller au contenu</a>
+  <div class="d-ripple-backdrop" data-dendrila-ripple data-speed="0.85" data-intensity="0.75" data-ready="false" aria-hidden="true">
+    <img class="d-ripple-poster" src="/media/ripple-retro.svg" alt="" decoding="async">
+    <canvas class="d-ripple-canvas" aria-hidden="true"></canvas>
+  </div>
+  <main id="demo">
+    <div class="panel">
+      <div class="label">OLDWEB KIT · 2026</div>
+      <h1>NO<br>FLASH.</h1>
+      <p>Un fond animé qui ondule sous le pointeur. Une image SVG locale, un shader WebGL original et aucun appel réseau tiers.</p>
+      <p><span class="chip">WebGL 1</span> <span class="chip">Sans bibliothèque</span></p>
+      <p>Essaie de déplacer ton doigt ou ta souris. Utilise le bouton en bas à droite pour mettre l'animation en pause.</p>
+    </div>
+  </main>
+  <button type="button" class="d-ripple-toggle" data-dendrila-ripple-toggle
+    data-pause-label="Mettre le fond en pause" data-resume-label="Reprendre le fond animé"
+    hidden>Mettre le fond en pause</button>
+  <script defer src="/assets/oldweb-ripple.js"></script>
+</body>
+</html>

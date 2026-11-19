@@ -94,6 +94,24 @@ frontCheck(str_contains($html, 'd-section--block-gallery'), 'Public blocks expos
 frontCheck(substr_count($html, 'Action finale') === 1, 'Standalone CTA labels are not duplicated.');
 frontCheck(str_contains($html, 'data-test-privacy="1"'), 'Native privacy markup can be mounted by the front.');
 
+// Opt-in Ripple affects only a presentation that explicitly declares the trusted media.
+$ripplePresentation = $presentation;
+$ripplePresentation['backdrop'] = [
+    'type' => 'ripple', 'media_id' => 'hero', 'speed' => 0.85, 'intensity' => 0.75,
+];
+$rippleHtml = $renderer->render(
+    $fixture['site'], $fixture['page'], $ripplePresentation, $themeCssUrl,
+    $fixture['media_urls'], $fixture['navigation'],
+);
+frontCheck(!str_contains($html, 'data-dendrila-ripple'),
+    'Ripple must not be loaded for existing pages by default.');
+frontCheck(str_contains($rippleHtml, 'class="d-ripple-enabled"'),
+    'Opt-in Ripple enables the scoped background class.');
+frontCheck(str_contains($rippleHtml, 'data-dendrila-ripple'),
+    'Opt-in Ripple mounts the canvas background.');
+frontCheck(str_contains($rippleHtml, 'oldweb-ripple.js'),
+    'Opt-in Ripple loads the trusted local renderer.');
+
 $seoSite = $fixture['site'];
 $seoSite['canonical_base_url'] = 'https://example.test';
 $seoHtml = $renderer->render(

@@ -7,6 +7,7 @@ require dirname(__DIR__) . '/src/Design/SiteCompositionDefinition.php';
 require dirname(__DIR__) . '/src/Design/BrandTokenCompiler.php';
 require dirname(__DIR__) . '/src/Design/DesignKitCatalog.php';
 require dirname(__DIR__) . '/src/Design/PresentationResolver.php';
+require dirname(__DIR__) . '/src/Design/OldwebAppearance.php';
 
 use Dendrila\Cms\Design\CssTokenCompiler;
 use Dendrila\Cms\Design\DesignStyleDefinition;

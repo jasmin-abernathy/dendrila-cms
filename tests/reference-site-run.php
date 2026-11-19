@@ -133,6 +133,29 @@ referenceExpect(InvalidArgumentException::class, fn () => $builder->build(
     $output,
 ));
 
+$rippleFixture = $fixture;
+$rippleFixture['backdrop'] = [
+    'type' => 'ripple', 'media_id' => 'hero',
+    'speed' => 0.85, 'intensity' => 0.75,
+];
+$rippleOutput = $temp . '/build-ripple';
+$rippleResult = $builder->build(
+    new SiteCompositionDefinition($compositionRaw),
+    $rippleFixture,
+    $root . '/examples/reference-media',
+    $rippleOutput,
+);
+$rippleHtml = file_get_contents($rippleResult['index_path']);
+referenceCheck(is_string($rippleHtml) && str_contains($rippleHtml, 'data-dendrila-ripple'),
+    'Ripple reference build mounts the opt-in background.');
+referenceCheck(is_file($rippleOutput . '/assets/oldweb-ripple.js')
+    && is_file($rippleOutput . '/assets/oldweb-ripple.css'),
+    'Ripple reference build copies local JS/CSS.');
+referenceCheck(is_file($rippleOutput . '/ripple-preview.html'),
+    'Ripple reference build exposes the standalone visual preview.');
+referenceCheck(!is_file($output . '/assets/oldweb-ripple.js'),
+    'Ordinary reference build does not ship the optional engine.');
+
 referenceRemoveTree($temp);
 
 echo "Reference site builder tests passed.\n";

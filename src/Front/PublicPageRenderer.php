@@ -79,6 +79,15 @@ final readonly class PublicPageRenderer
             throw new InvalidArgumentException('Invalid privacy frontend markup.');
         }
 
+        // Animation is opt-in and never comes from executable design-package content.
+        $ripple = null;
+        if (array_key_exists('backdrop', $presentation)) {
+            if (!is_array($presentation['backdrop'])) {
+                throw new InvalidArgumentException('Backdrop settings must be an object.');
+            }
+            $ripple = (new OldwebRippleBackdrop())->render($presentation['backdrop'], $mediaUrls, $language);
+        }
+
         [$hero, $bodyBlocks] = $this->extractHero($blocks, $structure['hero']);
         $bodyMarkup = '';
         foreach ($bodyBlocks as $index => $block) {
@@ -122,8 +131,10 @@ final readonly class PublicPageRenderer
             . $this->seoHead->render($site, $page, $seo)
             . '<link rel="stylesheet" href="' . self::escape($themeCssUrl) . '">'
             . '<style data-dendrila-presentation>' . $compiledCss . '</style>'
-            . '</head><body ' . $attributes . '>'
+            . ($ripple['head'] ?? '')
+            . '</head><body ' . $attributes . ($ripple !== null ? ' class="d-ripple-enabled"' : '') . '>'
             . '<a class="d-skip-link" href="#contenu">' . ($language === 'en' ? 'Skip to content' : 'Aller au contenu') . '</a>'
+            . ($ripple['markup'] ?? '')
             . '<header class="d-header"><div class="d-shell d-header__inner">'
             . '<a class="d-brand" href="' . self::escape($homeUrl) . '">' . $logo . '<span>' . self::escape($siteName) . '</span></a>'
             . $this->renderNavigation($navigation, $language)
@@ -133,6 +144,7 @@ final readonly class PublicPageRenderer
             . '</main>'
             . $this->renderFooter($siteName, $navigation, $language)
             . $privacyMarkup
+            . ($ripple['tail'] ?? '')
             . '</body></html>';
     }
 

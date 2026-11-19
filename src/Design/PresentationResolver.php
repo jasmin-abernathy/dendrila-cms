@@ -31,7 +31,10 @@ final readonly class PresentationResolver
         }
 
         $style = $this->loadStyle($composition->designStyleId());
-        $theme = $this->catalog->themeForStyle($style->id());
+        $catalog = isset(OldwebAppearance::THEMES[$style->id()])
+            ? new DesignKitCatalog(dirname(__DIR__, 2) . '/public/assets/oldweb/catalog.json')
+            : $this->catalog;
+        $theme = $catalog->themeForStyle($style->id());
         $styleVariables = $this->styleCompiler->variables($style);
 
         foreach ($theme['required_style_tokens'] as $token) {
