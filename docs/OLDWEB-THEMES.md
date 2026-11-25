@@ -1,6 +1,6 @@
 # Créer un thème pour Dendrila Retro
 
-Canal 57 et Borne 02 servent d’exemples. Le navigateur reçoit une page HTML et des feuilles
+Canal 57, Borne 02 et Signal 96 servent d’exemples. Le navigateur reçoit une page HTML et des feuilles
 CSS. PHP prépare le rendu côté serveur et le back-office gère les réglages.
 Un thème est installé avec le code du site par la personne qui le maintient.
 Le catalogue de thèmes reste ouvert à d’autres contributions.
@@ -51,7 +51,7 @@ réglages d’apparence du brouillon, sauf si la personne applique la palette
 d’origine du thème sélectionné. Le nom du thème, les couleurs, les bordures et
 les images se prévisualisent et se publient ensemble.
 
-Borne 02 déclare aussi un fichier `content` de démonstration dans
+Borne 02 et Signal 96 déclarent aussi un fichier `content` de démonstration dans
 `examples/oldweb/`. Il reprend les clés du contenu générique et n’écrase
 ni l’identité du site ni ses textes personnalisés. Le gabarit et ses
 ressources sont inclus dans le ZIP par `bin/package-retro.py`.

@@ -1,0 +1,45 @@
+body { margin: 0; border: 3px solid #536954; background: #070a09 url(etoiles.png) repeat; color: #e7eadc; font: 100% "Times New Roman", serif; }
+h1, h2, h3, p { margin: 0; }
+a { color: inherit; }
+a:focus { outline: 2px solid #f4d27f; background-color: #1a241c; color: #fff4c2; }
+.skip a { position: absolute; left: -10000px; }
+.skip a:focus { top: 8px; left: 8px; z-index: 1; padding: 6px; }
+#site { width: 780px; margin: 0 auto; padding: 16px 0 20px; }
+.preview { text-align: center; margin-bottom: 8px; padding: 5px; background: #fff1bb; color: #161a10; }
+#pub { width: 644px; margin: 0 auto; text-align: center; padding: 6px 6px 5px; border: 1px solid #536954; font: bold 87.5% "Courier New", monospace; }
+#pub img { display: block; margin: 6px auto 0; }
+#orbite { position: relative; height: 457px; background: url(orbites.png) center 55px no-repeat; }
+#station { position: absolute; top: 150px; left: 210px; width: 360px; text-align: center; }
+#enseigne { padding: 5px; border: 3px double #99ac8d; font: italic bold 55px/1 "Times New Roman", serif; text-transform: uppercase; letter-spacing: .055em; }
+#enseigne.long { font-size: 28px; letter-spacing: 0; overflow: auto; }
+.tagline { display: block; margin: 6px auto; padding: 3px 7px; background: #070a09; color: #d8dfcd; font-size: 134%; }
+.frequence { width: 285px; margin: 0 auto; padding: 4px; background: #070a09; color: #e2c98a; font: 81.25% "Courier New", monospace; }
+#orbite ul { margin: 0; padding: 0; list-style: none; }
+#orbite li { position: absolute; width: 144px; text-align: center; }
+#orbite a { display: block; padding: 4px 4px 6px; border: 2px solid #62735c; font-weight: bold; }
+#orbite a:hover, #orbite a:focus { outline: 2px solid #f4d27f; }
+#orbite span { display: block; width: 64px; height: 64px; margin: 0 auto 4px; background: url(icones.png) no-repeat; }
+#orbite .antenne { top: 26px; left: 140px; }
+#orbite .planete { top: 28px; left: 500px; }
+#orbite .classeur { top: 177px; left: 28px; }
+#orbite .carnet { top: 173px; left: 605px; }
+#orbite .cassette { top: 326px; left: 156px; }
+#orbite .lettre { top: 328px; left: 474px; }
+#orbite .planete span { background-position: -64px 0; }
+#orbite .classeur span { background-position: -128px 0; }
+#orbite .cassette span { background-position: -192px 0; }
+#orbite .carnet span { background-position: -256px 0; }
+#orbite .lettre span { background-position: -320px 0; }
+.liens-texte, .statut, .pied { max-width: 660px; margin: 0 auto; padding: 6px; text-align: center; }
+.liens-texte, .statut, .pied { background-color: #070a09; color: #d8dfcd; }
+.liens-texte a, .pied a, .statut a { color: #c6ea83; }
+.statut { color: #e2c98a; font: 81.25% "Courier New", monospace; }
+.dossiers { margin: 26px auto 15px; width: 644px; }
+.fiche { border: 2px solid #596855; margin-bottom: 10px; padding: 10px 12px; }
+.fiche h2 { font: bold 128% "Times New Roman", serif; margin: 0 0 5px; }
+.fiche h3 { margin-top: 12px; }
+.fiche p, .fiche li { line-height: 1.35; }
+.fiche ul { margin: 0; padding-left: 24px; }
+.fiche img.illustration { display: block; margin: 5px 0 8px; }
+#contenu:focus + .fiche { outline: 2px solid #f4d27f; }
+hr { width: 660px; border: 0; border-top: 1px solid #596855; }

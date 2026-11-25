@@ -1,6 +1,6 @@
-# Dendrila Retro · Canal 57 et Borne 02
+# Dendrila Retro · Canal 57, Borne 02 et Signal 96
 
-Dendrila Retro fournit Canal 57 (820 px) et Borne 02 (800 px), deux thèmes
+Dendrila Retro fournit Canal 57 (820 px), Borne 02 (800 px) et Signal 96 (780 px), trois thèmes
 à largeur fixe en HTML 4.01 Strict et CSS 2. Les pages conservent leurs
 colonnes sur petit écran. Le site et l’éditeur fonctionnent sans JavaScript.
 
@@ -177,12 +177,13 @@ sites existants continuent de passer par leurs routes habituelles.
 
 ## Personnaliser
 
-Choisis **Canal 57** ou **Borne 02** dans **Thème du portail**. Pour reprendre
+Choisis **Canal 57**, **Borne 02** ou **Signal 96** dans **Thème du portail**. Pour reprendre
 les couleurs et bordures d’origine du thème choisi, coche la case
 correspondante avant d’enregistrer le brouillon. Les couleurs existantes
 sont conservées par défaut lors d’un changement de thème et la case n’affecte
 pas les images. Prévisualise le brouillon avant de le publier.
-Les illustrations fournies avec Borne 02 sont en [CC0](../public/assets/borne-02/licences/illustrations.txt).
+Les illustrations de [Borne 02](../public/assets/borne-02/licences/illustrations.txt) et de
+[Signal 96](../public/assets/signal-96/illustrations.txt) sont en CC0.
 
 Chaque zone expose une couleur de fond, une couleur de texte et un choix de
 bordures CSS 2. Le bandeau, l’ouverture, les actualités, l’agenda, les archives

@@ -15,7 +15,7 @@ EDITOR = "dendrila-retro/oldweb-editor.php"
 CORE_FILES = (
     "PortalAppearance.php", "PortalStorage.php", "PortalThemes.php",
     "portal-controller.php", "portal-editor.php", "portal-install.php", "portal-page.php",
-    "portal-view.php", "portal-borne-02.php",
+    "portal-view.php", "portal-borne-02.php", "portal-signal-96.php",
 )
 GUARD = """
 if (!defined('DENDRILA_RETRO_ENTRY')) {
@@ -56,14 +56,16 @@ def make_site(personal: tuple[str, str] | None = None) -> bytes:
         for source, target in (
             ("examples/oldweb/portal-content.json", "retro/portal-content.json"),
             ("examples/oldweb/borne-02-content.json", "retro/borne-02-content.json"),
+            ("examples/oldweb/signal-96-content.json", "retro/signal-96-content.json"),
             ("public/assets/oldweb-fixed-portal.css", "assets/oldweb-fixed-portal.css"),
             ("LICENSE.md", "LICENSE.md"),
         ):
             site.writestr(f"{APP}/{target}", (ROOT / source).read_bytes())
-        assets = ROOT / "public" / "assets" / "borne-02"
-        for source in sorted(assets.rglob("*")):
-            if source.is_file():
-                site.writestr(f"{APP}/assets/borne-02/{source.relative_to(assets).as_posix()}", source.read_bytes())
+        for theme in ("borne-02", "signal-96"):
+            assets = ROOT / "public" / "assets" / theme
+            for source in sorted(assets.rglob("*")):
+                if source.is_file():
+                    site.writestr(f"{APP}/assets/{theme}/{source.relative_to(assets).as_posix()}", source.read_bytes())
     return output.getvalue()
 
 

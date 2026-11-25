@@ -66,9 +66,9 @@ La galerie statique de démonstration des six directions visuelles se trouve dan
 
 Par défaut, les réglages d'API d'un site commencent avec une liste de modules vide. Une fois un mapping de module renseigné en base, le snapshot projette les contenus par l'intermédiaire des services et permissions du CMS ; il ne renvoie que les champs explicitement déclarés. La configuration des modules n'a pas encore d'écran d'administration, et le manifeste de découverte n'est pas publié.
 
-## Dendrila Retro · Canal 57 et Borne 02
+## Dendrila Retro · Canal 57, Borne 02 et Signal 96
 
-Deux thèmes à largeur fixe en HTML 4.01 et CSS 2, avec éditeur d’apparence authentifié.
+Trois thèmes à largeur fixe en HTML 4.01 et CSS 2, avec éditeur d’apparence authentifié.
 Télécharger [le ZIP d’installation](downloads/Dendrila_Retro.zip). Voir
 [le guide selon ton hébergement](docs/OLDWEB-FIXED-PORTAL.md) et le
 [guide de création de thèmes](docs/OLDWEB-THEMES.md).

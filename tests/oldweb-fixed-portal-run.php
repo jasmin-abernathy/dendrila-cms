@@ -99,6 +99,24 @@ try {
     portalCheck($store->change(0, 'install', ['name' => 'Club local', 'tagline' => 'Arcade'], [], $borne), 'Borne 02 must be selectable during installation.');
     $installedBorne = $store->state();
     portalCheck($installedBorne['themes']['published'] === $borne && $installedBorne['published'] === $borneDefaults, 'Installing Borne 02 must apply its defaults.');
+
+    $signal = 'signal-96';
+    $signalDefaults = PortalThemes::initialAppearance($signal);
+    $signalTheme = PortalThemes::forRendering($signal);
+    portalCheck(is_file($root . '/' . $signalTheme['stylesheet']), 'Signal 96 must ship its stylesheet.');
+    portalCheck($signalDefaults !== $borneDefaults, 'Signal 96 must have its own valid defaults.');
+    portalCheck($store->change(1, 'draft', $signalDefaults, ['intro' => $upload], $signal), 'An existing site must be able to switch to Signal 96.');
+    $signalDraft = $store->state();
+    portalCheck($signalDraft['themes']['published'] === $borne && $signalDraft['themes']['draft'] === $signal, 'Signal 96 must support private previews.');
+    portalCheck($store->change(2, 'publish', $signalDraft['draft'], []), 'Signal 96 must be publishable.');
+    $signalPublished = $store->state();
+    portalCheck($signalPublished['themes']['published'] === $signal && $signalPublished['published']['intro']['image'] === $asset, 'The published Signal 96 theme must retain its images.');
+    portalCheck($store->change(3, 'restore', [], []), 'The previous theme must be restorable.');
+    portalCheck($store->state()['themes']['published'] === $borne, 'Restoring must recover Borne 02.');
+
+    unlink($directory . '/appearance.json');
+    portalCheck($store->change(0, 'install', ['name' => 'Relais local', 'tagline' => 'Radio'], [], $signal), 'Signal 96 must be selectable during installation.');
+    portalCheck($store->state()['published'] === $signalDefaults, 'Signal 96 must install with its own defaults.');
 } finally {
     foreach (glob($directory . '/*') as $path) {
         unlink($path);

@@ -33,6 +33,23 @@ final class PortalThemes
                 'focus' => ['background' => '#171D36', 'text' => '#E8EAFF', 'border' => 'ridge'],
             ],
         ],
+        'signal-96' => [
+            'label' => 'Signal 96',
+            'stylesheet' => 'assets/signal-96/signal.css',
+            'template' => 'portal-signal-96.php',
+            'content' => 'signal-96-content.json',
+            'defaults' => [
+                'page' => ['background' => '#070A09', 'text' => '#E7EADC', 'border' => 'none'],
+                'banner' => ['background' => '#111910', 'text' => '#E2C98A', 'border' => 'solid'],
+                'title' => ['background' => '#070A09', 'text' => '#D6E2BA', 'border' => 'double'],
+                'menu' => ['background' => '#070A09', 'text' => '#BDE878', 'border' => 'none'],
+                'intro' => ['background' => '#111910', 'text' => '#F1F2DC', 'border' => 'solid'],
+                'news' => ['background' => '#19190F', 'text' => '#EFD9A5', 'border' => 'solid'],
+                'agenda' => ['background' => '#0D1C1E', 'text' => '#CAEEE6', 'border' => 'solid'],
+                'archive' => ['background' => '#1A1522', 'text' => '#E5DAEE', 'border' => 'solid'],
+                'focus' => ['background' => '#111910', 'text' => '#E7EADC', 'border' => 'solid'],
+            ],
+        ],
     ];
 
     public static function selected(mixed $value): string
