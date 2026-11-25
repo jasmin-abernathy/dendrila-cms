@@ -6,6 +6,7 @@ if (!defined('DENDRILA_RETRO_ENTRY')) {
     return;
 }
 
+use Dendrila\Cms\Oldweb\PortalLocale;
 use Dendrila\Cms\Oldweb\Standalone;
 
 header("Content-Security-Policy: default-src 'none'; img-src 'self'; style-src 'self' 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'");
@@ -13,13 +14,17 @@ header('X-Content-Type-Options: nosniff');
 header('X-Frame-Options: DENY');
 header('Referrer-Policy: no-referrer');
 
+require __DIR__ . '/PortalLocale.php';
+$language = PortalLocale::selected(($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' ? ($_POST['lang'] ?? null) : ($_GET['lang'] ?? null))
+    ?? PortalLocale::DEFAULT;
+
 try {
     if (PHP_VERSION_ID < 80400) {
         throw new RuntimeException('Dans cPanel, sélectionne PHP 8.4 ou une version plus récente pour ce domaine.');
     }
     foreach (['fileinfo', 'mbstring', 'session'] as $extension) {
         if (!extension_loaded($extension)) {
-            throw new RuntimeException('Dans cPanel, active l’extension PHP ' . $extension . ' pour ce domaine.');
+            throw new RuntimeException(PortalLocale::text($language, 'Dans cPanel, active l’extension PHP %s pour ce domaine.', $extension));
         }
     }
 
@@ -39,7 +44,7 @@ try {
     ]);
     $standaloneDirectory = $bundle->directory($_SERVER['DOCUMENT_ROOT'] ?? '', getenv('HOME') ?: '');
     $standaloneContentDirectory = __DIR__;
-    if (!$bundle->enter($standaloneDirectory, $editor)) {
+    if (!$bundle->enter($standaloneDirectory, $editor, $language)) {
         return;
     }
     $standaloneLogout = $editor ? $_SESSION['retro_token'] : null;
@@ -48,6 +53,9 @@ try {
     error_log('Dendrila Retro: ' . $error->getMessage());
     http_response_code(503);
     header('Content-Type: text/plain; charset=UTF-8');
-    echo $error instanceof RuntimeException && !$error instanceof JsonException
-        ? $error->getMessage() : 'Le portail est momentanément indisponible.';
+    echo PortalLocale::text(
+        $language,
+        $error instanceof RuntimeException && !$error instanceof JsonException
+            ? $error->getMessage() : 'Portail momentanément indisponible.'
+    );
 }

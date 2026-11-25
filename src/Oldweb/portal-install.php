@@ -8,16 +8,18 @@ $standalone = isset($standaloneDirectory);
 $name = is_string($submitted['name'] ?? null) ? substr($submitted['name'], 0, 220) : '';
 $tagline = is_string($submitted['tagline'] ?? null) ? substr($submitted['tagline'], 0, 400) : '';
 $chosen = $submittedTheme ?? PortalThemes::DEFAULT;
+$previewUrl = static fn (string $id): string => 'preview.php?theme=' . $escape($id)
+    . ($language === 'en' ? '&amp;lang=en' : '');
 if ($standalone) {
     header("Content-Security-Policy: default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; script-src 'self'; frame-src 'self'; frame-ancestors 'none'; form-action 'self'; base-uri 'none'");
 }
 ?>
 <!doctype html>
-<html lang="fr">
+<html lang="<?= $language ?>">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Installer Dendrila Retro</title>
+<title><?= $tr('Installer Dendrila Retro') ?></title>
 <style>
 body { margin:0; color:#141932; background:#e1e7ff; font:100%/1.5 Verdana,sans-serif; }
 #page { margin:1em auto; padding:1em; width:calc(100% - 2.5em); max-width:58em; box-sizing:border-box; background:#fff; border:2px solid #2455e5; }
@@ -35,52 +37,55 @@ iframe { display:block; width:100%; min-width:844px; height:470px; border:0; }
 </head>
 <body>
 <main id="page">
-<h1>Installer Dendrila Retro</h1>
+<?php require __DIR__ . '/portal-language.php'; ?>
+<h1><?= $tr('Installer Dendrila Retro') ?></h1>
 <?php if ($standalone && !$requiresKey): ?>
-<p class="notice">Tant que le site n’est pas installé, la première personne qui termine ce formulaire devient administratrice. Termine maintenant ou protège temporairement le site depuis ton hébergement.</p>
+<p class="notice"><?= $tr('Tant que le site n’est pas installé, la première personne qui termine ce formulaire devient administratrice. Termine maintenant ou protège temporairement le site depuis ton hébergement.') ?></p>
 <?php elseif ($standalone && !$personal): ?>
-<p>Le mode protégé est actif. Saisis la clé correspondant au fichier déposé dans ton dossier privé.</p>
+<p><?= $tr('Le mode protégé est actif. Saisis la clé correspondant au fichier déposé dans ton dossier privé.') ?></p>
 <?php endif ?>
 <?php if ($error !== ''): ?><p class="error" role="alert"><strong><?= $escape($error) ?></strong></p><?php endif ?>
 <form method="post" action="oldweb-editor.php">
 <input type="hidden" name="csrf" value="<?= $escape($csrf) ?>">
 <input type="hidden" name="revision" value="0">
-<label for="site-name">Nom du site</label>
+<input type="hidden" name="lang" value="<?= $language ?>">
+<input type="hidden" name="action" value="install">
+<label for="site-name"><?= $tr('Nom du site') ?></label>
 <input id="site-name" type="text" name="site[name]" size="38" maxlength="55" required value="<?= $escape($name) ?>">
-<label for="site-tagline">Sous-titre (facultatif)</label>
+<label for="site-tagline"><?= $tr('Sous-titre (facultatif)') ?></label>
 <input id="site-tagline" type="text" name="site[tagline]" size="38" maxlength="100" value="<?= $escape($tagline) ?>">
-<label for="theme">Thème</label>
+<label for="theme"><?= $tr('Thème') ?></label>
 <select id="theme" name="theme">
 <?php foreach (PortalThemes::AVAILABLE as $id => $entry): ?>
 <option value="<?= $escape($id) ?>"<?= $chosen === $id ? ' selected' : '' ?>><?= $escape($entry['label']) ?></option>
 <?php endforeach ?>
 </select>
 <?php if ($standalone): ?>
-<h2>Aperçu interactif</h2>
+<h2><?= $tr('Aperçu interactif') ?></h2>
 <p class="theme-links">
 <?php foreach (PortalThemes::AVAILABLE as $id => $entry): ?>
-<a href="preview.php?theme=<?= $escape($id) ?>" target="retro-theme-preview" data-preview-theme="<?= $escape($id) ?>">Voir <?= $escape($entry['label']) ?></a>
+<a href="<?= $previewUrl($id) ?>" target="retro-theme-preview" data-preview-theme="<?= $escape($id) ?>"><?= $tr('Voir %s', $entry['label']) ?></a>
 <?php endforeach ?>
 </p>
-<noscript><p>Les liens ouvrent l’aperçu sans effacer le formulaire. Choisis ensuite le même thème dans la liste pour l’installer.</p></noscript>
-<div class="preview-scroll" tabindex="0" aria-label="Aperçu à largeur fixe, défilable horizontalement">
-<iframe name="retro-theme-preview" id="theme-preview" src="preview.php?theme=<?= $escape($chosen) ?>" title="Aperçu interactif du thème" sandbox="allow-same-origin"></iframe>
+<noscript><p><?= $tr('Les liens ouvrent l’aperçu sans effacer le formulaire. Choisis ensuite le même thème dans la liste pour l’installer.') ?></p></noscript>
+<div class="preview-scroll" tabindex="0" aria-label="<?= $tr('Aperçu à largeur fixe, défilable horizontalement') ?>">
+<iframe name="retro-theme-preview" id="theme-preview" src="<?= $previewUrl($chosen) ?>" title="<?= $tr('Aperçu interactif du thème') ?>" sandbox="allow-same-origin"></iframe>
 </div>
-<p><a id="theme-full-size" href="preview.php?theme=<?= $escape($chosen) ?>" target="_blank" rel="noopener">Ouvrir cet aperçu en taille réelle</a></p>
+<p><a id="theme-full-size" href="<?= $previewUrl($chosen) ?>" target="_blank" rel="noopener"><?= $tr('Ouvrir cet aperçu en taille réelle') ?></a></p>
 <?php if ($requiresKey): ?>
-<label for="activation"><?= $personal ? 'Clé d’installation (fichier LIRE-MOI.txt)' : 'Clé d’installation' ?></label>
+<label for="activation"><?= $tr($personal ? 'Clé d’installation (fichier LIRE-MOI.txt)' : 'Clé d’installation') ?></label>
 <input id="activation" type="password" name="activation" size="38" maxlength="<?= $personal ? 32 : 128 ?>" autocomplete="off" required>
 <?php endif ?>
-<label for="owner-username">Identifiant administrateur</label>
+<label for="owner-username"><?= $tr('Identifiant administrateur') ?></label>
 <input id="owner-username" type="text" name="username" size="32" maxlength="32" autocomplete="username" autocapitalize="none" spellcheck="false" required value="<?= $escape($submittedUsername) ?>" aria-describedby="username-hint">
-<p id="username-hint">De 3 à 32 caractères. Lettres sans accent, chiffres, points, tirets et tirets bas.</p>
-<label for="owner-password">Mot de passe</label>
+<p id="username-hint"><?= $tr('De 3 à 32 caractères. Lettres sans accent, chiffres, points, tirets et tirets bas.') ?></p>
+<label for="owner-password"><?= $tr('Mot de passe') ?></label>
 <input id="owner-password" type="password" name="password" size="38" minlength="14" maxlength="72" autocomplete="new-password" required aria-describedby="password-hint">
-<p id="password-hint">Au moins 14 caractères, 72 octets maximum.</p>
-<label for="password-confirmation">Confirmer le mot de passe</label>
+<p id="password-hint"><?= $tr('Au moins 14 caractères, 72 octets maximum.') ?></p>
+<label for="password-confirmation"><?= $tr('Confirmer le mot de passe') ?></label>
 <input id="password-confirmation" type="password" name="password_confirmation" size="38" minlength="14" maxlength="72" autocomplete="new-password" required>
 <?php endif ?>
-<p class="install"><input type="submit" name="action" value="Installer Dendrila Retro"></p>
+<p class="install"><input type="submit" value="<?= $tr('Installer Dendrila Retro') ?>"></p>
 </form>
 </main>
 </body>

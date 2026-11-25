@@ -33,7 +33,8 @@
     for (const [input] of inputs) input.addEventListener('input', copyIdentity);
 
     function preview(theme) {
-        const url = 'preview.php?theme=' + encodeURIComponent(theme);
+        const url = new URL(frame.src);
+        url.searchParams.set('theme', theme);
         originals = [];
         frame.src = url;
         fullSize.href = url;

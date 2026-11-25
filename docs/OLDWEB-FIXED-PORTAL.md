@@ -23,14 +23,19 @@ l’authentification de ton hébergeur avant l’extraction.
    cachés, dont `retro/.htaccess`.
 2. Ouvre `https://ton-domaine.fr/dendrila-retro/`. Si le domaine pointe déjà
    sur le dossier Retro, ouvre la page d’accueil du domaine.
-3. Saisis le nom du site, un sous-titre si tu le souhaites, et choisis un
-   thème avec l’aperçu interactif. Choisis ton identifiant, saisis ton mot de
+3. Choisis **Français** ou **English** en haut de l’assistant. Saisis le nom
+   du site, un sous-titre si tu le souhaites, et choisis un thème avec l’aperçu interactif. Choisis ton identifiant, saisis ton mot de
    passe (14 caractères minimum, 72 octets maximum), confirme-le et clique sur
    **Installer Dendrila Retro**.
 
 Le parcours standard se fait dans le navigateur, sans clé, base de données ni
 Composer. Le back-office s’ouvre après l’installation. Son adresse se termine
 par `/oldweb-editor.php`.
+
+Le réglage **Langue** permet de basculer à tout moment. Il change la langue
+du back-office et des textes de démonstration du thème. Tes textes
+personnalisés et ton apparence sont conservés. Les installations mises à jour
+restent en français jusqu’à ce que tu choisisses l’anglais.
 
 ### Où déposer le ZIP
 
@@ -100,7 +105,7 @@ la mise à jour. Le ZIP actuel les livre sous forme de fichiers PHP protégés.
 
 ### Reproduire l’archive et les démonstrations
 
-Pour reconstruire l’archive, les démos et les trois vignettes sur un même SHA,
+Pour reconstruire l’archive, les démos et les vignettes des deux langues sur un même SHA,
 lance `bin/release-retro.sh DOSSIER SHA_GIT` dans un checkout propre. PHP 8.4+,
 Playwright avec Chromium, OpenSSL et Python 3.10+ avec Pillow sont nécessaires
 pour la reproduction des captures. Les variables `PHP_BIN`,

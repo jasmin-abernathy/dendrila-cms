@@ -20,6 +20,11 @@ const themeSpecs = [
     ['borne-02', 'borne-02-content', 'demo/borne-02/', 'borne-02'],
     ['signal-96', 'signal-96-content', 'demo/signal-96/', 'signal-96'],
 ];
+const englishFixtures = {
+    canal57: ['On air', 'A night on the platform', 'Back to top'],
+    'borne-02': ['News', 'This month’s challenge', 'Artwork credits (CC0)'],
+    'signal-96': ['Welcome', 'The November sky', 'Demo site'],
+};
 const password = 'Test-application-Retro-2026!';
 const username = 'astro.admin';
 const gif = {name: 'sample.gif', mimeType: 'image/gif', buffer: Buffer.from('R0lGODlhAQABAIAAAP///////yH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==', 'base64')};
@@ -73,7 +78,7 @@ async function start() {
     mkdir(web);
     mkdir(path.join(cwd, 'sessions'));
     for (const [id] of themeSpecs) extract(id);
-    for (const id of ['locked', 'legacy-proof', 'race', 'precreated', 'insecure']) extract(id);
+    for (const id of ['locked', 'legacy-proof', 'race', 'precreated', 'insecure', 'english']) extract(id);
     const precreated = proofPath('precreated').match(/dendrila-cle-([a-f0-9]+)\.txt$/)[1];
     mkdir(path.join(cwd, 'private', 'precreated', '.dendrila-retro-' + precreated));
     fs.writeFileSync(proofPath('legacy-proof'), 'preuve incorrecte');
@@ -215,7 +220,7 @@ async function main() {
             assert.equal(state.owner_username, username);
             assert(!JSON.stringify(state).includes(password));
             assert.equal(state.themes.published, id);
-            assert.deepEqual(state.site, {name: identity.name, tagline: identity.tagline});
+            assert.deepEqual(state.site, {name: identity.name, tagline: identity.tagline, language: 'fr'});
             assert.equal((await context.request.get(url(id))).status(), 200);
             assert.equal(await (await context.request.get(url(id))).text(), responses.preview);
             for (const width of [1024, 800]) {
@@ -237,7 +242,6 @@ async function main() {
                 }
             }
             console.log(id + ' : DOM, ressources, iframe et diff = 0 pixel à 1024 et 800 px.');
-            await bare.close();
 
             await page.goto(editor(id));
             const bodyTheme = await page.locator('#page-mode').inputValue();
@@ -294,6 +298,55 @@ async function main() {
             assert.deepEqual(await families(live), originalFonts);
             assert.deepEqual(downloadedFonts, []);
             assert.equal(JSON.parse(fs.readFileSync(dataPath(id), 'utf8')).published.page.mode, 'color');
+            const english = manifest.localized_demos.en[id];
+            const englishPreview = preview + '&lang=en';
+            const englishDemo = root + 'static/' + english.path;
+            await ctxResponses(context, englishPreview, englishDemo, english);
+            const [menu, caption, footer] = englishFixtures[id];
+            await bare.setViewportSize({width: 1024, height: 850});
+            await bare.goto(englishDemo);
+            assert.equal(await bare.locator('html').getAttribute('lang'), 'en');
+            await bare.getByRole('link', {name: menu, exact: true}).waitFor();
+            await bare.getByText(caption, {exact: true}).waitFor();
+            await bare.getByText(footer, {exact: id !== 'signal-96'}).waitFor();
+            await stable(bare);
+            if (releaseShots) {
+                const png = path.join(cwd, shot + '-en.png');
+                await bare.screenshot({path: png, fullPage: true, animations: 'disabled'});
+                run(python, ['-c', 'from PIL import Image; import sys; img=Image.open(sys.argv[1]); img.thumbnail((880,1400),Image.Resampling.LANCZOS); img.save(sys.argv[2],quality=79,method=6)',
+                    png, path.join(releaseShots, shot + '-en.webp')]);
+            }
+
+            const readState = () => JSON.parse(fs.readFileSync(dataPath(id), 'utf8'));
+            const beforeLanguage = readState();
+            const languageForm = page.locator('form').filter({has: page.locator('#retro-language')});
+            const languageRequest = {csrf: await languageForm.locator('input[name=csrf]').inputValue(), revision: beforeLanguage.revision};
+            assert.equal((await post(context, id, {...languageRequest, action: 'language', language: 'en', csrf: 'invalid'})).status(), 403);
+            assert.equal((await post(context, id, {...languageRequest, action: 'language', language: 'de'})).status(), 422);
+            assert.equal((await post(context, id, {...languageRequest, action: 'language', language: 'en', revision: beforeLanguage.revision - 1})).status(), 409);
+            assert.deepEqual(readState(), beforeLanguage);
+            await page.locator('#retro-language').selectOption('en');
+            await action(page, 'Appliquer la langue');
+            await page.getByText('Language updated.', {exact: true}).waitFor();
+            await page.getByRole('button', {name: 'Save draft', exact: true}).waitFor();
+            assert.equal(await page.locator('html').getAttribute('lang'), 'en');
+            assert.deepEqual(readState(), {
+                ...beforeLanguage,
+                revision: beforeLanguage.revision + 1,
+                site: {...beforeLanguage.site, language: 'en'},
+            });
+            await live.reload();
+            await live.getByRole('link', {name: menu, exact: true}).waitFor();
+            assert.equal(await live.locator('html').getAttribute('lang'), 'en');
+            assert.equal(await live.locator('.site-tagline').first().textContent(), identity.tagline);
+            await page.getByRole('link', {name: 'Preview the draft', exact: true}).click();
+            await page.getByText('Draft preview', {exact: true}).waitFor();
+            await page.getByRole('link', {name: 'Back to settings', exact: true}).click();
+            await page.locator('#retro-language').selectOption('fr');
+            await action(page, 'Apply language');
+            assert.equal(await page.locator('html').getAttribute('lang'), 'fr');
+            assert.deepEqual(readState(), {...beforeLanguage, revision: beforeLanguage.revision + 2});
+            await bare.close();
             await live.close();
         }
 
@@ -307,6 +360,29 @@ async function main() {
         assert(await mobile.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
         assert(await mobile.locator('.preview-scroll').evaluate(el => el.scrollWidth > el.clientWidth));
 
+        await mobile.goto(editor('english'));
+        await mobile.getByRole('link', {name: 'English', exact: true}).click();
+        assert.equal(await mobile.locator('html').getAttribute('lang'), 'en');
+        await mobile.getByRole('link', {name:'Preview Borne 02', exact:true}).click();
+        await mobile.frameLocator('#theme-preview').getByText('Arcade club', {exact:true}).waitFor();
+        assert.equal(await mobile.frameLocator('#theme-preview').locator('html').getAttribute('lang'), 'en');
+        await mobile.getByLabel('Site name').fill('My observatory');
+        await mobile.getByLabel('Administrator username').fill(username);
+        await mobile.getByLabel('Password', {exact: true}).fill(password);
+        await mobile.getByLabel('Confirm password').fill(password + 'x');
+        const [invalidInstall] = await Promise.all([mobile.waitForNavigation(),
+            mobile.getByRole('button', {name:'Install Dendrila Retro', exact:true}).click()]);
+        assert.equal(invalidInstall.status(), 422);
+        await mobile.getByText('The passwords must match.', {exact: true}).waitFor();
+        await mobile.getByLabel('Password', {exact: true}).fill(password);
+        await mobile.getByLabel('Confirm password').fill(password);
+        await action(mobile, 'Install Dendrila Retro');
+        await mobile.getByText('Dendrila Retro is installed.', {exact: true}).waitFor();
+        assert.equal(JSON.parse(fs.readFileSync(dataPath('english'), 'utf8')).site.language, 'en');
+        await action(mobile, 'Sign out');
+        await mobile.getByRole('heading', {name:'Sign in to Dendrila Retro'}).waitFor();
+
+        await mobile.goto(editor('precreated'));
         const demo = {name: 'Test du portail', tagline: 'Test'};
         let csrf = await token(mobile);
         assert.equal((await post(nojs, 'precreated', fields('canal57', demo, {csrf: 'invalid'}))).status(), 403);
@@ -319,15 +395,24 @@ async function main() {
 
         for (const name of ['locked', 'legacy-proof', 'personal']) {
             await page.goto(editor(name));
+            if (name === 'locked') {
+                await page.getByRole('link', {name: 'English', exact: true}).click();
+                await page.getByRole('heading', {name: 'Create your installation key', exact: true}).waitFor();
+            }
             csrf = await token(page);
-            const values = fields('signal-96', demo, {csrf, mode: 'simple'});
+            const lang = name === 'locked' ? 'en' : 'fr';
+            const values = fields('signal-96', demo, {csrf, mode: 'simple', lang});
             assert.equal((await post(context, name, values, '?mode=simple')).status(), 422);
             const activation = name === 'personal' ? personalKey : 'cle-fictive-de-test-longue-2026';
             if (name !== 'personal') {
-                const proof = await post(context, name, {csrf, action:'Télécharger le fichier de clé', activation});
+                const proof = await post(context, name, {csrf, action: 'download-key', activation, lang});
                 assert.equal(proof.status(), 200);
                 assert.match(await proof.text(), /^[a-f0-9]{64}\n$/);
                 fs.writeFileSync(proofPath(name), await proof.text(), {mode: 0o600});
+                if (lang === 'en') {
+                    await page.getByRole('link', {name: 'I have uploaded the file. Continue', exact: true}).click();
+                    await page.getByRole('heading', {name: 'Install Dendrila Retro', exact: true}).waitFor();
+                }
             }
             assert.equal((await post(context, name, {...values, activation:'mauvaise-cle-assez-longue-2026'})).status(), 422);
             assert.equal((await post(context, name, {...values, activation})).status(), 303);
@@ -354,9 +439,11 @@ async function main() {
         const stateFile = dataPath('precreated');
         const legacy = JSON.parse(fs.readFileSync(stateFile,'utf8'));
         delete legacy.owner_username;
+        delete legacy.site.language;
         fs.writeFileSync(stateFile,JSON.stringify(legacy));
         await log.goto(editor('precreated'));
         assert.equal(await log.locator('#owner-username').count(),0);
+        assert.equal(await log.locator('html').getAttribute('lang'), 'fr');
         const legacyLogin = {...login, retro_token:await log.locator('input[name=retro_token]').inputValue()};
         delete legacyLogin.username;
         assert.equal((await post(isolated,'precreated',legacyLogin)).status(),303);
@@ -366,7 +453,7 @@ async function main() {
         const limitedLogin = {...login,retro_token:await loginPage.locator('input[name=retro_token]').inputValue(),password:'wrong'};
         for (let index=0; index<8; index++) assert.equal((await post(limited,'personal',limitedLogin)).status(),403);
         assert.equal((await post(limited,'personal',limitedLogin)).status(),429);
-        console.log('HTTPS : parcours simple, clés protégées et anciennes, concurrence, CSRF, validations, connexion, rétablissement et limitation vérifiés.');
+        console.log('HTTPS : français/anglais, bascule, trois démos bilingues, parcours simple, clés protégées et anciennes, concurrence, CSRF, validations, connexion, rétablissement et limitation vérifiés.');
     } finally {
         if (browser) await browser.close();
         proxy.close();

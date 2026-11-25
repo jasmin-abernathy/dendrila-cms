@@ -51,7 +51,7 @@ final class PortalAppearance
     }
 
     /** Validate thematic tokens without accepting CSS or HTML source. */
-    public static function edit(array $posted, array $current, array $uploads): array
+    public static function edit(array $posted, array $current, array $uploads, string $language = PortalLocale::DEFAULT): array
     {
         if (array_diff_key($posted, self::ZONES) || array_diff_key($uploads, self::ZONES)) {
             throw new InvalidArgumentException('La zone sélectionnée n’existe pas.');
@@ -60,22 +60,30 @@ final class PortalAppearance
         foreach (self::ZONES as $key => [$label, , , $width]) {
             $input = $posted[$key] ?? null;
             if (!is_array($input)) {
-                throw new InvalidArgumentException('Réglages incomplets pour « ' . $label . ' ».');
+                throw new InvalidArgumentException(PortalLocale::text(
+                    $language, 'Réglages incomplets pour « %s ».', PortalLocale::text($language, $label)
+                ));
             }
             $bg = self::color($input['background'] ?? null);
             $text = self::color($input['text'] ?? null);
             $border = $input['border'] ?? null;
             if (!is_string($border) || !isset(self::BORDERS[$border])) {
-                throw new InvalidArgumentException('Bordure inconnue pour « ' . $label . ' ».');
+                throw new InvalidArgumentException(PortalLocale::text(
+                    $language, 'Bordure inconnue pour « %s ».', PortalLocale::text($language, $label)
+                ));
             }
             $font = $input['font'] ?? $current[$key]['font'] ?? 'theme';
             if (!is_string($font) || !isset(self::FONTS[$font])) {
-                throw new InvalidArgumentException('Police inconnue pour « ' . $label . ' ».');
+                throw new InvalidArgumentException(PortalLocale::text(
+                    $language, 'Police inconnue pour « %s ».', PortalLocale::text($language, $label)
+                ));
             }
             $a = self::luminance($bg);
             $b = self::luminance($text);
             if ((max($a, $b) + .05) / (min($a, $b) + .05) < 4.5) {
-                throw new InvalidArgumentException('Augmente le contraste du texte pour « ' . $label . ' ».');
+                throw new InvalidArgumentException(PortalLocale::text(
+                    $language, 'Augmente le contraste du texte pour « %s ».', PortalLocale::text($language, $label)
+                ));
             }
 
             $image = ($input['remove'] ?? null) === '1' ? null : $current[$key]['image'];

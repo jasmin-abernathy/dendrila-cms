@@ -44,7 +44,7 @@ final readonly class Standalone
     }
 
     /** Return true only for an installed public page or an authenticated editor. */
-    public function enter(string $standaloneDirectory, bool $editor): bool
+    public function enter(string $standaloneDirectory, bool $editor, string $language): bool
     {
         $method = $_SERVER['REQUEST_METHOD'] ?? '';
         if (!in_array($method, $editor ? ['GET', 'HEAD', 'POST'] : ['GET', 'HEAD'], true)) {
@@ -70,7 +70,7 @@ final readonly class Standalone
         header('Content-Type: text/html; charset=UTF-8');
         if (!in_array(strtolower((string) ($_SERVER['HTTPS'] ?? '')), ['on', '1'], true)) {
             http_response_code(403);
-            echo 'Ouvre cette page avec une adresse qui commence par https://.';
+            echo PortalLocale::escape($language)('Ouvre cette page avec une adresse qui commence par https://.');
             return false;
         }
         session_name('DENDRILA_RETRO_' . $this->bundle['id']);
@@ -81,6 +81,10 @@ final readonly class Standalone
 
         $store = $installed ? new PortalStorage($standaloneDirectory, $_SERVER['DOCUMENT_ROOT']) : null;
         $state = $store?->state() ?? [];
+        if ($installed) {
+            $language = PortalLocale::selected($state['site']['language'] ?? null) ?? PortalLocale::DEFAULT;
+        }
+        $tr = PortalLocale::escape($language);
         $hash = $state['owner_password_hash'] ?? '';
         $ownerUsername = $state['owner_username'] ?? null; // Existing installations sign in with a password alone.
         if ($installed && (!is_string($hash) || $hash === '' || ($ownerUsername !== null && !is_string($ownerUsername)))) {
@@ -88,8 +92,14 @@ final readonly class Standalone
         }
         $signedIn = $installed && ($_SESSION['retro_user'] ?? '') === hash('sha256', $hash);
         $csrf = $_SESSION['retro_token'] ??= bin2hex(random_bytes(32));
-        $action = $_POST['action'] ?? '';
-        if ($signedIn && ($method !== 'POST' || $action !== 'Se déconnecter')) {
+        $action = match ($_POST['action'] ?? null) {
+            'Installer Dendrila Retro' => 'install',
+            'Se connecter' => 'login',
+            'Se déconnecter' => 'logout',
+            'Télécharger le fichier de clé' => 'download-key',
+            default => $_POST['action'] ?? null,
+        };
+        if ($signedIn && ($method !== 'POST' || $action !== 'logout')) {
             return true;
         }
         if (array_key_exists('media', $_GET) || array_key_exists('preview', $_GET)) {
@@ -113,7 +123,7 @@ final readonly class Standalone
             $token = $_POST[$installed ? 'retro_token' : 'csrf'] ?? null;
             if (!is_string($token) || !hash_equals($csrf, $token)) {
                 http_response_code(403);
-                echo 'Le formulaire a expiré. Recharge la page puis réessaie.';
+                echo $tr('Le formulaire a expiré. Recharge la page puis réessaie.');
                 return false;
             }
             if ($signedIn) {
@@ -124,7 +134,7 @@ final readonly class Standalone
             }
 
             try {
-                if ($requiresKey && !$personal && $action === 'Télécharger le fichier de clé') {
+                if ($requiresKey && !$personal && $action === 'download-key') {
                     $key = $this->chosenKey($_POST['activation'] ?? null);
                     header('Content-Type: text/plain; charset=UTF-8');
                     header('Content-Disposition: attachment; filename="' . $proofName . '"');
@@ -136,7 +146,7 @@ final readonly class Standalone
                 $submittedUsername = is_string($username) ? substr($username, 0, 32) : '';
                 $password = $_POST['password'] ?? null;
                 if ($installed) {
-                    if ($action !== 'Se connecter') {
+                    if ($action !== 'login') {
                         http_response_code(409);
                         throw new InvalidArgumentException('Ce portail est déjà installé.');
                     }
@@ -151,8 +161,9 @@ final readonly class Standalone
                     }
                 } else {
                     $submitted = is_array($_POST['site'] ?? null) ? $_POST['site'] : [];
+                    $submitted['language'] = $language;
                     $submittedTheme = PortalThemes::selected($_POST['theme'] ?? null);
-                    if ($action !== 'Installer Dendrila Retro') {
+                    if ($action !== 'install') {
                         throw new InvalidArgumentException('Action d’installation inconnue.');
                     }
                     if ($requiresKey && $activationHash === null) {
@@ -183,7 +194,7 @@ final readonly class Standalone
                     $store = new PortalStorage($standaloneDirectory, $_SERVER['DOCUMENT_ROOT']);
                     if (!$store->change(0, 'install', $submitted, [], $submittedTheme, $hash, $username)) {
                         http_response_code(409);
-                        echo 'Ce portail vient d’être installé. <a href="oldweb-editor.php">Ouvrir la connexion</a>.';
+                        echo $tr('Ce portail vient d’être installé.') . ' <a href="oldweb-editor.php">' . $tr('Ouvrir la connexion') . '</a>.';
                         return false;
                     }
                 }
@@ -198,7 +209,7 @@ final readonly class Standalone
                 if (http_response_code() < 400) {
                     http_response_code(422);
                 }
-                $error = $exception->getMessage();
+                $error = PortalLocale::text($language, $exception->getMessage());
             }
         }
 

@@ -44,6 +44,10 @@ The optional `defaults` palette applies on initial installation with this theme.
 
 Borne 02 and Signal 96 also declare a demo `content` file in `examples/oldweb/`. It follows the generic content keys and does not overwrite site identity or custom text. Templates and their resources are packaged by `bin/package-retro.py`. The installer, installed site and static exports use `PortalRenderer`. Demo rendering uses the example content and initial palette. Visual comparison uses those same values in the same browser. A custom site name or different font can change the rendering.
 
+### Translate the theme
+
+Use `example-content.json` for French demo content and `example-content.en.json` for English in `examples/oldweb/`. Keep the same keys in both files and add the files to the package list in `bin/package-retro.py`. Use `$language` for the `lang` attribute and `$tr('French label')` for labels in the template. Add their translations in [`PortalLocale.php`](../src/Oldweb/PortalLocale.php).
+
 ### Data available in a PHP template
 
 - `$content` contains plain text. Escape it with `htmlspecialchars(..., ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')`.

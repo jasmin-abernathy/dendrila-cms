@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+use Dendrila\Cms\Oldweb\PortalLocale;
 use Dendrila\Cms\Oldweb\PortalRenderer;
 use Dendrila\Cms\Oldweb\PortalStorage;
 use Dendrila\Cms\Oldweb\PortalThemes;
@@ -15,6 +16,7 @@ header("Content-Security-Policy: default-src 'none'; img-src 'self'; style-src '
 header('X-Content-Type-Options: nosniff');
 header('Referrer-Policy: no-referrer');
 
+$language = PortalLocale::DEFAULT;
 try {
     $directory = $standaloneDirectory ?? getenv('DENDRILA_OLDWEB_PORTAL_DIR');
     if ($directory === false || $directory === '') {
@@ -44,6 +46,11 @@ try {
 
     $storage = new PortalStorage($directory, $_SERVER['DOCUMENT_ROOT'] ?? '');
     $state = $storage->state();
+    $installation = $state['revision'] === 0;
+    $language = PortalLocale::selected($installation && $editor
+        ? ($method === 'POST' ? ($_POST['lang'] ?? null) : ($_GET['lang'] ?? null))
+        : ($state['site']['language'] ?? null)) ?? PortalLocale::DEFAULT;
+    $tr = PortalLocale::escape($language);
     $preview = $editor && $method !== 'POST' && ($_GET['preview'] ?? '') === '1';
     $version = $preview ? 'draft' : 'published';
     $appearance = $state[$version];
@@ -68,8 +75,8 @@ try {
         return;
     }
     if (!$editor || $preview) {
-        $content = PortalRenderer::example($theme, $standaloneContentDirectory ?? $root . '/examples/oldweb');
-        $content = array_replace($content, $state['site']);
+        $content = PortalRenderer::example($theme, $standaloneContentDirectory ?? $root . '/examples/oldweb', $language);
+        $content = array_replace($content, array_intersect_key($state['site'], ['name' => true, 'tagline' => true]));
         $custom = $directory . '/content.json';
         if (is_file($custom)) {
             $values = json_decode((string) file_get_contents($custom), true, 32, JSON_THROW_ON_ERROR);
@@ -80,7 +87,7 @@ try {
             $content = array_replace($content, $values);
         }
         $still = ($_GET['still'] ?? '') === '1';
-        PortalRenderer::render($theme, $appearance, $content, $preview, $still, $storage);
+        PortalRenderer::render($theme, $appearance, $content, $preview, $still, $storage, $language);
         return;
     }
 
@@ -96,24 +103,22 @@ try {
     $_SESSION['oldweb_csrf'][$tokenKey] = $csrf;
     $error = '';
     $submitted = [];
-    $installation = $state['revision'] === 0;
     if ($method === 'POST') {
-        $actions = ['Installer Dendrila Retro' => 'install'] + ['Enregistrer le brouillon' => 'draft', 'Publier' => 'publish', 'Rétablir la version précédente' => 'restore'];
         try {
             if (!is_string($_POST['csrf'] ?? null) || !hash_equals($csrf, $_POST['csrf'])) {
                 http_response_code(403);
-                echo 'La session du formulaire a expiré. Retourne à la page d’apparence et recharge-la.';
+                echo $tr('La session du formulaire a expiré. Retourne à la page d’apparence et recharge-la.');
                 return;
             }
             $revision = filter_var($_POST['revision'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0]]);
-            $action = $_POST['action'] ?? null;
-            if ($revision === false || !is_string($action) || !isset($actions[$action])) {
-                throw new InvalidArgumentException('Le formulaire est incomplet.');
-            }
-            $change = $actions[$action];
-            $submittedTheme = $_POST['theme'] ?? $state['themes']['draft'];
-            $fields = $_POST[$change === 'install' ? 'site' : 'zones'] ?? null;
-            if (!is_array($fields)) {
+            $change = match ($_POST['action'] ?? null) {
+                'Installer Dendrila Retro' => 'install',
+                'Enregistrer le brouillon' => 'draft',
+                'Publier' => 'publish',
+                'Rétablir la version précédente' => 'restore',
+                default => $_POST['action'] ?? null,
+            };
+            if ($revision === false || !in_array($change, ['install', 'draft', 'publish', 'restore', 'language'], true)) {
                 throw new InvalidArgumentException('Le formulaire est incomplet.');
             }
             if (isset($standaloneDirectory) && $change === 'install') {
@@ -122,10 +127,21 @@ try {
             if ($installation && $change !== 'install') {
                 throw new InvalidArgumentException('Installe d’abord Dendrila Retro.');
             }
-            $uploads = in_array($change, ['restore', 'install'], true) ? [] : PortalStorage::uploads($_FILES);
-            $themeId = $change === 'restore' ? null : PortalThemes::selected($submittedTheme);
+            $editsAppearance = in_array($change, ['draft', 'publish'], true);
+            $submittedTheme = $_POST['theme'] ?? $state['themes']['draft'];
+            $fields = match ($change) {
+                'language' => ['language' => $_POST['language'] ?? null],
+                'restore' => [],
+                'install' => is_array($_POST['site'] ?? null) ? array_replace($_POST['site'], ['language' => $language]) : null,
+                default => $_POST['zones'] ?? null,
+            };
+            if (!is_array($fields)) {
+                throw new InvalidArgumentException('Le formulaire est incomplet.');
+            }
+            $uploads = $editsAppearance ? PortalStorage::uploads($_FILES) : [];
+            $themeId = $editsAppearance || $change === 'install' ? PortalThemes::selected($submittedTheme) : null;
             $submittedPalette = ($_POST['theme_palette'] ?? '') === '1';
-            if ($submittedPalette && in_array($change, ['draft', 'publish'], true)) {
+            if ($submittedPalette && $editsAppearance) {
                 $palette = array_map(
                     static fn (array $zone): array => array_intersect_key($zone, ['background' => true, 'text' => true, 'border' => true]),
                     PortalThemes::initialAppearance($themeId)
@@ -134,6 +150,8 @@ try {
             }
             if (!$storage->change($revision, $change, $fields, $uploads, $themeId)) {
                 $state = $storage->state();
+                $language = PortalLocale::selected($state['site']['language'] ?? null) ?? $language;
+                $tr = PortalLocale::escape($language);
                 http_response_code(409);
                 $error = 'Une autre modification a été enregistrée. Vérifie la version actuelle avant de réessayer.';
             } else {
@@ -150,12 +168,12 @@ try {
         require __DIR__ . '/portal-install.php';
         return;
     }
-    $messages = ['install' => 'Dendrila Retro est installé.', 'draft' => 'Brouillon enregistré.', 'publish' => 'Apparence publiée.', 'restore' => 'Version précédente rétablie.'];
+    $messages = ['install' => 'Dendrila Retro est installé.', 'draft' => 'Brouillon enregistré.', 'publish' => 'Apparence publiée.', 'restore' => 'Version précédente rétablie.', 'language' => 'Langue mise à jour.'];
     $result = $_GET['result'] ?? null;
     $message = is_string($result) ? ($messages[$result] ?? '') : '';
     require __DIR__ . '/portal-editor.php';
 } catch (Throwable $error) {
     error_log('Oldweb portal: ' . $error->getMessage());
     http_response_code(503);
-    echo 'Portail momentanément indisponible.';
+    echo PortalLocale::escape($language)('Portail momentanément indisponible.');
 }

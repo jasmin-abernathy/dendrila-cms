@@ -12,9 +12,11 @@ You need hosting with **PHP 8.4 or newer**, **HTTPS** and the **fileinfo**, **mb
 
 1. Download [Dendrila_Retro.zip](../downloads/Dendrila_Retro.zip). Extract it into your domain's public directory, then remove the archive from that directory. If your control panel cannot extract ZIP files, extract it on your computer and upload the complete `dendrila-retro` directory by SFTP. Keep hidden files, including `retro/.htaccess`.
 2. Open `https://your-domain.example/dendrila-retro/`, replacing the example domain with your own. If the domain already points to the Retro directory, open the domain's home page.
-3. Enter the site name and an optional subtitle, and choose a theme using the interactive preview. Choose your username, enter your password (at least 14 characters, at most 72 bytes), confirm it and click the install button.
+3. Choose **Français** or **English** at the top of the installer. Enter the site name and an optional subtitle, and choose a theme using the interactive preview. Choose your username, enter your password (at least 14 characters, at most 72 bytes), confirm it and click the install button.
 
 The standard setup takes place in your browser, without a key, database or Composer. The administration area opens after installation. Its address ends in `/oldweb-editor.php`.
+
+Use **Language** in the administration area to switch at any time. It changes the language of the administration area and the theme’s demo text. Your custom text and appearance settings are preserved. Existing installations stay in French until you select English.
 
 ### Where to upload the ZIP
 
@@ -51,7 +53,7 @@ Existing accounts without usernames continue to use only their password. An olde
 
 ### Reproduce the archive and demos
 
-To build the archive, demos and three thumbnails from the same SHA, run `bin/release-retro.sh DIRECTORY GIT_SHA` in a clean checkout. Reproducing screenshots requires PHP 8.4+, Playwright with Chromium, OpenSSL, and Python 3.10+ with Pillow. Set `PHP_BIN`, `PLAYWRIGHT_MODULE` and `CHROMIUM_BIN` to specify the tools if needed.
+To build the archive, demos and thumbnails in both languages from the same SHA, run `bin/release-retro.sh DIRECTORY GIT_SHA` in a clean checkout. Reproducing screenshots requires PHP 8.4+, Playwright with Chromium, OpenSSL, and Python 3.10+ with Pillow. Set `PHP_BIN`, `PLAYWRIGHT_MODULE` and `CHROMIUM_BIN` to specify the tools if needed.
 
 To run the steps individually:
 

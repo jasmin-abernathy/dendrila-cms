@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Export the three Retro demos and a manifest directly from a built installer."""
+"""Export the three Retro demos in both languages directly from a built installer."""
 
 import argparse
 import hashlib
@@ -21,25 +21,28 @@ def digest(data: bytes) -> str:
 
 
 def export(archive: Path, output: Path, source: str, php: str) -> None:
-    manifest = {"source": source, "zip_sha256": digest(archive.read_bytes()), "demos": {}}
+    manifest = {"source": source, "zip_sha256": digest(archive.read_bytes()), "demos": {}, "localized_demos": {"en": {}}}
     with tempfile.TemporaryDirectory() as sandbox, ZipFile(archive) as package:
         package.extractall(sandbox)
         app = Path(sandbox) / "dendrila-retro"
-        for theme, (relative, assets) in THEMES.items():
-            target = output / relative
-            target.mkdir(parents=True, exist_ok=True)
-            rendered = subprocess.check_output([php, str(app / "preview.php"), theme])
-            (target / "index.html").write_bytes(rendered)
-            files = {}
-            for asset in sorted((app / "assets").rglob("*")):
-                asset_path = asset.relative_to(app).as_posix()
-                if asset.is_file() and (asset_path == assets or (assets.endswith("/") and asset_path.startswith(assets))):
-                    content = asset.read_bytes()
-                    copy = target / asset_path
-                    copy.parent.mkdir(parents=True, exist_ok=True)
-                    copy.write_bytes(content)
-                    files[asset_path] = digest(content)
-            manifest["demos"][theme] = {"path": relative + "/", "html_sha256": digest(rendered), "assets": files}
+        for language, index in (("fr", manifest["demos"]), ("en", manifest["localized_demos"]["en"])):
+            for theme, (relative, assets) in THEMES.items():
+                if language == "en":
+                    relative = "en/" + relative
+                target = output / relative
+                target.mkdir(parents=True, exist_ok=True)
+                rendered = subprocess.check_output([php, str(app / "preview.php"), theme, language])
+                (target / "index.html").write_bytes(rendered)
+                files = {}
+                for asset in sorted((app / "assets").rglob("*")):
+                    asset_path = asset.relative_to(app).as_posix()
+                    if asset.is_file() and (asset_path == assets or (assets.endswith("/") and asset_path.startswith(assets))):
+                        content = asset.read_bytes()
+                        copy = target / asset_path
+                        copy.parent.mkdir(parents=True, exist_ok=True)
+                        copy.write_bytes(content)
+                        files[asset_path] = digest(content)
+                index[theme] = {"path": relative + "/", "html_sha256": digest(rendered), "assets": files}
     (output / "retro-manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
 
 

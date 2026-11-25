@@ -1,9 +1,11 @@
 <?php
 declare(strict_types=1);
 
+use Dendrila\Cms\Oldweb\PortalLocale;
 use Dendrila\Cms\Oldweb\PortalRenderer;
 use Dendrila\Cms\Oldweb\PortalThemes;
 
+require __DIR__ . '/PortalLocale.php';
 require __DIR__ . '/PortalAppearance.php';
 require __DIR__ . '/PortalThemes.php';
 require __DIR__ . '/PortalRenderer.php';
@@ -19,11 +21,12 @@ if (!in_array($method, ['GET', 'HEAD'], true)) {
     http_response_code(405);
     return;
 }
+$language = PortalLocale::selected(PHP_SAPI === 'cli' ? ($argv[2] ?? null) : ($_GET['lang'] ?? null)) ?? PortalLocale::DEFAULT;
 try {
     $id = PortalThemes::selected(PHP_SAPI === 'cli' ? ($argv[1] ?? null) : ($_GET['theme'] ?? null));
 } catch (InvalidArgumentException) {
     if (PHP_SAPI === 'cli') {
-        fwrite(STDERR, "Sélectionne un thème installé.\n");
+        fwrite(STDERR, PortalLocale::text($language, 'Sélectionne un thème installé.') . "\n");
         exit(2);
     }
     http_response_code(404);
@@ -31,5 +34,10 @@ try {
 }
 if ($method !== 'HEAD') {
     $theme = PortalThemes::forRendering($id);
-    PortalRenderer::render($theme, PortalThemes::initialAppearance($id), PortalRenderer::example($theme, __DIR__));
+    PortalRenderer::render(
+        $theme,
+        PortalThemes::initialAppearance($id),
+        PortalRenderer::example($theme, __DIR__, $language),
+        language: $language
+    );
 }

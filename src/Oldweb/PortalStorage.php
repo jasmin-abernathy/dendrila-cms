@@ -104,6 +104,9 @@ final readonly class PortalStorage
             }
             if ($action === 'install' && $state['revision'] === 0) {
                 $state['site'] = self::siteIdentity($fields);
+                if (isset($fields['language'])) {
+                    $state['site']['language'] = PortalLocale::required($fields['language']);
+                }
                 if ($ownerPasswordHash !== null) {
                     $state['owner_password_hash'] = $ownerPasswordHash;
                     if ($ownerUsername !== null) {
@@ -113,6 +116,8 @@ final readonly class PortalStorage
                 $id = PortalThemes::selected($theme ?? PortalThemes::DEFAULT);
                 $state['themes']['draft'] = $state['themes']['published'] = $id;
                 $state['draft'] = $state['published'] = PortalThemes::initialAppearance($id);
+            } elseif ($action === 'language' && $state['revision'] > 0) {
+                $state['site']['language'] = PortalLocale::required($fields['language'] ?? null);
             } elseif ($action === 'restore' && is_array($state['previous'])) {
                 $state['draft'] = $state['previous'];
                 $state['previous'] = $state['published'];
@@ -120,7 +125,12 @@ final readonly class PortalStorage
                 $themes = $state['themes'];
                 $state['themes'] = ['draft' => $themes['previous'], 'published' => $themes['previous'], 'previous' => $themes['published']];
             } elseif (in_array($action, ['draft', 'publish'], true)) {
-                $state['draft'] = PortalAppearance::edit($fields, $state['draft'], array_map(static fn (array $upload): string => $upload['name'], $uploads));
+                $state['draft'] = PortalAppearance::edit(
+                    $fields,
+                    $state['draft'],
+                    array_map(static fn (array $upload): string => $upload['name'], $uploads),
+                    PortalLocale::selected($state['site']['language'] ?? null) ?? PortalLocale::DEFAULT
+                );
                 $state['themes']['draft'] = PortalThemes::selected($theme ?? $state['themes']['draft']);
                 $this->storeImages($uploads);
                 if ($action === 'publish') {

@@ -64,6 +64,15 @@ Le rendu de démonstration prend le contenu d’exemple et la palette initiale.
 La comparaison visuelle utilise ces mêmes valeurs dans un même navigateur.
 Un nom personnalisé ou une autre police peut changer le rendu.
 
+### Traduire le thème
+
+Déclare les exemples français dans `exemples-content.json` et leurs équivalents
+anglais sous `exemples-content.en.json` dans `examples/oldweb/`. Garde les mêmes
+clés dans les deux fichiers et ajoute-les à la liste des fichiers empaquetés
+dans `bin/package-retro.py`. Utilise `$language` pour l’attribut `lang` et
+`$tr('Libellé en français')` pour les libellés du gabarit. Ajoute leurs
+traductions dans [`PortalLocale.php`](../src/Oldweb/PortalLocale.php).
+
 ### Données disponibles dans un gabarit PHP
 
 - `$content` contient des textes simples. Les afficher avec

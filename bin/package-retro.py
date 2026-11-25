@@ -15,6 +15,7 @@ APP = "dendrila-retro"
 EDITOR = "dendrila-retro/oldweb-editor.php"
 CORE_FILES = (
     "PortalAppearance.php", "PortalStorage.php", "PortalThemes.php", "PortalRenderer.php",
+    "PortalLocale.php", "portal-language.php",
     "portal-controller.php", "portal-editor.php", "portal-install.php", "portal-page.php",
     "portal-view.php", "portal-borne-02.php", "portal-signal-96.php",
 )
@@ -66,10 +67,12 @@ def make_site(personal: tuple[str, str] | None = None) -> bytes:
                           '<?php\n' + GUARD + f"return ['id' => '{bundle_id}', 'activation' => '{digest}'];\n")
         add("retro/.htaccess", "Require all denied\n")
         for filename in ("portal-content", "borne-02-content", "signal-96-content"):
-            raw = (ROOT / "examples" / "oldweb" / (filename + ".json")).read_text(encoding="utf-8")
-            add(f"retro/{filename}.php", "<?php\n" + GUARD
-                + "return json_decode(<<<'RETRO_JSON'\n" + raw.rstrip("\n")
-                + "\nRETRO_JSON, true, 32, JSON_THROW_ON_ERROR);\n")
+            for suffix in ("", ".en"):
+                name = filename + suffix
+                raw = (ROOT / "examples" / "oldweb" / (name + ".json")).read_text(encoding="utf-8")
+                add(f"retro/{name}.php", "<?php\n" + GUARD
+                    + "return json_decode(<<<'RETRO_JSON'\n" + raw.rstrip("\n")
+                    + "\nRETRO_JSON, true, 32, JSON_THROW_ON_ERROR);\n")
         for source, target in (
             ("public/assets/oldweb-fixed-portal.css", "assets/oldweb-fixed-portal.css"),
             ("packaging/retro/installer-preview.js", "assets/installer-preview.js"),
