@@ -26,7 +26,7 @@ fonctionnement sur un navigateur datant de 2000 doit être testé séparément.
 
 ### Signal 96 et fonds personnalisés
 
-Signal 96 reprend les usages HTML de 1996, CSS 1 et douze GIF locaux. Le motif de Kenney (Pattern Pack Pixel 1.1, tile_0038) est avec gris et noir d’origine, blanc remplacé par du beige et sous CC0 1.0. Les trois thèmes proposent dans **Fond du site** : fond du thème, couleur unie ou image répétée sur les deux axes, à taille naturelle. Le fichier GIF, PNG ou JPEG reste disponible lorsqu’on passe en mode couleur, sauf si on le retire. Le fond téléversé suit les règles de brouillon, publication et restauration des autres médias. Pour les sites Signal 96 déjà installés, appliquer la palette d’origine pour retrouver les nouvelles couleurs sans écraser les images.
+Signal 96 reprend les usages HTML de 1996, CSS 1 et douze GIF locaux. Le motif de Kenney (Pattern Pack Pixel 1.1, tile_0038) est adapté en gris-beige clair et sous CC0 1.0. Les trois thèmes proposent dans **Fond du site** : fond du thème, couleur unie ou image répétée sur les deux axes, à taille naturelle. Le fichier GIF, PNG ou JPEG reste disponible lorsqu’on passe en mode couleur, sauf si on le retire. Le fond téléversé suit les règles de brouillon, publication et restauration des autres médias. Pour les sites Signal 96 déjà installés, appliquer la palette d’origine pour retrouver les nouvelles couleurs sans écraser les images.
 
 ## Ajouter un thème
 
