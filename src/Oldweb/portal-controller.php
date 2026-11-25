@@ -6,14 +6,16 @@ use Dendrila\Cms\Oldweb\PortalThemes;
 
 /** @var bool $editor Set by the public entrypoint, never by a request parameter. */
 $root = dirname(__DIR__, 2);
-require $root . '/vendor/autoload.php';
+if (!isset($standaloneDirectory)) {
+    require $root . '/vendor/autoload.php';
+}
 
 header("Content-Security-Policy: default-src 'none'; img-src 'self'; style-src 'self' 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'");
 header('X-Content-Type-Options: nosniff');
 header('Referrer-Policy: no-referrer');
 
 try {
-    $directory = getenv('DENDRILA_OLDWEB_PORTAL_DIR');
+    $directory = $standaloneDirectory ?? getenv('DENDRILA_OLDWEB_PORTAL_DIR');
     if ($directory === false || $directory === '') {
         http_response_code(404);
         return;
@@ -27,7 +29,9 @@ try {
     }
 
     header('Cache-Control: ' . ($editor ? 'no-store' : 'no-cache'));
-    if ($editor) {
+    if ($editor && isset($standaloneDirectory)) {
+        $user = 'owner';
+    } elseif ($editor) {
         $https = in_array(strtolower((string) ($_SERVER['HTTPS'] ?? '')), ['on', '1'], true);
         $allowed = preg_split('/\s+/', trim(getenv('DENDRILA_OLDWEB_PORTAL_EDITORS') ?: ''), -1, PREG_SPLIT_NO_EMPTY);
         $user = $_SERVER['REMOTE_USER'] ?? '';
@@ -63,7 +67,7 @@ try {
         return;
     }
     if (!$editor || $preview) {
-        $content = json_decode((string) file_get_contents($root . '/examples/oldweb/portal-content.json'), true, 32, JSON_THROW_ON_ERROR);
+        $content = json_decode((string) file_get_contents($standaloneContent ?? $root . '/examples/oldweb/portal-content.json'), true, 32, JSON_THROW_ON_ERROR);
         $content = array_replace($content, $state['site']);
         $custom = $directory . '/content.json';
         if (is_file($custom)) {
@@ -79,9 +83,11 @@ try {
         return;
     }
 
-    session_name('DENDRILA_OLDWEB');
-    if (!session_start(['use_strict_mode' => 1, 'cookie_httponly' => true, 'cookie_secure' => true, 'cookie_samesite' => 'Strict'])) {
-        throw new RuntimeException('Cannot open editor session.');
+    if (!isset($standaloneDirectory)) {
+        session_name('DENDRILA_OLDWEB');
+        if (!session_start(['use_strict_mode' => 1, 'cookie_httponly' => true, 'cookie_secure' => true, 'cookie_samesite' => 'Strict'])) {
+            throw new RuntimeException('Cannot open editor session.');
+        }
     }
     $tokens = $_SESSION['oldweb_csrf'] ?? [];
     $tokenKey = hash('sha256', $directory . "\0" . $user);
@@ -108,6 +114,9 @@ try {
             $fields = $_POST[$change === 'install' ? 'site' : 'zones'] ?? null;
             if (!is_array($fields)) {
                 throw new InvalidArgumentException('Le formulaire est incomplet.');
+            }
+            if (isset($standaloneDirectory) && $change === 'install') {
+                throw new InvalidArgumentException('Ce site est déjà installé.');
             }
             if ($installation && $change !== 'install') {
                 throw new InvalidArgumentException('Installe d’abord Dendrila Retro.');

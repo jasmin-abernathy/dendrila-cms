@@ -30,6 +30,12 @@ a:focus,input:focus,select:focus { outline:2px solid #9f3600; }
 <div>
 <input type="hidden" name="csrf" value="<?= $escape($csrf) ?>">
 <input type="hidden" name="revision" value="0">
+<?php if (isset($standaloneDirectory)): ?>
+<label for="activation">Clé d’installation (fichier LIRE-MOI.txt)</label>
+<input id="activation" type="password" name="activation" size="38" maxlength="32">
+<label for="owner-password">Choisir ton mot de passe (14 caractères minimum)</label>
+<input id="owner-password" type="password" name="password" size="38" maxlength="72">
+<?php endif ?>
 <label for="site-name">Nom du site</label>
 <input id="site-name" type="text" name="site[name]" size="38" maxlength="55" value="<?= $escape($name) ?>">
 <label for="site-tagline">Sous-titre (facultatif)</label>

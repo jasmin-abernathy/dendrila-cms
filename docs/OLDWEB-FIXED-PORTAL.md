@@ -4,7 +4,33 @@ Canal 57 est le premier thème fourni avec Dendrila Retro. Le front est en HTML 
 CSS 2 à largeur fixe de 820 px. La page conserve ses colonnes sur petit écran.
 L’éditeur n’a besoin de JavaScript pour aucune opération.
 
-## Installer depuis le navigateur
+## Installation rapide avec le kit ZIP
+
+1. Décompresser le **kit Dendrila Retro** sur son ordinateur. Il contient
+   `Site_a_envoyer.zip` et `LIRE-MOI.txt`.
+2. Dans **cPanel → Gestionnaire de fichiers**, ouvrir le dossier du domaine
+   (en général `public_html` pour le domaine principal), puis **Téléverser**
+   et **Extraire** `Site_a_envoyer.zip`. Un dossier `dendrila-retro` est créé.
+   Retirer l’archive du dossier Web une fois l’extraction faite.
+3. Ouvrir `https://ton-domaine.fr/dendrila-retro/` en remplaçant le domaine
+   d’exemple par le sien. Saisir la clé du fichier `LIRE-MOI.txt`, le nom du
+   site et le mot de passe choisi.
+
+Le site reste à la même adresse. L’éditeur se trouve à
+`/dendrila-retro/oldweb-editor.php`. Le kit installe ses fichiers de données
+dans l’espace privé du compte. Il demande PHP 8.4 ou plus récent et HTTPS
+sur un hébergement de type cPanel. Conserver `LIRE-MOI.txt` sur son
+ordinateur. Il contient une clé personnelle et ne doit pas être téléversé.
+
+Le kit contient le module Retro et le thème Canal 57. Les responsables de
+la distribution génèrent un kit par installation avec
+`python3 bin/package-retro.py Dendrila_Retro.zip`. Le ZIP à envoyer contient
+uniquement l’empreinte de la clé. Garder le kit et l’espace de données privé
+dans la sauvegarde de l’instance. Lors d’une mise à jour, préserver le
+fichier `retro/installation.php` du site existant, qui identifie son espace
+de données.
+
+## Installation avancée dans un Dendrila existant
 
 1. Déposer un checkout Dendrila avec son répertoire `vendor/` généré par
    `composer install --no-dev`. L’hébergement doit utiliser PHP 8.5 ou plus,

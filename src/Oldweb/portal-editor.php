@@ -27,6 +27,12 @@ a:focus,input:focus,select:focus { outline:2px solid #9f3600; }
 <div id="page">
 <p><a href="oldweb-portal.php">Page publiée</a> | <a href="?preview=1">Voir le brouillon</a></p>
 <h1>Apparence du portail Oldweb</h1>
+<?php if (isset($standaloneLogout)): ?>
+<form method="post" action="oldweb-editor.php">
+<div><input type="hidden" name="retro_token" value="<?= $escape($standaloneLogout) ?>">
+<input type="submit" name="action" value="Se déconnecter"></div>
+</form>
+<?php endif ?>
 <?php if ($message !== ''): ?><p><strong><?= $escape($message) ?></strong></p><?php endif ?>
 <?php if ($error !== ''): ?><p class="error"><strong><?= $escape($error) ?></strong></p><?php endif ?>
 <p>Utilise des couleurs <code>#RRGGBB</code>. Les fichiers GIF, PNG et JPEG sont limités à 1 Mio et 1 600 px par côté. Renseigne un texte de remplacement si l’image donne une information.</p>

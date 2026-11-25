@@ -88,7 +88,7 @@ final readonly class PortalStorage
     }
 
     /** Return false when another editor has saved a more recent version. */
-    public function change(int $expected, string $action, array $fields, array $uploads, ?string $theme = null): bool
+    public function change(int $expected, string $action, array $fields, array $uploads, ?string $theme = null, ?string $ownerPasswordHash = null): bool
     {
         $lock = fopen($this->directory . '/appearance.lock', 'c');
         if ($lock === false) {
@@ -104,6 +104,9 @@ final readonly class PortalStorage
             }
             if ($action === 'install' && $state['revision'] === 0) {
                 $state['site'] = self::siteIdentity($fields);
+                if ($ownerPasswordHash !== null) {
+                    $state['owner_password_hash'] = $ownerPasswordHash;
+                }
                 $id = PortalThemes::selected($theme ?? PortalThemes::DEFAULT);
                 $state['themes']['draft'] = $state['themes']['published'] = $id;
                 $state['draft'] = $state['published'] = PortalThemes::initialAppearance($id);
