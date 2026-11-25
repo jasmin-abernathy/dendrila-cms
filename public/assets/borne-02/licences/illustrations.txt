@@ -1,0 +1,14 @@
+Borne 02, illustrations CC0 1.0
+https://creativecommons.org/publicdomain/zero/1.0/
+
+orbite.png, orbitale-vignette.png et bonus.png
+D’après Pixel Shmup 1.1 de Kenney : https://kenney.nl/assets/pixel-shmup
+
+balade.png
+D’après Pixel Platformer 1.2 de Kenney : https://kenney.nl/assets/pixel-platformer
+
+donjon.png
+D’après Tiny Dungeon 1.0 de Kenney : https://kenney.nl/assets/tiny-dungeon
+
+club.png, commandes.png, grain.png et scan.png : dessins et textures
+créés pour la maquette Borne 02, également sous CC0.

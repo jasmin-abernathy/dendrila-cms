@@ -1,6 +1,6 @@
 # Créer un thème pour Dendrila Retro
 
-Canal 57 sert d’exemple. Le navigateur reçoit une page HTML et des feuilles
+Canal 57 et Borne 02 servent d’exemples. Le navigateur reçoit une page HTML et des feuilles
 CSS. PHP prépare le rendu côté serveur et le back-office gère les réglages.
 Un thème est installé avec le code du site par la personne qui le maintient.
 Le catalogue de thèmes reste ouvert à d’autres contributions.
@@ -47,8 +47,14 @@ fonctionnement sur un navigateur datant de 2000 doit être testé séparément.
 
 La palette facultative `defaults` s’applique à la première installation
 avec ce thème. Sur un site existant, le changement de thème utilise les
-réglages d’apparence du brouillon. Le nom du thème, les couleurs, les
-bordures et les images se prévisualisent et se publient ensemble.
+réglages d’apparence du brouillon, sauf si la personne applique la palette
+d’origine du thème sélectionné. Le nom du thème, les couleurs, les bordures et
+les images se prévisualisent et se publient ensemble.
+
+Borne 02 déclare aussi un fichier `content` de démonstration dans
+`examples/oldweb/`. Il reprend les clés du contenu générique et n’écrase
+ni l’identité du site ni ses textes personnalisés. Le gabarit et ses
+ressources sont inclus dans le ZIP par `bin/package-retro.py`.
 
 ### Données disponibles dans un gabarit PHP
 
@@ -57,9 +63,9 @@ bordures et les images se prévisualisent et se publient ensemble.
 - `$appearance` contient les couleurs, bordures et références d’images déjà
   validées. Le contrat des zones est dans [`PortalAppearance::ZONES`](../src/Oldweb/PortalAppearance.php).
 - `$theme` fournit le chemin local de la feuille de style.
-- `$preview` indique le brouillon, `$still` le masquage des GIF. Reprendre
-  la construction des liens d’images de `portal-page.php` pour que les
-  brouillons utilisent l’URL authentifiée.
+- `$preview` indique le brouillon, `$still` le masquage des GIF. Inclure `portal-view.php` pour réutiliser
+  les fonctions de rendu des couleurs, de contrôle du GIF et de construction
+  des liens privés d’images en brouillon.
 - Le rendu conserve l’association entre zones et réglages de l’éditeur.
   Documenter les zones masquées si le thème choisit de ne pas toutes les
   afficher. Pour ajouter une zone éditable, modifier le contrat des zones,

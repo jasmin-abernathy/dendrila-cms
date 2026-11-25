@@ -16,7 +16,7 @@ final class PortalAppearance
         'news' => ['À l’antenne', '#FF8025', '#161616', 98, 135],
         'agenda' => ['Agenda', '#E1E7FF', '#101B48', 420, 130],
         'archive' => ['Archives', '#FF8025', '#161616', 98, 135],
-        'focus' => ['Colonne de droite', '#FFC928', '#241359', 149, 130],
+        'focus' => ['Colonne latérale', '#FFC928', '#241359', 149, 130],
     ];
     public const BORDERS = [
         'solid' => 'Trait simple', 'double' => 'Double trait', 'ridge' => 'En relief',

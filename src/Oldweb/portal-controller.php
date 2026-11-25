@@ -67,7 +67,11 @@ try {
         return;
     }
     if (!$editor || $preview) {
-        $content = json_decode((string) file_get_contents($standaloneContent ?? $root . '/examples/oldweb/portal-content.json'), true, 32, JSON_THROW_ON_ERROR);
+        $contentPath = $standaloneContent ?? $root . '/examples/oldweb/portal-content.json';
+        if (isset($theme['content'])) {
+            $contentPath = dirname($contentPath) . '/' . $theme['content'];
+        }
+        $content = json_decode((string) file_get_contents($contentPath), true, 32, JSON_THROW_ON_ERROR);
         $content = array_replace($content, $state['site']);
         $custom = $directory . '/content.json';
         if (is_file($custom)) {
@@ -123,6 +127,14 @@ try {
             }
             $uploads = in_array($change, ['restore', 'install'], true) ? [] : PortalStorage::uploads($_FILES);
             $themeId = $change === 'restore' ? null : PortalThemes::selected($submittedTheme);
+            $submittedPalette = ($_POST['theme_palette'] ?? '') === '1';
+            if ($submittedPalette && in_array($change, ['draft', 'publish'], true)) {
+                $palette = array_map(
+                    static fn (array $zone): array => array_intersect_key($zone, ['background' => true, 'text' => true, 'border' => true]),
+                    PortalThemes::initialAppearance($themeId)
+                );
+                $fields = array_replace_recursive($fields, $palette);
+            }
             if (!$storage->change($revision, $change, $fields, $uploads, $themeId)) {
                 $state = $storage->state();
                 http_response_code(409);

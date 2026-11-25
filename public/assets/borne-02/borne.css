@@ -1,0 +1,59 @@
+body { margin: 0; background: #d9ded9 url(grain.png) repeat; color: #e8eaff; font: 87.5% Verdana, Arial, sans-serif; }
+a { color: inherit; }
+a:focus { outline: 2px solid #edff81; background-color: #24204a; color: white; }
+h1, h2, h3, p, ul { margin: 0; }
+img { border: 0; }
+.skip a { position: absolute; left: -200em; }
+.skip a:focus { left: 8px; top: 8px; padding: 7px; z-index: 1; }
+#site { width: 792px; margin: 15px auto; border: 4px ridge #9da6d7; }
+.preview { padding: 5px 8px; background: #fff4bd; color: #21192f; }
+.utility { border-bottom: 2px solid #111527; font-size: 85%; font-weight: bold; }
+.tag { float: left; max-width: 490px; padding: 5px 8px; }
+.utility-links { float: right; max-width: 270px; padding: 5px 9px; }
+.illustration, .art { display: block; margin: 4px auto; }
+.mast { background: #101225 url(scan.png) repeat; border-bottom: 5px ridge #a5adde; padding: 10px 10px; }
+#enseigne { float: left; width: 211px; padding: 5px 0; border: 2px solid #a5adde; font: italic bold 40px/1 Arial, sans-serif; text-transform: uppercase; letter-spacing: -2px; }
+#enseigne.wide { float: none; width: auto; font-size: 26px; letter-spacing: 0; }
+#menu { float: left; list-style: none; padding: 4px 0 4px 7px; }
+#menu li { float: left; margin: 0 5px 3px 0; }
+#menu a { display: block; width: 92px; padding: 12px 0 9px; border: 3px outset #babde2; border-bottom-width: 6px; text-align: center; text-transform: uppercase; font: bold 14px Arial, sans-serif; text-decoration: none; }
+#menu.menu-original .red { background-color: #ff997d; }
+#menu.menu-original .blue { background-color: #98d8ef; }
+#menu.menu-original .gold { background-color: #ffd27a; }
+#menu a:hover, #menu a:focus { outline: 2px solid #edff81; text-decoration: underline; }
+.frame { padding: 9px 8px 10px; border-bottom: 5px groove #b0badd; }
+.rail { float: left; width: 141px; }
+.panel { margin: 2px 0 9px; padding: 3px; border: 3px ridge #8e9fc5; background: #171d36; color: #e8eaff; }
+.panel h2 { padding: 5px 4px; border-bottom: 1px solid #a4b4e2; font: bold 13px Arial, sans-serif; text-transform: uppercase; }
+.panel ul { padding: 0; list-style: none; }
+.panel li { padding: 6px 4px; border-bottom: 1px dotted #7d88b0; line-height: 1.27; }
+.panel p { margin: 5px 4px 7px; overflow: hidden; }
+#club img.illustration { width: auto; max-width: 129px; }
+.main { float: right; width: 626px; }
+#contenu:focus + .bar { outline: 2px solid #efff84; }
+.bar { padding: 4px 7px; color: #171a33; background: #acb9e5; border: 3px outset #bfc9ed; font: bold 15px Arial, sans-serif; text-transform: uppercase; letter-spacing: .04em; }
+.feature { margin-top: 4px; }
+.spot { float: left; width: 416px; min-height: 173px; padding: 10px 8px; border: 4px ridge #9db1e0; }
+.spot .intro-art { float: right; width: 205px; height: auto; margin: 0 0 3px 6px; }
+#ouverture img.illustration { width: auto; max-width: 100%; }
+.spot .strap { font: bold 13px "Courier New", monospace; letter-spacing: .1em; }
+.spot h3 { margin: 4px 0 5px; font: italic bold 38px/1 Arial, sans-serif; text-transform: uppercase; letter-spacing: -1px; overflow: hidden; }
+.spot p { margin: 0 0 8px 2px; line-height: 1.32; overflow: hidden; }
+.spot a { font-weight: bold; }
+.event { margin-left: 445px; min-height: 193px; border: 4px ridge #ffc66f; text-align: center; }
+.event h3 { margin: 6px 0 3px; font: italic bold 19px Arial, sans-serif; text-transform: uppercase; }
+.event p { padding: 4px; line-height: 1.25; overflow: hidden; }
+#agenda img.illustration { width: auto; max-width: 100%; }
+.picks-bar { margin-top: 9px; }
+.cards { margin-top: 4px; padding: 0; list-style: none; }
+.tile { float: left; width: 136px; min-height: 152px; margin-right: 5px; padding: 3px 4px; border: 3px ridge #a4b8df; background: #161a31; color: #e8eaff; }
+.tile.four { margin-right: 0; }
+.tile img.art { width: 132px; height: 71px; margin: 0 auto; border: 2px solid #1b1e36; }
+.tile a { display: block; }
+.tile strong, .tile h3 { display: block; padding: 2px 3px; border-bottom: 2px solid #a9dff7; font: bold 16px Arial, sans-serif; overflow: hidden; }
+.tile.two h3 { border-bottom-color: #dbef81; }
+.tile.three h3 { border-bottom-color: #ebc9ff; }
+.tile.four strong { border-bottom-color: #ffce80; }
+.tile p { margin: 4px 2px 0; line-height: 1.27; font-size: 90%; overflow: hidden; }
+.clear { clear: both; }
+.footer { padding: 7px 10px; background: #111427; color: #e8eaff; line-height: 1.43; font-size: 90%; }

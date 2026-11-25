@@ -46,6 +46,7 @@ a:focus,input:focus,select:focus { outline:2px solid #9f3600; }
 <option value="<?= $escape($id) ?>"<?= ($submittedTheme ?? $state['themes']['draft']) === $id ? ' selected="selected"' : '' ?>><?= $escape($entry['label']) ?></option>
 <?php endforeach ?>
 </select>
+<p><label><input name="theme_palette" type="checkbox" value="1"<?= ($submittedPalette ?? false) ? ' checked="checked"' : '' ?>> Appliquer les couleurs et les bordures d’origine du thème sélectionné</label></p>
 </div>
 <?php foreach (PortalAppearance::ZONES as $key => [$label, , , $width]): ?>
 <fieldset>

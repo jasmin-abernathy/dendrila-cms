@@ -79,6 +79,26 @@ try {
     portalCheck(!$store->change(0, 'install', ['name' => 'Autre site', 'tagline' => ''], []), 'Two setup requests must not overwrite one another.');
     portalReject(fn () => $store->change(1, 'install', ['name' => 'Autre site', 'tagline' => ''], []));
     portalCheck($store->state() === $installed, 'An installed site must never be reinitialized.');
+
+    $borne = 'borne-02';
+    $borneDefaults = PortalThemes::initialAppearance($borne);
+    portalCheck($borneDefaults !== $defaults, 'Borne 02 must use its own valid palette.');
+    $theme = PortalThemes::forRendering($borne);
+    portalCheck(is_file($root . '/' . $theme['stylesheet']), 'The theme stylesheet must be shipped.');
+    portalCheck($store->change(1, 'draft', $zones, ['banner' => $upload], $borne), 'The theme must be editable in draft.');
+    $draft = $store->state();
+    portalCheck($draft['themes']['draft'] === $borne && $draft['themes']['published'] === PortalThemes::DEFAULT, 'The public theme must not change on draft save.');
+    portalCheck($store->change(2, 'publish', $draft['draft'], []), 'The edited theme must be publishable.');
+    $published = $store->state();
+    portalCheck($published['themes']['published'] === $borne && $published['published']['banner']['image'] === $asset, 'Publishing must keep theme and image together.');
+    portalCheck($published['published']['banner']['border'] === 'double', 'Borne 02 must preserve the chosen border.');
+    portalCheck($store->change(3, 'restore', [], []), 'Theme changes must be reversible.');
+    portalCheck($store->state()['themes']['published'] === PortalThemes::DEFAULT, 'Restoring must recover the previous theme.');
+
+    unlink($directory . '/appearance.json');
+    portalCheck($store->change(0, 'install', ['name' => 'Club local', 'tagline' => 'Arcade'], [], $borne), 'Borne 02 must be selectable during installation.');
+    $installedBorne = $store->state();
+    portalCheck($installedBorne['themes']['published'] === $borne && $installedBorne['published'] === $borneDefaults, 'Installing Borne 02 must apply its defaults.');
 } finally {
     foreach (glob($directory . '/*') as $path) {
         unlink($path);

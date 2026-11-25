@@ -1,8 +1,8 @@
-# Canal 57 · portail Oldweb
+# Dendrila Retro · Canal 57 et Borne 02
 
-Canal 57 est le premier thème fourni avec Dendrila Retro. Le front est en HTML 4.01 Strict et
-CSS 2 à largeur fixe de 820 px. La page conserve ses colonnes sur petit écran.
-L’éditeur n’a besoin de JavaScript pour aucune opération.
+Dendrila Retro fournit Canal 57 (820 px) et Borne 02 (800 px), deux thèmes
+à largeur fixe en HTML 4.01 Strict et CSS 2. Les pages conservent leurs
+colonnes sur petit écran. Le site et l’éditeur fonctionnent sans JavaScript.
 
 ## Installer le ZIP
 
@@ -177,11 +177,18 @@ sites existants continuent de passer par leurs routes habituelles.
 
 ## Personnaliser
 
+Choisis **Canal 57** ou **Borne 02** dans **Thème du portail**. Pour reprendre
+les couleurs et bordures d’origine du thème choisi, coche la case
+correspondante avant d’enregistrer le brouillon. Les couleurs existantes
+sont conservées par défaut lors d’un changement de thème et la case n’affecte
+pas les images. Prévisualise le brouillon avant de le publier.
+Les illustrations fournies avec Borne 02 sont en [CC0](../public/assets/borne-02/licences/illustrations.txt).
+
 Chaque zone expose une couleur de fond, une couleur de texte et un choix de
 bordures CSS 2. Le bandeau, l’ouverture, les actualités, l’agenda, les archives
-et la colonne de droite acceptent chacun une illustration. Les GIF, PNG et JPEG
+et la colonne latérale acceptent chacun une illustration. Les GIF, PNG et JPEG
 sont présentés dans les limites du cadre, avec leurs proportions. Le visiteur
-peut masquer les GIF depuis le pied de page.
+peut masquer les GIF via le lien « Masquer les GIF ».
 
 L’éditeur contrôle les types, dimensions, tailles, valeurs CSS et contrastes
 côté serveur. Les images reçoivent un nom calculé et restent dans le stockage
