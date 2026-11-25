@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Dendrila\Cms\Design;
 
+use Dendrila\Cms\Front\OldwebGifMosaic;
 use Dendrila\Cms\Front\OldwebRippleBackdrop;
 use InvalidArgumentException;
 
@@ -27,7 +28,7 @@ final readonly class OldwebAppearance
      * Apply editorial choices to the host site's composition and its public media map.
      * Validation is shared by preview and publication.
      */
-    public function resolve(array $composition, array $settings, array $publicMedia): array
+    public function resolve(array $composition, array $settings, array $publicMedia, array $gifMetadata = []): array
     {
         $style = $settings['style'] ?? null;
         $palette = $settings['palette'] ?? 'default';
@@ -45,7 +46,9 @@ final readonly class OldwebAppearance
         }
         $presentation = $this->resolver->resolve(new SiteCompositionDefinition($composition));
 
-        if ($mediaId !== '') {
+        if (array_key_exists('gif_ids', $settings) && $settings['gif_ids'] !== []) {
+            $presentation['gif_mosaic'] = OldwebGifMosaic::resolve($settings['gif_ids'], $publicMedia, $gifMetadata);
+        } elseif ($mediaId !== '') {
             $backdrop = [
                 'type' => 'ripple',
                 'media_id' => $mediaId,

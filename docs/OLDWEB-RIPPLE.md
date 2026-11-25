@@ -76,3 +76,30 @@ La suite PHP couvre les contrats et le fonctionnement des chemins existants. Vé
 Le site fournit sa composition et sa carte de médias publics à `OldwebAppearance::resolve()`. Le front utilise la présentation résultante et sert `/assets/oldweb/themes/retro.css` pour les thèmes Oldweb. Les réglages de l’éditeur de démonstration illustrent la prévisualisation et la publication. Le back-office du site doit encore fournir son authentification, sa persistance par site et sa sélection de médias. Tester ensuite les droits, l’édition concurrente et le retour arrière sur une instance de préproduction.
 
 Mesurer CPU/GPU, batterie et EcoIndex sur un appareil modeste avant toute affirmation sur la consommation. Les autres préréglages de fond restent à étudier.
+
+## Fonds GIF en mosaïque
+
+L’éditeur de démonstration propose le mode **Mosaïque GIF** avec une sélection
+de 1 à 10 GIF. Pour l’essayer avec les six tuiles d’archive, placer des copies
+locales de `stars.gif`, `backgroundclouds.gif`, `bluewater.gif`,
+`circuitboard.gif`, `bgpinkmarble.gif` et `bricks.gif` dans un dossier,
+puis lancer le serveur avec `DENDRILA_OLDWEB_GIF_DIR=/chemin/des/gifs`.
+Le dossier peut aussi contenir d’autres GIF aux noms simples. Les originaux
+sont référencés dans [Tacky Textures](https://walnet.org/help/backgrounds).
+
+Le back-office de l’instance fournit les identifiants sélectionnés dans
+`settings['gif_ids']` ainsi que le tableau des URL publiques et les métadonnées
+GIF de confiance à `OldwebAppearance::resolve()`. Les métadonnées sont
+indexées par le même identifiant et contiennent `mime` (`image/gif`),
+`width` et `height` en pixels, issus de la médiathèque. Une liste vide
+laisse la place au fond uni ou à Ripple. Une sélection active prend la priorité
+sur Ripple. L’éditeur de démonstration utilise la session locale.
+
+Le rendu serveur compose les rangées sans JavaScript. Les points de rupture
+ajoutent progressivement des tuiles entre 600 et 1 440 px. Chaque rangée a
+pour hauteur maximale celle du GIF le plus court de la rangée. Les proportions
+des tuiles sont conservées. Si l’écran est trop large pour couvrir la rangée
+à la hauteur de la source, le surplus est masqué par le cadre. Le visiteur
+peut également masquer entièrement le fond. Les GIF historiques sont
+chargés depuis les médias locaux. Leurs droits de redistribution restent à
+vérifier avant de les inclure dans le kit.

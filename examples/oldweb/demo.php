@@ -16,6 +16,48 @@ $root = dirname(__DIR__, 2);
 require $root . '/vendor/autoload.php';
 $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
+// Optional local media collection. Assets retain their original filenames.
+$gifDirectory = getenv('DENDRILA_OLDWEB_GIF_DIR');
+$gifLabels = [
+    'stars.gif' => 'Ciel étoilé',
+    'backgroundclouds.gif' => 'Nuages',
+    'bluewater.gif' => 'Reflets de piscine',
+    'circuitboard.gif' => 'Circuit imprimé',
+    'bgpinkmarble.gif' => 'Marbre rose',
+    'bricks.gif' => 'Briques blanches',
+];
+$defaultFilenames = array_keys($gifLabels);
+foreach ($gifDirectory ? (glob($gifDirectory . '/*.gif') ?: []) : [] as $candidate) {
+    $filename = basename($candidate);
+    if (preg_match('/^[a-zA-Z0-9_-]+\.gif$/D', $filename) === 1) {
+        $gifLabels[$filename] ??= pathinfo($filename, PATHINFO_FILENAME);
+    }
+}
+$gifMetadata = [];
+$gifMedia = [];
+$gifChoices = [];
+foreach ($gifLabels as $filename => $label) {
+    $file = $gifDirectory ? $gifDirectory . '/' . $filename : null;
+    if ($file === null || !is_file($file) || !is_readable($file)) {
+        continue;
+    }
+    $image = @getimagesize($file);
+    if (($image['mime'] ?? null) !== 'image/gif') {
+        continue;
+    }
+    $url = '/media/oldweb/' . $filename;
+    if ($path === $url) {
+        header('Content-Type: image/gif');
+        header('Cache-Control: private, max-age=3600');
+        readfile($file);
+        return;
+    }
+    $id = pathinfo($filename, PATHINFO_FILENAME);
+    $gifMedia[$id] = $url;
+    $gifMetadata[$id] = ['mime' => $image['mime'], 'width' => $image[0], 'height' => $image[1]];
+    $gifChoices[$id] = $label;
+}
+
 if (in_array($path, ['/media/reference.svg', '/media/ripple-retro.svg'], true)) {
     header('Content-Type: image/svg+xml');
     readfile($root . '/examples/reference-media/' . basename($path));
@@ -34,11 +76,16 @@ session_start(['use_strict_mode' => 1, 'cookie_httponly' => 1, 'cookie_samesite'
 header('Cache-Control: no-store');
 $csrf = $_SESSION['csrf'] ??= bin2hex(random_bytes(32));
 $defaults = ['style' => 'oldweb-personal', 'palette' => 'default', 'media_id' => '', 'speed' => 1.0, 'intensity' => 0.75];
+$defaultGifs = array_intersect(array_map(
+    static fn (string $filename): string => pathinfo($filename, PATHINFO_FILENAME),
+    $defaultFilenames,
+), array_keys($gifChoices));
+$defaults['gif_ids'] = array_values($defaultGifs);
 $state = $_SESSION['appearance'] ?? ['revision' => 0, 'published' => $defaults, 'previous' => null];
 $catalog = new DesignKitCatalog($root . '/public/assets/oldweb/catalog.json');
 $appearance = new OldwebAppearance(new PresentationResolver($root . '/design-styles', $catalog));
 $composition = ['schema_version' => 1, 'functional_kit' => 'association', 'design_style' => $defaults['style']];
-$media = ['ripple-demo' => '/media/ripple-retro.svg', 'hero' => '/media/reference.svg'];
+$media = ['ripple-demo' => '/media/ripple-retro.svg', 'hero' => '/media/reference.svg'] + $gifMedia;
 
 $settings = $state['published'];
 $error = '';
@@ -58,16 +105,25 @@ if ($path === '/apparence' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $settings = $state['previous'];
         } elseif (in_array($action, ['preview', 'publish'], true)) {
             foreach ($defaults as $name => $default) {
+                if ($name === 'gif_ids') {
+                    continue;
+                }
                 $value = $_POST[$name] ?? null;
                 if (!is_string($value) || (is_float($default) && !is_numeric($value))) {
                     throw new InvalidArgumentException('Vérifie tous les réglages.');
                 }
                 $settings[$name] = is_float($default) ? (float) $value : $value;
             }
+            $mode = $_POST['background_mode'] ?? null;
+            if (!in_array($mode, ['plain', 'gif', 'ripple'], true)) {
+                throw new InvalidArgumentException('Choisis un type de fond.');
+            }
+            $settings['gif_ids'] = $mode === 'gif' ? ($_POST['gif_ids'] ?? null) : [];
+            $settings['media_id'] = $mode === 'ripple' ? $settings['media_id'] : '';
         } else {
             throw new InvalidArgumentException('Action indisponible.');
         }
-        $appearance->resolve($composition, $settings, $media);
+        $appearance->resolve($composition, $settings, $media, $gifMetadata);
         if ($action === 'preview') {
             $_SESSION['preview'] = $settings;
             $message = 'Aperçu prêt. La version publiée reste accessible depuis le site de démonstration.';
@@ -100,9 +156,14 @@ if ($path !== '/apparence') {
     if ($path === '/apercu') {
         $settings = $_SESSION['preview'] ?? $settings;
     } elseif (is_string($_GET['theme'] ?? null) && isset($labels[$_GET['theme']])) {
-        $settings = array_replace($defaults, ['style' => $_GET['theme'], 'media_id' => ($_GET['ripple'] ?? '') === '1' ? 'ripple-demo' : '']);
+        $rippleDemo = ($_GET['ripple'] ?? '') === '1';
+        $settings = array_replace($defaults, [
+            'style' => $_GET['theme'],
+            'gif_ids' => $rippleDemo ? [] : $defaults['gif_ids'],
+            'media_id' => $rippleDemo ? 'ripple-demo' : '',
+        ]);
     }
-    $presentation = $appearance->resolve($composition, $settings, $media);
+    $presentation = $appearance->resolve($composition, $settings, $media, $gifMetadata);
     echo (new PublicPageRenderer())->render(
         ['name' => 'Le Web des copains', 'tagline' => 'Carnet, liens et images', 'language' => 'fr'],
         ['title' => 'Bienvenue sur mon coin du Web', 'slug' => 'accueil', 'blocks' => [
@@ -125,6 +186,12 @@ if ($path !== '/apparence') {
     return;
 }
 
+$selectedGifs = $settings['gif_ids'] ?? [];
+$backgroundMode = $selectedGifs !== [] ? 'gif' : ($settings['media_id'] !== '' ? 'ripple' : 'plain');
+if ($error !== '' && in_array($_POST['background_mode'] ?? null, ['plain', 'gif', 'ripple'], true)) {
+    $backgroundMode = $_POST['background_mode'];
+}
+$selectedGifs = is_array($selectedGifs) ? $selectedGifs : [];
 function esc(string $value): string
 {
     return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
@@ -147,6 +214,8 @@ label { display: block; margin-top: 1rem; font-weight: bold; }
 select, input, button { font: inherit; min-height: 44px; max-width: 100%; }
 :focus-visible { outline: 3px solid #603879; outline-offset: 3px; }
 .actions { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: 1.4rem; }
+.gif-choice { display: block; min-height: 44px; margin: 0; font-weight: normal; }
+.gif-choice input { min-height: 0; }
 iframe { width: 100%; height: 34rem; border: 1px solid #65526e; box-sizing: border-box; }
 </style>
 <main>
@@ -162,12 +231,25 @@ iframe { width: 100%; height: 34rem; border: 1px solid #65526e; box-sizing: bord
 <select id="style" name="style"><?php options(OldwebAppearance::THEMES, $settings['style']); ?></select>
 <label for="palette">Couleur des liens</label>
 <select id="palette" name="palette"><?php options(array_map(static fn (array $palette): string => $palette[0], OldwebAppearance::PALETTES), $settings['palette']); ?></select>
-<label for="media">Fond animé</label>
+<fieldset>
+<legend>Fond de page</legend>
+<label for="background-mode">Type de fond</label>
+<select id="background-mode" name="background_mode"><?php options(['plain' => 'Fond du thème', 'gif' => 'Mosaïque GIF', 'ripple' => 'Ripple'], $backgroundMode); ?></select>
+<fieldset>
+<legend>GIF de la mosaïque</legend>
+<p>Choisis de 1 à 10 GIF. Un seul GIF sera répété sur toutes les lignes.</p>
+<?php if ($gifChoices === []): ?><p>Aucun GIF local disponible dans cette instance.</p><?php endif ?>
+<?php foreach ($gifChoices as $gifId => $gifLabel): ?>
+<label class="gif-choice"><input type="checkbox" name="gif_ids[]" value="<?= esc($gifId) ?>"<?= in_array($gifId, $selectedGifs, true) ? ' checked' : '' ?>> <?= esc($gifLabel) ?></label>
+<?php endforeach ?>
+</fieldset>
+<label for="media">Image de fond Ripple</label>
 <select id="media" name="media_id"><?php options(['' => 'Désactivé', 'ripple-demo' => 'Ciel rétro'], $settings['media_id']); ?></select>
 <label for="speed">Vitesse (0,25 à 2)</label>
 <input id="speed" type="number" name="speed" min="0.25" max="2" step="0.01" value="<?= esc((string) $settings['speed']) ?>" required>
 <label for="intensity">Intensité (0 à 1)</label>
 <input id="intensity" type="number" name="intensity" min="0" max="1" step="0.01" value="<?= esc((string) $settings['intensity']) ?>" required>
+</fieldset>
 <div class="actions">
 <button name="action" value="preview">Prévisualiser</button>
 <button name="action" value="publish">Publier dans la démo</button>
