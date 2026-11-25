@@ -70,15 +70,23 @@ a:focus,input:focus,select:focus { outline:2px solid #9f3600; }
 <option value="<?= $border ?>"<?= $zone['border'] === $border ? ' selected="selected"' : '' ?>><?= $escape($borderLabel) ?></option>
 <?php endforeach ?>
 </select></label>
+<?php if ($key === 'page'): ?>
+<p><label for="page-mode">Type de fond</label>
+<select id="page-mode" name="zones[page][mode]">
+<?php foreach (['theme'=>'Fond du thème','color'=>'Couleur unie','image'=>'Image répétée'] as $mode => $modeLabel): ?>
+<option value="<?= $mode ?>"<?= ($submitted['page']['mode'] ?? $zone['mode'] ?? 'theme') === $mode ? ' selected="selected"' : '' ?>><?= $modeLabel ?></option>
+<?php endforeach ?></select></p>
+<p>Le motif est répété horizontalement et verticalement à sa taille d’origine. La couleur reste disponible en mode uni.</p>
+<?php endif ?>
 <?php if ($width > 0): ?>
 <?php if ($zone['image'] !== null): ?>
 <p><a href="?preview=1&amp;media=<?= $escape($zone['image']) ?>">Voir l’image actuelle</a>
-<label><input name="zones[<?= $key ?>][remove]" type="checkbox" value="1"> Retirer l’image</label></p>
+<label><input name="zones[<?= $key ?>][remove]" type="checkbox" value="1"> <?= $key === 'page' ? 'Retirer le fichier de fond' : 'Retirer l’image' ?></label></p>
 <?php endif ?>
-<label class="image" for="<?= $key ?>-image">Nouvelle image
+<label class="image" for="<?= $key ?>-image"><?= $key === 'page' ? 'Image de fond' : 'Nouvelle image' ?>
 <input id="<?= $key ?>-image" name="image_<?= $key ?>" type="file" accept="image/gif,image/png,image/jpeg"></label>
-<label class="image" for="<?= $key ?>-alt">Texte de remplacement
-<input id="<?= $key ?>-alt" name="zones[<?= $key ?>][alt]" type="text" size="42" maxlength="200" value="<?= $escape($zone['alt']) ?>"></label>
+<?php if ($key !== 'page'): ?><label class="image" for="<?= $key ?>-alt">Texte de remplacement
+<input id="<?= $key ?>-alt" name="zones[<?= $key ?>][alt]" type="text" size="42" maxlength="200" value="<?= $escape($zone['alt']) ?>"></label><?php endif ?>
 <?php endif ?>
 </fieldset>
 <?php endforeach ?>

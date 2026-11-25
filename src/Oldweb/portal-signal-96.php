@@ -31,6 +31,9 @@ $navigation = [
 .zone-<?= $key ?> img.illustration { max-width:<?= $width ?>px; max-height:<?= $height ?>px; }
 <?php endif ?>
 <?php endforeach ?>
+<?php if ($backgroundCss !== ''): ?>
+body { <?= $backgroundCss ?> }
+<?php endif ?>
 </style>
 </head>
 <body>

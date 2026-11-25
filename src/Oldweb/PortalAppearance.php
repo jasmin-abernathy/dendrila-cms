@@ -8,7 +8,7 @@ use InvalidArgumentException;
 final class PortalAppearance
 {
     public const ZONES = [
-        'page' => ['Fond du site', '#2455E5', '#FFFFFF', 0, 0],
+        'page' => ['Fond du site', '#2455E5', '#FFFFFF', 1600, 1600],
         'banner' => ['Grand bandeau', '#080C21', '#FFC928', 490, 125],
         'title' => ['Enseigne', '#FFC928', '#101048', 0, 0],
         'menu' => ['Boutons du menu', '#FFC928', '#241359', 0, 0],
@@ -33,6 +33,7 @@ final class PortalAppearance
                 'image' => null, 'alt' => '',
             ];
         }
+        $defaults['page']['mode'] = 'theme';
         return $defaults;
     }
 
@@ -67,12 +68,21 @@ final class PortalAppearance
                 }
                 $image = $uploads[$key];
             }
-            $alt = $input['alt'] ?? '';
+            $alt = $key === 'page' ? '' : ($input['alt'] ?? '');
             if (!is_string($alt) || !mb_check_encoding($alt, 'UTF-8') || mb_strlen($alt, 'UTF-8') > 200) {
                 throw new InvalidArgumentException('Le texte de remplacement doit faire au plus 200 caractères.');
             }
             $result[$key] = ['background' => $bg, 'text' => $text, 'border' => $border,
                 'image' => $image, 'alt' => $image === null ? '' : trim($alt)];
+            if ($key === 'page') {
+                $mode = $input['mode'] ?? $current[$key]['mode'] ?? 'theme';
+                if (!in_array($mode, ['theme', 'color', 'image'], true)) {
+                    throw new InvalidArgumentException('Choisis un type de fond valide.');
+                }
+                if (($input['remove'] ?? null) === '1' && !isset($uploads[$key]) && $mode === 'image') $mode = 'theme';
+                if ($mode === 'image' && $image === null) throw new InvalidArgumentException('Choisis une image de fond.');
+                $result[$key]['mode'] = $mode;
+            }
         }
         return $result;
     }

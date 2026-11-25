@@ -26,6 +26,9 @@ $menuOriginal = $appearance['menu']['background'] === $menuDefaults['background'
 .zone-<?= $key ?> img.illustration { max-width:<?= $width ?>px; max-height:<?= $height ?>px; }
 <?php endif ?>
 <?php endforeach ?>
+<?php if ($backgroundCss !== ''): ?>
+body, #site { <?= $backgroundCss ?> }
+<?php endif ?>
 </style>
 </head>
 <body>

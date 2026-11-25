@@ -21,3 +21,14 @@ $image = static function (string $zone) use ($appearance, $escape, $preview, $st
 $hasGif = count(array_filter($appearance, static fn (array $zone): bool =>
     is_string($zone['image']) && str_ends_with($zone['image'], '.gif'))) > 0;
 $t = static fn (string $key): string => $escape($content[$key]);
+
+$backgroundMode = $appearance['page']['mode'] ?? 'theme';
+$backgroundUrl = null;
+if ($backgroundMode === 'image') {
+    $file = $appearance['page']['image'];
+    if (is_string($file) && preg_match('/^[a-f0-9]{64}\\.(gif|png|jpg)$/D', $file) && !($still && str_ends_with($file, '.gif'))) {
+        $backgroundUrl = '?media=' . $file . ($preview ? '&preview=1' : '');
+    }
+}
+$backgroundCss = $backgroundMode === 'theme' ? '' : 'background-color:' . $appearance['page']['background']
+    . ';background-image:' . ($backgroundUrl === null ? 'none' : 'url("' . $backgroundUrl . '")') . ';background-repeat:repeat;';
