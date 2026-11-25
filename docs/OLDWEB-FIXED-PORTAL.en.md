@@ -82,7 +82,7 @@ Entry points are independent. The MMW API, settings and content of existing site
 
 Select **Canal 57**, **Borne 02** or **Signal 96** in the portal theme selector. To restore the selected theme's default colors and borders, check the corresponding box before saving the draft. Existing colors are kept by default when switching themes, and the checkbox does not affect images. Preview the draft before publishing.
 
-The [Borne 02 illustrations](../public/assets/borne-02/licences/illustrations.txt) are CC0. See the [Signal 96 credits](../public/assets/signal-96/illustrations.txt) for its illustrations and the adapted Tiny Grid background (CC BY-SA 3.0).
+The [Borne 02 illustrations](../public/assets/borne-02/licences/illustrations.txt) are CC0. See the [Signal 96 credits](../public/assets/signal-96/illustrations.txt) for its illustrations and the adapted Kenney grid background (CC0 1.0).
 
 Each zone exposes a background color, text color and CSS border choice. The site background may use the theme default, a solid color or an image tiled on both axes at its natural size. The banner, introduction, news, agenda, archives and sidebar each accept an illustration. GIF, PNG and JPEG images are displayed within their frame, preserving their proportions. Visitors can hide GIFs using the corresponding link.
 

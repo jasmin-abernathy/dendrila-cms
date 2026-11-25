@@ -1,3 +1,5 @@
-Tiny Grid — Atle Mo, Subtle Patterns. Source : https://github.com/atlemo/SubtlePatterns/blob/gh-pages/tiny_grid.png
-Adaptation GIF, agrandissement x2 et contraste renforcé, sous CC BY-SA 3.0 : https://creativecommons.org/licenses/by-sa/3.0/
+Fond : Pattern Pack Pixel 1.1 (Kenney, 22-07-2024), Tiles (Grayscale)/tile_0048.png.
+Source : https://www.kenney.nl/assets/pattern-pack-pixel
+Licence : CC0 1.0 — https://creativecommons.org/publicdomain/zero/1.0/
+Adaptation : palette gris-beige clair, conversion GIF, motif 16 × 16 px.
 Autres GIF : illustrations bitmap originales de la démonstration.
