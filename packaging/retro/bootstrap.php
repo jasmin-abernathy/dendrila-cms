@@ -10,6 +10,7 @@ use Dendrila\Cms\Oldweb\Standalone;
 
 header("Content-Security-Policy: default-src 'none'; img-src 'self'; style-src 'self' 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'");
 header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: DENY');
 header('Referrer-Policy: no-referrer');
 
 try {
@@ -25,15 +26,19 @@ try {
     require __DIR__ . '/PortalStorage.php';
     require __DIR__ . '/PortalAppearance.php';
     require __DIR__ . '/PortalThemes.php';
+    require __DIR__ . '/PortalRenderer.php';
     require __DIR__ . '/Standalone.php';
 
     // An existing personal kit retains its data directory when updated.
     $configuration = __DIR__ . '/installation.php';
+    if (is_link($configuration) || (file_exists($configuration) && !is_file($configuration))) {
+        throw new RuntimeException('Le fichier de configuration du kit doit être un fichier ordinaire.');
+    }
     $bundle = new Standalone(is_file($configuration) ? require $configuration : [
         'id' => substr(hash('sha256', dirname(__DIR__)), 0, 24),
     ]);
     $standaloneDirectory = $bundle->directory($_SERVER['DOCUMENT_ROOT'] ?? '', getenv('HOME') ?: '');
-    $standaloneContent = __DIR__ . '/portal-content.json';
+    $standaloneContentDirectory = __DIR__;
     if (!$bundle->enter($standaloneDirectory, $editor)) {
         return;
     }

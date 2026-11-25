@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+use Dendrila\Cms\Oldweb\PortalRenderer;
 use Dendrila\Cms\Oldweb\PortalStorage;
 use Dendrila\Cms\Oldweb\PortalThemes;
 
@@ -67,11 +68,7 @@ try {
         return;
     }
     if (!$editor || $preview) {
-        $contentPath = $standaloneContent ?? $root . '/examples/oldweb/portal-content.json';
-        if (isset($theme['content'])) {
-            $contentPath = dirname($contentPath) . '/' . $theme['content'];
-        }
-        $content = json_decode((string) file_get_contents($contentPath), true, 32, JSON_THROW_ON_ERROR);
+        $content = PortalRenderer::example($theme, $standaloneContentDirectory ?? $root . '/examples/oldweb');
         $content = array_replace($content, $state['site']);
         $custom = $directory . '/content.json';
         if (is_file($custom)) {
@@ -83,7 +80,7 @@ try {
             $content = array_replace($content, $values);
         }
         $still = ($_GET['still'] ?? '') === '1';
-        require __DIR__ . '/' . $theme['template'];
+        PortalRenderer::render($theme, $appearance, $content, $preview, $still, $storage);
         return;
     }
 

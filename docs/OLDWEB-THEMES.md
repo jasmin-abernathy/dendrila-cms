@@ -9,8 +9,8 @@ Le catalogue de thèmes reste ouvert à d’autres contributions.
 
 | Point | Règle |
 | --- | --- |
-| HTML | [HTML 4.01 Strict](https://www.w3.org/TR/html401/), avec son doctype complet et déclaration UTF-8 par `meta http-equiv`. Utiliser les titres, listes, liens, formulaires et images du standard. |
-| CSS | [CSS niveau 2, recommandation de 1998](https://www.w3.org/TR/1998/REC-CSS2-19980512/). Utiliser les sélecteurs simples, largeurs fixes, flottants, marges, bordures et positions du standard. |
+| HTML | Canal 57 et Borne 02 utilisent [HTML 4.01 Strict](https://www.w3.org/TR/html401/), avec son doctype complet et déclaration UTF-8 par `meta http-equiv`. Utiliser les titres, listes, liens, formulaires et images du standard. Signal 96 utilise les pratiques HTML 3.2. |
+| CSS | Canal 57 et Borne 02 utilisent [CSS niveau 2, recommandation de 1998](https://www.w3.org/TR/1998/REC-CSS2-19980512/). Utiliser les sélecteurs simples, largeurs fixes, flottants, marges, bordures et positions du standard. Signal 96 utilise CSS 1. |
 | JavaScript | Zéro JavaScript côté navigateur, y compris scripts intégrés, événements HTML, URL `javascript:` et dépendances livrées par le thème. Navigation et formulaire fonctionnent avec des liens, des ancres et des requêtes HTTP. |
 | Mise en page | Largeur fixe et stable sur mobile comme sur ordinateur. Les 820 px de Canal 57 sont un exemple. Le défilement horizontal est attendu sur un écran étroit, avec accès par clavier à toutes les zones. |
 | Médias | Illustrations locales GIF, PNG et JPEG. Respecter le texte de remplacement et le mode de masquage des GIF. Garder les proportions et limiter les dimensions à celles du cadre. |
@@ -58,7 +58,11 @@ les images se prévisualisent et se publient ensemble.
 Borne 02 et Signal 96 déclarent aussi un fichier `content` de démonstration dans
 `examples/oldweb/`. Il reprend les clés du contenu générique et n’écrase
 ni l’identité du site ni ses textes personnalisés. Le gabarit et ses
-ressources sont inclus dans le ZIP par `bin/package-retro.py`.
+ressources sont inclus dans le ZIP par `bin/package-retro.py`. L’assistant,
+le site installé et les exports statiques passent par `PortalRenderer`.
+Le rendu de démonstration prend le contenu d’exemple et la palette initiale.
+La comparaison visuelle utilise ces mêmes valeurs dans un même navigateur.
+Un nom personnalisé ou une autre police peut changer le rendu.
 
 ### Données disponibles dans un gabarit PHP
 

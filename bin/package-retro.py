@@ -4,16 +4,17 @@
 import argparse
 import hashlib
 import io
+import re
 import secrets
 from pathlib import Path
-from zipfile import ZIP_DEFLATED, ZipFile
+from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
 ROOT = Path(__file__).resolve().parents[1]
 INNER_NAME = "Site_a_envoyer.zip"
 APP = "dendrila-retro"
 EDITOR = "dendrila-retro/oldweb-editor.php"
 CORE_FILES = (
-    "PortalAppearance.php", "PortalStorage.php", "PortalThemes.php",
+    "PortalAppearance.php", "PortalStorage.php", "PortalThemes.php", "PortalRenderer.php",
     "portal-controller.php", "portal-editor.php", "portal-install.php", "portal-page.php",
     "portal-view.php", "portal-borne-02.php", "portal-signal-96.php",
 )
@@ -28,8 +29,13 @@ if (!defined('DENDRILA_RETRO_ENTRY')) {
 def make_site(personal: tuple[str, str] | None = None) -> bytes:
     output = io.BytesIO()
     with ZipFile(output, "w", ZIP_DEFLATED) as site:
+        def add(path: str, data: str | bytes) -> None:
+            entry = ZipInfo(f"{APP}/{path}", (1980, 1, 1, 0, 0, 0))
+            entry.external_attr = 0o100644 << 16
+            site.writestr(entry, data, compress_type=ZIP_DEFLATED)
+
         for name, editor in (("index.php", False), ("oldweb-portal.php", False), ("oldweb-editor.php", True)):
-            site.writestr(f"{APP}/{name}", (
+            add(name, (
                 "<?php\ndeclare(strict_types=1);\n"
                 "define('DENDRILA_RETRO_ENTRY', true);\n"
                 f"$editor = {'true' if editor else 'false'};\n"
@@ -38,34 +44,43 @@ def make_site(personal: tuple[str, str] | None = None) -> bytes:
 
         def add_php(source: Path) -> None:
             code = source.read_text(encoding="utf-8")
-            if source.name.startswith(("portal-", "standalone-")):
-                code = code.replace("declare(strict_types=1);", "declare(strict_types=1);\n" + GUARD, 1)
-            site.writestr(f"{APP}/retro/{source.name}", code)
+            if source.name != "bootstrap.php":
+                anchor = re.search(r"^namespace [^;]+;", code, re.MULTILINE)
+                offset = anchor.end() if anchor else code.index("declare(strict_types=1);") + len("declare(strict_types=1);")
+                code = code[:offset] + "\n" + GUARD + code[offset:]
+            add(f"retro/{source.name}", code)
 
         for name in CORE_FILES:
             add_php(ROOT / "src" / "Oldweb" / name)
-        for name in ("bootstrap.php", "Standalone.php", "standalone-login.php", "standalone-activation.php"):
+        for name in ("bootstrap.php", "Standalone.php", "standalone-login.php", "standalone-activation.php", "standalone-preview.php"):
             add_php(ROOT / "packaging" / "retro" / name)
+
+        add("preview.php", "<?php\ndeclare(strict_types=1);\n"
+            "define('DENDRILA_RETRO_ENTRY', true);\n"
+            "require __DIR__ . '/retro/standalone-preview.php';\n")
 
         if personal is not None:
             key, bundle_id = personal
             digest = hashlib.sha256(key.encode("ascii")).hexdigest()
-            site.writestr(f"{APP}/retro/installation.php",
+            add("retro/installation.php",
                           '<?php\n' + GUARD + f"return ['id' => '{bundle_id}', 'activation' => '{digest}'];\n")
-        site.writestr(f"{APP}/retro/.htaccess", "Require all denied\n")
+        add("retro/.htaccess", "Require all denied\n")
+        for filename in ("portal-content", "borne-02-content", "signal-96-content"):
+            raw = (ROOT / "examples" / "oldweb" / (filename + ".json")).read_text(encoding="utf-8")
+            add(f"retro/{filename}.php", "<?php\n" + GUARD
+                + "return json_decode(<<<'RETRO_JSON'\n" + raw.rstrip("\n")
+                + "\nRETRO_JSON, true, 32, JSON_THROW_ON_ERROR);\n")
         for source, target in (
-            ("examples/oldweb/portal-content.json", "retro/portal-content.json"),
-            ("examples/oldweb/borne-02-content.json", "retro/borne-02-content.json"),
-            ("examples/oldweb/signal-96-content.json", "retro/signal-96-content.json"),
             ("public/assets/oldweb-fixed-portal.css", "assets/oldweb-fixed-portal.css"),
+            ("packaging/retro/installer-preview.js", "assets/installer-preview.js"),
             ("LICENSE.md", "LICENSE.md"),
         ):
-            site.writestr(f"{APP}/{target}", (ROOT / source).read_bytes())
+            add(target, (ROOT / source).read_bytes())
         for theme in ("borne-02", "signal-96"):
             assets = ROOT / "public" / "assets" / theme
             for source in sorted(assets.rglob("*")):
                 if source.is_file():
-                    site.writestr(f"{APP}/assets/{theme}/{source.relative_to(assets).as_posix()}", source.read_bytes())
+                    add(f"assets/{theme}/{source.relative_to(assets).as_posix()}", source.read_bytes())
     return output.getvalue()
 
 

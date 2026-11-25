@@ -14,7 +14,7 @@ $bg = $backgroundMode === 'theme' ? 'assets/signal-96/fond.gif' : $backgroundUrl
 $illustration = static function (string $key, int $max) use ($image, $appearance, $storage): string {
     $html = $image($key);
     if ($html === '') return '';
-    $asset = $storage->image($appearance[$key]['image'], $appearance);
+    $asset = $storage?->image($appearance[$key]['image'], $appearance);
     $size = $asset ? @getimagesize($asset['path']) : false;
     if ($size) {
         $scale = min(1, $max / $size[0], \Dendrila\Cms\Oldweb\PortalAppearance::ZONES[$key][4] / $size[1]);
@@ -33,7 +33,7 @@ $illustration = static function (string $key, int $max) use ($image, $appearance
 <center><?php if ($preview): ?><p><b>Aperçu du brouillon</b> | <a href="oldweb-editor.php">Retour aux réglages</a></p><?php endif ?>
 <?php if ($hasGif): ?><p><a href="<?= $preview ? '?preview=1' : '?page=1' ?><?= $still ? '' : '&amp;still=1' ?>"><?= $still ? 'Afficher les GIF' : 'Masquer les GIF' ?></a></p><?php endif ?>
 <table width="760" border="0" cellspacing="0" cellpadding="8">
-<tr><td width="150" align="left" valign="top"<?= $zone('banner') ?>><font size="2"><b><?= $t('banner') ?></b><br>Metz &middot; France</font></td><td width="460" align="center"<?= $zone('title') ?>><font color="#89362f" size="2">&#8226; &nbsp; WWW &nbsp; &#8226;</font><h1<?= $ink('title') ?>><?php if ($content['name'] === 'Signal 96' && $ink('title') === ''): ?>Signal <font color="#a24b35">96</font><?php else: ?><?= $t('name') ?><?php endif ?></h1><div class="tagline"><?= $t('tagline') ?></div></td><td width="150" align="right" valign="top"><font size="2"><?= $t('frequency') ?><br>Novembre <?= $t('year') ?></font></td></tr>
+<tr><td width="150" align="left" valign="top"<?= $zone('banner') ?>><font size="2"><b><?= $t('banner') ?></b><br>Metz &middot; France</font></td><td width="460" align="center"<?= $zone('title') ?>><font color="#89362f" size="2">&#8226; &nbsp; WWW &nbsp; &#8226;</font><h1 class="site-name"<?= $ink('title') ?>><?php if ($content['name'] === 'Signal 96' && $ink('title') === ''): ?>Signal <font color="#a24b35">96</font><?php else: ?><?= $t('name') ?><?php endif ?></h1><div class="tagline site-tagline"><?= $t('tagline') ?></div></td><td width="150" align="right" valign="top"><font size="2"><?= $t('frequency') ?><br>Novembre <?= $t('year') ?></font></td></tr>
 <?php if ($appearance['banner']['image'] !== null): ?><tr><td colspan="3" align="center"><?= $illustration('banner', 490) ?></td></tr><?php endif ?>
 </table>
 <table width="740" border="0" cellspacing="0" cellpadding="4"><tr><td colspan="6"><hr size="2"></td></tr><tr class="menu"<?= $zone('menu') ?>><td width="120" align="center" valign="top"><a href="#bienvenue"<?= $ink('menu') ?>><img src="assets/signal-96/accueil.gif" width="64" height="64" border="0" alt=""><br>Bienvenue</a></td>
@@ -55,5 +55,5 @@ $illustration = static function (string $key, int $max) use ($image, $appearance
 <td width="340" valign="top"><div<?= $zone('archive') ?>><a name="dossiers"></a><h3<?= $ink('archive') ?>><?= $t('archiveTitle') ?></h3><?= $illustration('archive', 98) ?><p><?= $t('archiveText') ?></p></div><div<?= $zone('focus') ?>><a name="club"></a><h3<?= $ink('focus') ?>><?= $t('focusTitle') ?></h3><?= $illustration('focus', 149) ?><p><?= $t('focusText') ?></p></div></td></tr>
 <tr><td colspan="2"><a name="courrier"></a><h3>Courrier</h3><p><?= $t('contact') ?></p><hr></td></tr>
 </table>
-<table width="740" cellpadding="5" cellspacing="0" border="0"><tr><td width="240" valign="bottom"><font size="2"><?= $t('name') ?> &middot; Site de d&eacute;monstration<br><?= $t('status') ?></font></td><td width="260" align="center"><a href="#haut"><img src="assets/signal-96/haut.gif" width="64" height="64" border="0" alt=""><br>Retour en haut</a></td><td width="240" align="right" valign="bottom"><font size="2">Fond : <a href="https://www.toptal.com/designers/subtlepatterns/tiny-grid/">Tiny Grid</a>, Atle Mo<br><a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a> &middot; adaptation GIF</font></td></tr></table>
+<table width="740" cellpadding="5" cellspacing="0" border="0"><tr><td width="240" valign="bottom"><font size="2"><font class="site-name"><?= $t('name') ?></font> &middot; Site de d&eacute;monstration<br><?= $t('status') ?></font></td><td width="260" align="center"><a href="#haut"><img src="assets/signal-96/haut.gif" width="64" height="64" border="0" alt=""><br>Retour en haut</a></td><td width="240" align="right" valign="bottom"><font size="2">Fond : <a href="https://www.toptal.com/designers/subtlepatterns/tiny-grid/">Tiny Grid</a>, Atle Mo<br><a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a> &middot; adaptation GIF</font></td></tr></table>
 </center></body></html>

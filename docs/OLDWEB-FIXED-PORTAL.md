@@ -1,127 +1,88 @@
 # Dendrila Retro · Canal 57, Borne 02 et Signal 96
 
 Dendrila Retro fournit Canal 57 (820 px), Borne 02 (800 px) et Signal 96 (780 px), trois thèmes
-à largeur fixe en HTML 4.01 Strict et CSS 2. Les pages conservent leurs
-colonnes sur petit écran. Le site et l’éditeur fonctionnent sans JavaScript.
+à largeur fixe. Canal 57 et Borne 02 utilisent HTML 4.01 Strict et CSS 2.
+Signal 96 reprend le HTML 3.2 et le CSS 1. Les sites publiés fonctionnent
+sans JavaScript.
 
 ## Installer le ZIP
 
-Dendrila Retro s’installe sur un hébergement qui exécute **PHP 8.4 ou plus
-récent**, avec **HTTPS**, les extensions PHP **fileinfo**, **mbstring** et
-**session**, et un dossier privé où PHP peut lire et écrire. Le ZIP embarque
-le nécessaire pour Retro, sans base de données ni installation Composer.
+Il te faut un hébergement avec **PHP 8.4 ou plus récent**, **HTTPS** et les
+extensions **fileinfo**, **mbstring** et **session**. PHP doit pouvoir écrire
+dans un dossier privé, hors de toutes les racines web et de leurs alias.
 
-### Le parcours commun
+**Avant d’extraire le ZIP**, prépare ton installation. Tant que le site est
+accessible et non initialisé, la première personne qui termine l’assistant
+devient administratrice. Installe immédiatement ou protège l’URL avec
+l’authentification de ton hébergeur avant l’extraction.
 
-1. Télécharger [Dendrila_Retro.zip](../downloads/Dendrila_Retro.zip).
-2. Déposer puis extraire le ZIP dans le **dossier public du domaine**. Il
-   crée un dossier `dendrila-retro`. Si le gestionnaire de fichiers ne sait
-   pas extraire un ZIP, le décompresser sur son ordinateur puis envoyer
-   le dossier `dendrila-retro` complet par **SFTP** ou par le moyen proposé
-   par l’hébergeur. Conserver les fichiers cachés, dont `retro/.htaccess`.
-3. Ouvrir `https://ton-domaine.fr/dendrila-retro/` avec son vrai domaine. Choisir
-   une clé dans l’assistant puis cliquer sur **Télécharger le fichier de clé**.
-4. Envoyer ce petit fichier, en gardant son nom, dans le **dossier personnel
-   privé** de l’hébergement. Ce dossier contient le dossier public ou l’un de
-   ses parents. Il doit être hors des dossiers publiés par les domaines du
-   compte. Voir les exemples ci-dessous si le panneau n’affiche aucun
-   dossier nommé `public_html`.
-5. Revenir à l’assistant, cliquer sur **J’ai téléversé le fichier, continuer**,
-   puis saisir la clé, le nom du site et le mot de passe souhaité.
+1. Télécharge [Dendrila_Retro.zip](../downloads/Dendrila_Retro.zip). Extrais-le
+   dans le dossier public du domaine et retire l’archive du dossier public.
+   Si ton panneau ne sait pas décompresser, extrais sur ton ordinateur, puis
+   envoie le dossier `dendrila-retro` complet par SFTP. Garde les fichiers
+   cachés, dont `retro/.htaccess`.
+2. Ouvre `https://ton-domaine.fr/dendrila-retro/`. Si le domaine pointe déjà
+   sur le dossier Retro, ouvre la page d’accueil du domaine.
+3. Saisis le nom du site, un sous-titre si tu le souhaites, et choisis un
+   thème avec l’aperçu interactif. Choisis ton identifiant, saisis ton mot de
+   passe (14 caractères minimum, 72 octets maximum), confirme-le et clique sur
+   **Installer Dendrila Retro**.
 
-Le petit fichier prouve que tu peux ajouter un fichier sur l’hébergement.
-Il contient une empreinte liée à l’installation. Tu peux le retirer après
-avoir terminé. Retire aussi le ZIP du dossier public après extraction.
+Le parcours standard se fait dans le navigateur, sans clé, base de données ni
+Composer. Le back-office s’ouvre après l’installation. Son adresse se termine
+par `/oldweb-editor.php`.
 
-Le site est à `/dendrila-retro/` et son éditeur à `/dendrila-retro/oldweb-editor.php`.
-Si ton domaine ou sous-domaine pointe déjà sur le dossier `dendrila-retro`
-extrait, ouvre directement `https://ton-domaine.fr/`.
+### Où déposer le ZIP
 
-### Où déposer le ZIP et le fichier de clé
+| Hébergement | Dossier et vérifications |
+| --- | --- |
+| **cPanel**, dont o2switch | Dans **Gestionnaire de fichiers**, ouvre le dossier du domaine. Pour le domaine principal, c’est souvent `public_html`. Utilise **Téléverser** puis **Extraire**. [Gestionnaire de fichiers](https://faq.o2switch.fr/cpanel/fichiers/gestionnaire-fichiers-web/) |
+| **Plesk** | Trouve la racine dans **Sites Web et Domaines → Paramètres d’hébergement**, souvent `httpdocs`. Utilise le gestionnaire du domaine. |
+| **hPanel / Hostinger** | Depuis **Sites web** ou **Hébergement**, ouvre le gestionnaire du domaine et repère son dossier public. Vérifie la version PHP dans le panneau. |
+| **OVHcloud** | Relève la racine du domaine dans l’espace de gestion. Décompresse le ZIP localement et transfère le dossier complet par SFTP. [Configuration PHP](https://docs.ovhcloud.com/fr/guides/web-cloud/web-hosting/configure-your-web-hosting) |
+| **Infomaniak** | Relève le dossier cible dans le Manager puis transfère le dossier complet par SFTP. [Dossier cible](https://www.infomaniak.com/fr/support/faq/963/modifier-le-dossier-dun-site) |
+| **Autre hébergement PHP** | Décompresse le ZIP et envoie le dossier complet dans la racine du domaine. Vérifie le stockage persistant privé avant d’exposer l’URL. |
 
-| Type d’hébergement | Déposer le site | Déposer le fichier de clé et régler PHP |
-| --- | --- | --- |
-| **Mutualisé avec cPanel**, dont o2switch | Dans **Gestionnaire de fichiers**, ouvrir le dossier associé au domaine. Pour le domaine principal, c’est souvent `public_html`. Utiliser **Téléverser**, puis **Extraire**. | Revenir au dossier personnel du compte, en amont de `public_html` et des dossiers des domaines. Au besoin, régler PHP via **Sélectionner une version de PHP** ou l’outil équivalent du compte. [Fichiers et archives](https://faq.o2switch.fr/cpanel/fichiers/gestionnaire-fichiers-web/) · [Sélection PHP](https://faq.o2switch.fr/guides/php/heberger-application-symfony/) |
-| **Mutualisé avec Plesk** | Dans **Sites Web et Domaines**, ouvrir le **Gestionnaire de fichiers** du domaine. Utiliser la racine indiquée dans **Paramètres d’hébergement**, souvent `httpdocs`. | Déposer le fichier dans le dossier privé de l’abonnement reconnu par PHP, en amont de la racine Web. Si l’assistant ne le trouve pas, voir [le réglage du dossier privé](#si-lassistant-ne-trouve-pas-le-fichier). [Documentation Plesk](https://docs.plesk.com/fr-FR/obsidian/quick-start-guide/explication-du-fonctionnement-de-plesk/g%C3%A9rer-l%E2%80%99h%C3%A9bergement-web.74401/) |
-| **Mutualisé avec hPanel ou autre panneau**, dont Hostinger | Ouvrir le gestionnaire de fichiers côté **Hébergement** ou **Sites web**, puis la racine du domaine. Elle peut s’appeler `public_html` ou avoir un nom personnalisé. | Si l’interface n’affiche que le dossier public, ouvrir la vue de tous les fichiers du compte ou un accès SFTP plus large si l’offre le permet. Utiliser le sélecteur PHP du site. [Repères hPanel](https://www.hostinger.com/fr/support/4047803-comment-changer-la-version-de-php-pour-les-sous-dossiers-ou-les-sous-domaines-chez-hostinger/) |
-| **OVHcloud Hébergement Web** | Relever la racine associée au domaine dans l’espace de gestion, puis y envoyer le dossier extrait via l’accès FTP/SFTP fourni. | Déposer le fichier de clé dans le dossier personnel de l’hébergement, en amont du dossier public, s’il est accessible avec ce compte. Vérifier la version PHP applicable au domaine. [Configuration PHP chez OVHcloud](https://docs.ovhcloud.com/fr/guides/web-cloud/web-hosting/configure-your-web-hosting) |
-| **Infomaniak Hébergement Web** | Repérer le dossier cible du site dans le **Manager** et y envoyer le dossier extrait par SFTP. Le chemin peut être `web` ou celui choisi lors de la création du site. | Déposer le fichier de clé dans le dossier privé reconnu par PHP, en amont du dossier du site. Vérifier la version PHP du site dans le Manager. [Dossier cible](https://www.infomaniak.com/fr/support/faq/963/modifier-le-dossier-dun-site) · [Version PHP](https://www.infomaniak.com/fr/support/faq/2053/modifier-la-version-php-utilisee-par-un-site-web) |
-| **Hébergement PHP sans gestionnaire de fichiers** | Décompresser le ZIP sur son ordinateur, puis envoyer `dendrila-retro` dans le dossier public avec un client SFTP ou le moyen fourni. | Transférer ensuite le fichier de clé, avec le même outil, dans le dossier personnel reconnu par PHP. Si le compte ne voit que la racine Web, passer par le support. |
+### VPS, serveur dédié et conteneurs
 
-### VPS, serveur dédié ou serveur de test
+Utilise un chemin stable, par exemple `/srv/dendrila/www` pour la racine
+publique et `/srv/dendrila/private` pour le stockage de l’instance. Le
+dossier privé doit exister, être accessible en écriture à PHP et rester
+hors de toutes les racines web. En PHP-FPM, passe son chemin au pool via
+`env[DENDRILA_RETRO_PRIVATE_HOME]`. Pour un conteneur, monte un volume
+persistant à cet emplacement et configure la même variable.
 
-Configurer Apache, Nginx ou ton serveur PHP existant pour servir la racine
-Web du domaine par HTTPS. Un exemple de disposition est
-`/srv/dendrila/www` comme racine publique, avec le dossier extrait
-`/srv/dendrila/www/dendrila-retro` et le fichier de clé dans
-`/srv/dendrila`. Ce dernier dossier correspond à `HOME` pour PHP dans
-cet exemple. PHP doit pouvoir y lire le fichier de clé et créer le dossier
-privé de l’instance. Garde `/srv/dendrila` hors des racines Web et des
-alias configurés pour les autres sites.
+Bloque l’accès HTTP à `dendrila-retro/retro/` dans le site virtuel si les
+fichiers `.htaccess` sont ignorés. Garde le dossier de données et le fichier
+de preuve hors des alias. Transmets le statut HTTPS à PHP depuis le serveur
+ou le proxy de confiance. N’utilise pas un en-tête transmis par un client
+comme preuve HTTPS. Un hébergement statique ou sans stockage persistant ne
+peut pas installer Retro.
 
-- Avec **PHP-FPM**, dans le pool du site, définis `env[HOME] = /srv/dendrila`
-  si le processus n’a pas déjà le bon dossier personnel. Pour Nginx,
-  assure-toi que PHP reçoit la racine du domaine et le statut HTTPS. Si
-  Nginx termine lui-même TLS, `fastcgi_param HTTPS $https if_not_empty;`
-  transmet ce statut. Derrière un proxy, règle-le via le proxy de confiance
-  et la configuration du serveur. [PHP-FPM](https://www.php.net/manual/fr/install.fpm.configuration.php) · [Paramètres FastCGI](https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html)
-- Avec **Apache**, sur une configuration compatible, `SetEnv HOME /srv/dendrila`
-  dans le site virtuel permet de fournir `HOME` aux scripts. Si les fichiers
-  `.htaccess` sont ignorés, configure la même protection dans le serveur
-  en refusant l’accès HTTP au sous-dossier `dendrila-retro/retro/`. Sur
-  **Nginx**, configure ce refus dans le site virtuel. La page
-  `/dendrila-retro/retro/portal-content.json` doit répondre **403** ou
-  **404**. [Directive Apache SetEnv](https://httpd.apache.org/docs/current/fr/mod/mod_env.html#setenv)
-- En **local**, utilise la même disposition et une adresse HTTPS de
-  développement. Le serveur PHP en HTTP seul permet de vérifier le
-  chargement des fichiers, mais l’assistant et l’éditeur exigent HTTPS.
+### Si l’assistant ne trouve pas de dossier privé
 
-### Docker et plateformes de conteneurs
+Retro peut repérer le dossier personnel sous `/home/compte/` ou utiliser
+le `HOME` reconnu par PHP si la racine du site en dépend. Demande à ton
+hébergeur un dossier hors de toutes les racines web dans lequel PHP peut
+lire et écrire. Si nécessaire, demande-lui de renseigner
+`DENDRILA_RETRO_PRIVATE_HOME` et d’autoriser le chemin dans `open_basedir`.
+Pour une mise à jour, conserve le dossier de données déjà utilisé.
 
-Utilise un conteneur qui exécute PHP 8.4 ou plus récent avec les extensions
-requises et sert le dossier Web par HTTPS, directement ou via un proxy
-de confiance. Configure un chemin stable dans le conteneur, par exemple
-`HOME=/srv/dendrila` et racine Web `/srv/dendrila/www`. Monte un volume
-persistant pour conserver le dossier de données privé que Retro crée dans
-`HOME`, en dehors de `www`. Dépose le fichier de clé dans ce même
-`HOME` via un montage de fichier ou l’accès d’administration. Vérifie que
-PHP peut écrire dans le volume et que le chemin de l’application reste
-identique d’un déploiement à l’autre. [Volumes Docker](https://docs.docker.com/engine/storage/volumes/)
+### Installation protégée facultative
 
-### Hébergements sans accès suffisant
+Pour activer la clé **avant d’ouvrir l’URL au public**, configure
+`DENDRILA_RETRO_REQUIRE_KEY=1` côté serveur ou utilise un kit personnel
+construit avec `python3 bin/package-retro.py kit-prive.zip --personal`.
+Avec ce kit, déploie uniquement `Site_a_envoyer.zip` et garde le fichier
+`LIRE-MOI.txt` qui contient la clé sur ton ordinateur.
 
-- **Sites statiques.** Une offre de fichiers statiques comme GitHub Pages
-  ne peut pas exécuter le ZIP. Le code PHP est nécessaire pour l’assistant
-  et l’éditeur. [Documentation GitHub Pages](https://docs.github.com/fr/pages/getting-started-with-github-pages/creating-a-github-pages-site)
-- **Offres WordPress gérées et services de création de sites fermés.**
-  Vérifie si l’offre permet d’exécuter une application PHP indépendante
-  et d’accéder à un dossier privé. Retro est une application autonome,
-  aucune installation ne se fait depuis le menu Extensions de WordPress.
-- **Services sans disque persistant.** Un environnement dont les fichiers
-  disparaissent au redémarrage ne peut pas conserver le site. Utilise une
-  offre PHP qui fournit aussi un stockage privé persistant.
-
-### Si l’assistant ne trouve pas le fichier
-
-Vérifie que le nom téléchargé est intact et que le fichier se trouve dans
-le dossier **personnel**, en amont du dossier Web. L’interface du ZIP
-emploie le mot « cPanel », y compris sur un autre panneau. C’est l’emplacement
-vu par PHP qui compte.
-
-Le ZIP repère automatiquement le dossier personnel quand la racine Web se
-trouve sous `/home/compte/`, `/home1/compte/` ou un chemin équivalent.
-Ailleurs, il utilise la variable `HOME` de PHP. Si le compte ne te permet pas
-de voir ce dossier ou si PHP ne peut pas l’ouvrir, voici quoi demander à l’hébergeur.
-
-> Quel est le dossier personnel de mon compte qui contient le dossier public
-> de mon domaine, tout en restant inaccessible depuis le Web ? Est-ce que
-> PHP peut y lire un fichier et y créer un dossier privé ? Si le chemin du
-> site ne commence pas par `/home/mon-compte/`, pouvez-vous transmettre le
-> chemin du dossier personnel à PHP dans sa variable `HOME` ?
-
-Si PHP a une restriction de chemins (`open_basedir`), le support doit
-autoriser l’accès à ce dossier privé pour l’application. Celui-ci doit
-toujours rester inaccessible depuis le Web.
+En mode protégé par l’hébergeur, l’assistant permet de choisir une clé et
+de télécharger son empreinte. Place le fichier `dendrila-cle-…txt` sans
+le renommer dans le dossier privé reconnu par PHP, puis saisis la clé
+d’origine dans l’assistant. Un fichier ancien encore présent maintient
+l’instance en mode protégé. S’il est illisible ou invalide, le mode reste
+verrouillé jusqu’à son remplacement par une preuve valide. Les anciens
+kits personnels restent protégés par leur clé.
 
 ### Mise à jour et déménagement
 
@@ -132,7 +93,30 @@ personnel s’il existe. Avec le ZIP commun, le chemin du dossier applicatif
 sert à retrouver les données. Si ce chemin change lors d’un déménagement,
 fais relier la sauvegarde au nouvel emplacement avant la remise en ligne.
 
-Le ZIP se reconstruit avec `python3 bin/package-retro.py Dendrila_Retro.zip`.
+Les comptes déjà installés sans identifiant continuent à utiliser leur mot
+de passe seul. Une installation ancienne peut contenir les exemples
+`retro/*-content.json`. Après sauvegarde, retire ces anciens exemples lors de
+la mise à jour. Le ZIP actuel les livre sous forme de fichiers PHP protégés.
+
+### Reproduire l’archive et les démonstrations
+
+Pour reconstruire l’archive, les démos et les trois vignettes sur un même SHA,
+lance `bin/release-retro.sh DOSSIER SHA_GIT` dans un checkout propre. PHP 8.4+,
+Playwright avec Chromium, OpenSSL et Python 3.10+ avec Pillow sont nécessaires
+pour la reproduction des captures. Les variables `PHP_BIN`,
+`PLAYWRIGHT_MODULE` et `CHROMIUM_BIN` peuvent préciser les outils.
+
+Pour exécuter les étapes séparément :
+
+1. Construis l’archive avec `python3 bin/package-retro.py Dendrila_Retro.zip`.
+2. Exporte le contenu depuis cette archive avec
+   `python3 bin/export-retro-demos.py Dendrila_Retro.zip DOSSIER --source SHA_GIT`.
+   Le manifeste contient la provenance, les empreintes des ressources et
+   le SHA-256 de l’archive.
+3. Exécute `node tests/retro-install-run.cjs Dendrila_Retro.zip CAPTURES` avec
+   PHP, Chromium/Playwright, Python/Pillow et OpenSSL disponibles. Le test
+   installe chaque thème en HTTPS local, vérifie la parité et génère les
+   vignettes WebP pour la vitrine.
 
 ## Installation avancée dans un Dendrila existant
 

@@ -23,7 +23,7 @@ code { font-size:.85em; }
 <body>
 <div id="page">
 <h1>Créer ta clé d’installation</h1>
-<p><strong>Étape 1 sur 2.</strong> Choisis une clé unique et garde-la à portée de main. Tu en auras besoin à l’étape suivante.</p>
+<p><strong>Installation protégée.</strong> Choisis une clé unique et garde-la à portée de main. Tu en auras besoin à l’étape suivante.</p>
 <?php if ($error !== ''): ?><p class="error"><strong><?= $escape($error) ?></strong></p><?php endif ?>
 <form method="post" action="oldweb-editor.php">
 <div>
@@ -33,10 +33,8 @@ code { font-size:.85em; }
 <p><input type="submit" name="action" value="Télécharger le fichier de clé"></p>
 </div>
 </form>
-<p>Dans <strong>cPanel → Gestionnaire de fichiers</strong>, ouvre ton <strong>dossier personnel</strong>,
-celui qui contient le dossier <code>public_html</code>. Téléverse dans ce dossier le fichier téléchargé.
-Garde le nom indiqué par le téléchargement (sans ajouter <code>(1)</code> à la fin).</p>
-<p><a href="oldweb-editor.php?verifier=1">J’ai téléversé le fichier, continuer</a></p>
+<p>Téléverse le fichier dans le dossier privé de ton hébergement, hors de toutes les racines web. Conserve le nom indiqué par le téléchargement.</p>
+<p><a href="oldweb-editor.php">J’ai téléversé le fichier, continuer</a></p>
 </div>
 </body>
 </html>

@@ -8,23 +8,37 @@ use RuntimeException;
 
 final readonly class Standalone
 {
-    public function __construct(private array $bundle) {}
+    public function __construct(private array $bundle)
+    {
+        if (!is_string($bundle['id'] ?? null) || !preg_match('/^[a-f0-9]{24}$/D', $bundle['id'])
+            || (array_key_exists('activation', $bundle)
+                && (!is_string($bundle['activation']) || !preg_match('/^[a-f0-9]{64}$/D', $bundle['activation'])))) {
+            throw new RuntimeException('La configuration privée du kit est invalide.');
+        }
+    }
 
     public function directory(string $documentRoot, string $home): string
     {
-        $root = realpath($documentRoot);
-        // cPanel may omit HOME when it runs PHP through FastCGI.
-        if (is_string($root) && preg_match('~^(/home[0-9]*/[^/]+)/~D', $root, $parts) === 1) {
+        $root = $documentRoot === '' ? false : realpath($documentRoot);
+        $configured = getenv('DENDRILA_RETRO_PRIVATE_HOME');
+        if (is_string($configured) && $configured !== '') {
+            $home = $configured;
+        } elseif (is_string($root) && preg_match('~^(/home[0-9]*/[^/]+)/~D', $root, $parts) === 1) {
+            // cPanel can omit HOME in FastCGI.
             $home = $parts[1];
         }
         $home = $home !== '' ? realpath($home) : false;
-        if (!is_string($root) || !is_string($home) || $home === '/'
-            || !str_starts_with($root, $home . DIRECTORY_SEPARATOR)) {
-            throw new RuntimeException('Dendrila Retro ne trouve pas d’espace privé sur cet hébergement. Vérifie que les fichiers sont déposés dans le dossier de ton domaine, depuis ton compte cPanel.');
+        if (!is_string($root) || !is_string($home) || $home === '/' || $home === $root
+            || !is_dir($home) || str_starts_with($home, $root . DIRECTORY_SEPARATOR)
+            || (($configured === false || $configured === '') && !str_starts_with($root, $home . DIRECTORY_SEPARATOR))) {
+            throw new RuntimeException('Dendrila Retro ne trouve pas de dossier privé hors du dossier web. Vérifie le guide de ton hébergement.');
         }
         $directory = $home . '/.dendrila-retro-' . $this->bundle['id'];
-        if (is_link($directory) || (is_dir($directory) && (fileperms($directory) & 0077) !== 0)) {
-            throw new RuntimeException('Dendrila Retro ne peut pas ouvrir son espace privé. Vérifie ses permissions dans cPanel.');
+        if (is_link($directory) || (file_exists($directory) && (!is_dir($directory)
+            || !is_writable($directory) || (fileperms($directory) & 0077) !== 0))
+            || (!is_dir($directory) && !is_writable($home))
+            || $directory === $root || str_starts_with($root, $directory . DIRECTORY_SEPARATOR)) {
+            throw new RuntimeException('Le dossier privé de Dendrila Retro doit être accessible en écriture et réservé à ton compte.');
         }
         return $directory;
     }
@@ -38,7 +52,12 @@ final readonly class Standalone
             header('Allow: ' . ($editor ? 'GET, HEAD, POST' : 'GET, HEAD'));
             return false;
         }
-        $installed = is_file($standaloneDirectory . '/appearance.json');
+
+        $statePath = $standaloneDirectory . '/appearance.json';
+        if (is_link($statePath) || (file_exists($statePath) && !is_file($statePath))) {
+            throw new RuntimeException('Dendrila Retro ne peut pas lire son état privé.');
+        }
+        $installed = is_file($statePath);
         if (!$editor) {
             if (!$installed) {
                 header('Cache-Control: no-store');
@@ -55,13 +74,16 @@ final readonly class Standalone
             return false;
         }
         session_name('DENDRILA_RETRO_' . $this->bundle['id']);
-        if (!session_start(['use_strict_mode' => 1, 'cookie_secure' => true, 'cookie_httponly' => true, 'cookie_samesite' => 'Strict'])) {
+        if (!session_start(['use_strict_mode' => 1, 'use_only_cookies' => 1, 'cookie_secure' => true,
+            'cookie_httponly' => true, 'cookie_samesite' => 'Strict'])) {
             throw new RuntimeException('Dendrila Retro ne peut pas ouvrir de session sur cet hébergement.');
         }
 
         $store = $installed ? new PortalStorage($standaloneDirectory, $_SERVER['DOCUMENT_ROOT']) : null;
-        $hash = $store?->state()['owner_password_hash'] ?? '';
-        if ($installed && (!is_string($hash) || $hash === '')) {
+        $state = $store?->state() ?? [];
+        $hash = $state['owner_password_hash'] ?? '';
+        $ownerUsername = $state['owner_username'] ?? null; // Existing installations sign in with a password alone.
+        if ($installed && (!is_string($hash) || $hash === '' || ($ownerUsername !== null && !is_string($ownerUsername)))) {
             throw new RuntimeException('Le compte de ce portail doit être restauré depuis une sauvegarde.');
         }
         $signedIn = $installed && ($_SESSION['retro_user'] ?? '') === hash('sha256', $hash);
@@ -77,10 +99,16 @@ final readonly class Standalone
 
         $error = '';
         $submitted = [];
+        $submittedUsername = '';
         $personal = isset($this->bundle['activation']);
         $proofName = 'dendrila-cle-' . $this->bundle['id'] . '.txt';
-        $activationHash = $installed ? null : ($this->bundle['activation']
-            ?? $this->readProof(dirname($standaloneDirectory) . '/' . $proofName));
+        $proofPath = dirname($standaloneDirectory) . '/' . $proofName;
+        $policy = getenv('DENDRILA_RETRO_REQUIRE_KEY');
+        // Even unreadable or malformed legacy proof files must keep the setup locked.
+        $requiresKey = !$installed && ($personal || is_link($proofPath) || file_exists($proofPath)
+            || (is_string($policy) && $policy !== '' && $policy !== '0'));
+        $activationHash = $requiresKey ? ($this->bundle['activation'] ?? $this->readProof($proofPath)) : null;
+
         if ($method === 'POST') {
             $token = $_POST[$installed ? 'retro_token' : 'csrf'] ?? null;
             if (!is_string($token) || !hash_equals($csrf, $token)) {
@@ -96,58 +124,73 @@ final readonly class Standalone
             }
 
             try {
-                if (!$installed && !$personal && $action === 'Télécharger le fichier de clé') {
+                if ($requiresKey && !$personal && $action === 'Télécharger le fichier de clé') {
                     $key = $this->chosenKey($_POST['activation'] ?? null);
                     header('Content-Type: text/plain; charset=UTF-8');
                     header('Content-Disposition: attachment; filename="' . $proofName . '"');
                     echo $this->proofHash($key) . "\n";
                     return false;
                 }
-                $password = $_POST['password'] ?? null;
-                if (!is_string($password) || strlen($password) > 72 || str_contains($password, "\0")) {
-                    throw new InvalidArgumentException('Le mot de passe est trop long ou incorrect.');
-                }
 
+                $username = $_POST['username'] ?? '';
+                $submittedUsername = is_string($username) ? substr($username, 0, 32) : '';
+                $password = $_POST['password'] ?? null;
                 if ($installed) {
-                    if (!$this->allowAttempt($standaloneDirectory)) {
-                        http_response_code(429);
-                        header('Retry-After: 300');
-                        throw new InvalidArgumentException('Trop de tentatives. Réessaie dans quelques minutes.');
+                    if ($action !== 'Se connecter') {
+                        http_response_code(409);
+                        throw new InvalidArgumentException('Ce portail est déjà installé.');
                     }
-                    if (!password_verify($password, $hash)) {
+                    $this->checkAttempt($standaloneDirectory, 'login');
+                    // Verify the password even if the username is wrong to avoid a timing distinction.
+                    $validPassword = is_string($password) && strlen($password) <= 72
+                        && !str_contains($password, "\0") && password_verify($password, $hash);
+                    if (!$validPassword || ($ownerUsername !== null
+                        && (!is_string($username) || !hash_equals($ownerUsername, $username)))) {
                         http_response_code(403);
-                        throw new InvalidArgumentException('Mot de passe incorrect.');
+                        throw new InvalidArgumentException('Identifiant ou mot de passe incorrect.');
                     }
                 } else {
                     $submitted = is_array($_POST['site'] ?? null) ? $_POST['site'] : [];
-                    $key = $_POST['activation'] ?? null;
-                    if ($activationHash === null) {
-                        throw new InvalidArgumentException('Téléverse d’abord le fichier de clé dans ton dossier personnel cPanel.');
+                    $submittedTheme = PortalThemes::selected($_POST['theme'] ?? null);
+                    if ($action !== 'Installer Dendrila Retro') {
+                        throw new InvalidArgumentException('Action d’installation inconnue.');
                     }
-                    $candidate = $personal
-                        ? (is_string($key) && strlen(trim($key)) === 32 ? hash('sha256', trim($key)) : '')
-                        : $this->proofHash($this->chosenKey($key));
-                    if (!hash_equals($activationHash, $candidate)) {
-                        throw new InvalidArgumentException($personal
-                            ? 'La clé d’installation ne correspond pas. Copie la clé du fichier LIRE-MOI.txt.'
-                            : 'La clé d’installation ne correspond pas au fichier déposé dans cPanel.');
+                    if ($requiresKey && $activationHash === null) {
+                        throw new InvalidArgumentException('Le mode protégé exige un fichier de clé valide dans le dossier privé.');
                     }
-                    if (mb_strlen($password, 'UTF-8') < 14) {
+                    if (!is_string($username) || !preg_match('/^[A-Za-z0-9._-]{3,32}$/D', $username)) {
+                        throw new InvalidArgumentException('L’identifiant doit faire de 3 à 32 caractères, avec lettres sans accent, chiffres, points, tirets ou tirets bas.');
+                    }
+                    if (!is_string($password) || strlen($password) > 72 || str_contains($password, "\0")
+                        || !mb_check_encoding($password, 'UTF-8') || mb_strlen($password, 'UTF-8') < 14) {
                         throw new InvalidArgumentException('Choisis un mot de passe d’au moins 14 caractères et de 72 octets au maximum.');
                     }
-                    if (!is_dir($standaloneDirectory) && !@mkdir($standaloneDirectory, 0700) && !is_dir($standaloneDirectory)) {
-                        throw new RuntimeException('Dendrila Retro ne parvient pas à créer son espace privé dans ton compte d’hébergement.');
+                    if ($password !== ($_POST['password_confirmation'] ?? null)) {
+                        throw new InvalidArgumentException('Les deux mots de passe doivent être identiques.');
+                    }
+                    $this->ensureDirectory($standaloneDirectory);
+                    $this->checkAttempt($standaloneDirectory, 'setup');
+                    if ($activationHash !== null) {
+                        $key = $_POST['activation'] ?? null;
+                        $candidate = $personal
+                            ? (is_string($key) && preg_match('/^[a-f0-9]{32}$/D', trim($key)) ? hash('sha256', trim($key)) : '')
+                            : $this->proofHash($this->chosenKey($key));
+                        if (!hash_equals($activationHash, $candidate)) {
+                            throw new InvalidArgumentException('La clé d’installation ne correspond pas au kit ou au fichier de clé.');
+                        }
                     }
                     $hash = password_hash($password, PASSWORD_DEFAULT);
                     $store = new PortalStorage($standaloneDirectory, $_SERVER['DOCUMENT_ROOT']);
-                    if (!$store->change(0, 'install', $submitted, [], PortalThemes::selected($_POST['theme'] ?? null), $hash)) {
+                    if (!$store->change(0, 'install', $submitted, [], $submittedTheme, $hash, $username)) {
                         http_response_code(409);
-                        header('Location: oldweb-editor.php', true, 303);
+                        echo 'Ce portail vient d’être installé. <a href="oldweb-editor.php">Ouvrir la connexion</a>.';
                         return false;
                     }
                 }
 
-                session_regenerate_id(true);
+                if (!session_regenerate_id(true)) {
+                    throw new RuntimeException('Recharge la page pour te connecter au portail.');
+                }
                 $_SESSION = ['retro_token' => bin2hex(random_bytes(32)), 'retro_user' => hash('sha256', $hash)];
                 header('Location: oldweb-editor.php' . ($installed ? '' : '?result=install'), true, 303);
                 return false;
@@ -159,18 +202,39 @@ final readonly class Standalone
             }
         }
 
-        if (!$installed && !$personal && $activationHash === null && $error === ''
-            && ($_GET['verifier'] ?? '') === '1') {
-            $error = 'Le fichier de clé est introuvable ou illisible. Vérifie le dossier et le nom du fichier dans cPanel.';
-        }
         if ($method !== 'HEAD') {
-            $template = $installed ? 'standalone-login.php' : 'portal-install.php';
-            if (!$installed && !$personal && $activationHash === null) {
-                $template = 'standalone-activation.php';
-            }
+            $template = $installed ? 'standalone-login.php'
+                : ($requiresKey && !$personal && $activationHash === null ? 'standalone-activation.php' : 'portal-install.php');
             require __DIR__ . '/' . $template;
         }
         return false;
+    }
+
+    private function ensureDirectory(string $directory): void
+    {
+        if (!is_dir($directory) && !@mkdir($directory, 0700)) {
+            clearstatcache(true, $directory);
+        }
+        if (is_link($directory) || !is_dir($directory) || (fileperms($directory) & 0077) !== 0) {
+            throw new RuntimeException('Dendrila Retro ne parvient pas à créer son dossier privé.');
+        }
+        $deny = $directory . '/.htaccess';
+        if (!file_exists($deny)) {
+            $handle = @fopen($deny, 'x');
+            if ($handle !== false) {
+                fwrite($handle, "Require all denied\n");
+                fclose($handle);
+            }
+        }
+    }
+
+    private function checkAttempt(string $directory, string $scope): void
+    {
+        if (!$this->allowAttempt($directory, $scope)) {
+            http_response_code(429);
+            header('Retry-After: 300');
+            throw new InvalidArgumentException('Trop de tentatives. Réessaie dans quelques minutes.');
+        }
     }
 
     private function chosenKey(mixed $value): string
@@ -197,9 +261,9 @@ final readonly class Standalone
             ? trim($value) : null;
     }
 
-    private function allowAttempt(string $directory): bool
+    private function allowAttempt(string $directory, string $scope): bool
     {
-        $file = fopen($directory . '/login-attempts.json', 'c+');
+        $file = fopen($directory . '/' . $scope . '-attempts.json', 'c+');
         if ($file === false) {
             throw new RuntimeException('Le portail ne peut pas enregistrer les tentatives de connexion.');
         }

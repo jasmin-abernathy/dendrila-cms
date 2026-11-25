@@ -30,8 +30,8 @@ body, #site { <?= $backgroundCss ?> }
 <div id="site" class="zone-page">
 <?php if ($preview): ?><p class="preview"><strong>Aperçu du brouillon</strong> | <a href="oldweb-editor.php">Retour aux réglages</a></p><?php endif ?>
 <div id="pub" class="zone-banner"><?= $image('banner') ?><a href="#agenda"><?= $t('banner') ?></a></div>
-<h1 id="enseigne" class="zone-title"><?= $t('name') ?></h1>
-<p id="sous-titre"><?= $t('tagline') ?></p>
+<h1 id="enseigne" class="zone-title site-name"><?= $t('name') ?></h1>
+<p id="sous-titre" class="site-tagline"><?= $t('tagline') ?></p>
 <div id="menu" class="zone-menu">
 <ul>
 <li><a href="#ouverture">Accueil</a></li>
@@ -72,7 +72,7 @@ body, #site { <?= $backgroundCss ?> }
 <div class="texte"><h2><?= $t('archiveTitle') ?></h2><p><?= $t('archiveText') ?></p></div>
 </div>
 </div>
-<div id="pied"><?= $t('name') ?> &copy; <?= $t('year') ?> &nbsp; | &nbsp; <a href="#enseigne">Haut de page</a>
+<div id="pied"><span class="site-name"><?= $t('name') ?></span> &copy; <?= $t('year') ?> &nbsp; | &nbsp; <a href="#enseigne">Haut de page</a>
 <?php if ($hasGif): ?> &nbsp; | &nbsp; <a href="<?= $preview ? '?preview=1' : '?page=1' ?><?= $still ? '' : '&amp;still=1' ?>"><?= $still ? 'Afficher les GIF' : 'Masquer les GIF' ?></a><?php endif ?></div>
 </div>
 </body>

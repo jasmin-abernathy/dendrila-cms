@@ -43,7 +43,7 @@ body, #site { <?= $backgroundCss ?> }
 <?= $image('banner') ?>
 </div>
 <div class="mast" id="haut">
-<h1 id="enseigne" class="zone-title<?= mb_strlen($content['name'], 'UTF-8') > 13 ? ' wide' : '' ?>"><?= $t('name') ?></h1>
+<h1 id="enseigne" class="zone-title site-name<?= mb_strlen($content['name'], 'UTF-8') > 13 ? ' wide' : '' ?>"><?= $t('name') ?></h1>
 <ul id="menu" class="zone-menu<?= $menuOriginal ? ' menu-original' : '' ?>">
 <li><a class="red" href="#ouverture">Arcade</a></li>
 <li><a class="green" href="#journal">Journal</a></li>
@@ -115,7 +115,7 @@ body, #site { <?= $backgroundCss ?> }
 <div class="clear"></div>
 </div>
 <div class="footer" id="credits">
-<p><strong><?= $t('name') ?></strong> · <?= $t('tagline') ?> | <a href="#haut">Haut de page</a></p>
+<p><strong class="site-name"><?= $t('name') ?></strong> · <span class="site-tagline"><?= $t('tagline') ?></span> | <a href="#haut">Haut de page</a></p>
 <p><a href="assets/borne-02/licences/illustrations.txt">Crédits des illustrations (CC0)</a></p>
 </div>
 </div>
