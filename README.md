@@ -70,7 +70,7 @@ Par défaut, les réglages d'API d'un site commencent avec une liste de modules 
 
 Maquette à largeur fixe en HTML 4.01 et CSS 2, avec éditeur d’apparence authentifié.
 Télécharger [le ZIP d’installation](downloads/Dendrila_Retro.zip). Voir
-[le guide cPanel](docs/OLDWEB-FIXED-PORTAL.md) et le
+[le guide selon ton hébergement](docs/OLDWEB-FIXED-PORTAL.md) et le
 [guide de création de thèmes](docs/OLDWEB-THEMES.md).
 
 ## Fonds rétro animés sans Flash (opt-in)
