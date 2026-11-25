@@ -66,6 +66,11 @@ La galerie statique de démonstration des six directions visuelles se trouve dan
 
 Par défaut, les réglages d'API d'un site commencent avec une liste de modules vide. Une fois un mapping de module renseigné en base, le snapshot projette les contenus par l'intermédiaire des services et permissions du CMS ; il ne renvoie que les champs explicitement déclarés. La configuration des modules n'a pas encore d'écran d'administration, et le manifeste de découverte n'est pas publié.
 
+## Oldweb · Canal 57
+
+Maquette à largeur fixe en HTML 4.01 et CSS 2, avec éditeur d’apparence authentifié.
+Voir [l’installation et les réglages](docs/OLDWEB-FIXED-PORTAL.md).
+
 ## Fonds rétro animés sans Flash (opt-in)
 
 Une première implémentation **Ripple** WebGL, avec image fixe de repli et contrôle pause, est disponible comme extension facultative du renderer public et du site de référence. Pour la démonstration locale :

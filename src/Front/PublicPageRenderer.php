@@ -88,10 +88,6 @@ final readonly class PublicPageRenderer
             $ripple = (new OldwebRippleBackdrop())->render($presentation['backdrop'], $mediaUrls, $language);
         }
 
-        $mosaic = isset($presentation['gif_mosaic']) && $ripple === null
-            ? (new OldwebGifMosaic())->render($presentation['gif_mosaic'], $language)
-            : null;
-
         [$hero, $bodyBlocks] = $this->extractHero($blocks, $structure['hero']);
         $bodyMarkup = '';
         foreach ($bodyBlocks as $index => $block) {
@@ -135,10 +131,10 @@ final readonly class PublicPageRenderer
             . $this->seoHead->render($site, $page, $seo)
             . '<link rel="stylesheet" href="' . self::escape($themeCssUrl) . '">'
             . '<style data-dendrila-presentation>' . $compiledCss . '</style>'
-            . ($ripple['head'] ?? '') . ($mosaic['head'] ?? '')
-            . '</head><body ' . $attributes . ($ripple !== null ? ' class="d-ripple-enabled"' : ($mosaic !== null ? ' class="d-mosaic-page"' : '')) . '>'
+            . ($ripple['head'] ?? '')
+            . '</head><body ' . $attributes . ($ripple !== null ? ' class="d-ripple-enabled"' : '') . '>'
             . '<a class="d-skip-link" href="#contenu">' . ($language === 'en' ? 'Skip to content' : 'Aller au contenu') . '</a>'
-            . ($ripple['markup'] ?? '') . ($mosaic['markup'] ?? '')
+            . ($ripple['markup'] ?? '')
             . '<header class="d-header"><div class="d-shell d-header__inner">'
             . '<a class="d-brand" href="' . self::escape($homeUrl) . '">' . $logo . '<span>' . self::escape($siteName) . '</span></a>'
             . $this->renderNavigation($navigation, $language)

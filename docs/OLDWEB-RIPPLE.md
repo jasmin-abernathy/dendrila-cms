@@ -11,20 +11,9 @@ Première implémentation **originale** d'un fond Ripple décoratif, inspirée d
 - Aucun CDN, bibliothèque JS ni média chargé depuis un tiers.
 - Aucune animation ajoutée aux pages existantes : **activation explicite nécessaire**.
 
-Les styles `oldweb-personal`, `oldweb-portal` et `oldweb-blog` utilisent le catalogue de rendu fourni par le CMS et les fichiers JSON installés par Oldweb-kit. La composition, les blocs et les médias continuent de passer par le renderer public. Les schémas v1 et le contrat MMW restent compatibles.
-
 ## Démonstration locale
 
-Après installation des trois styles depuis Oldweb-kit, lancer depuis le CMS :
-
-```sh
-composer install
-php -S 127.0.0.1:8080 -t public examples/oldweb/demo.php
-```
-
-Ouvrir [la démonstration locale](http://127.0.0.1:8080/). Les liens donnent accès aux trois thèmes et à Ripple. Dans **Personnaliser**, sélectionner un thème, une couleur de liens, un fond et ses paramètres. L’aperçu, la publication et la restauration sont distincts et utilisent uniquement les données de session de la démonstration.
-
-### Constructeur de référence
+La maquette Oldweb retenue est [Canal 57](OLDWEB-FIXED-PORTAL.md). La commande ci-dessous reste disponible pour vérifier le moteur Ripple sur le site de référence.
 
 Avec PHP 8.5+, Composer et un catalogue de `dendrila-design-kits` compatible (voir `README.md`) :
 
@@ -69,37 +58,6 @@ php tests/reference-site-run.php
 node --check public/assets/oldweb-ripple.js
 ```
 
-La suite PHP couvre les contrats et le fonctionnement des chemins existants. Vérifier aussi les trois thèmes dans un navigateur avec le moteur WebGL actif, puis avec mouvement réduit et en simulant une perte de contexte. Dans la démonstration, essayer un aperçu, vérifier la page publiée dans un deuxième onglet de la même session, publier et restaurer la version précédente.
-
-## Intégration au site
-
-Le site fournit sa composition et sa carte de médias publics à `OldwebAppearance::resolve()`. Le front utilise la présentation résultante et sert `/assets/oldweb/themes/retro.css` pour les thèmes Oldweb. Les réglages de l’éditeur de démonstration illustrent la prévisualisation et la publication. Le back-office du site doit encore fournir son authentification, sa persistance par site et sa sélection de médias. Tester ensuite les droits, l’édition concurrente et le retour arrière sur une instance de préproduction.
+La suite PHP couvre les contrats et les chemins existants. Vérifier aussi le moteur dans un navigateur avec WebGL actif, puis avec mouvement réduit et en simulant une perte de contexte.
 
 Mesurer CPU/GPU, batterie et EcoIndex sur un appareil modeste avant toute affirmation sur la consommation. Les autres préréglages de fond restent à étudier.
-
-## Fonds GIF en mosaïque
-
-L’éditeur de démonstration propose le mode **Mosaïque GIF** avec une sélection
-de 1 à 10 GIF. Pour l’essayer avec les six tuiles d’archive, placer des copies
-locales de `stars.gif`, `backgroundclouds.gif`, `bluewater.gif`,
-`circuitboard.gif`, `bgpinkmarble.gif` et `bricks.gif` dans un dossier,
-puis lancer le serveur avec `DENDRILA_OLDWEB_GIF_DIR=/chemin/des/gifs`.
-Le dossier peut aussi contenir d’autres GIF aux noms simples. Les originaux
-sont référencés dans [Tacky Textures](https://walnet.org/help/backgrounds).
-
-Le back-office de l’instance fournit les identifiants sélectionnés dans
-`settings['gif_ids']` ainsi que le tableau des URL publiques et les métadonnées
-GIF de confiance à `OldwebAppearance::resolve()`. Les métadonnées sont
-indexées par le même identifiant et contiennent `mime` (`image/gif`),
-`width` et `height` en pixels, issus de la médiathèque. Une liste vide
-laisse la place au fond uni ou à Ripple. Une sélection active prend la priorité
-sur Ripple. L’éditeur de démonstration utilise la session locale.
-
-Le rendu serveur compose les rangées sans JavaScript. Les points de rupture
-ajoutent progressivement des tuiles entre 600 et 1 440 px. Chaque rangée a
-pour hauteur maximale celle du GIF le plus court de la rangée. Les proportions
-des tuiles sont conservées. Si l’écran est trop large pour couvrir la rangée
-à la hauteur de la source, le surplus est masqué par le cadre. Le visiteur
-peut également masquer entièrement le fond. Les GIF historiques sont
-chargés depuis les médias locaux. Leurs droits de redistribution restent à
-vérifier avant de les inclure dans le kit.
