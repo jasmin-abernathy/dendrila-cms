@@ -20,7 +20,7 @@ Avoid modern features outside the retro profile: `main`, `nav`, `section`, `vide
 
 ### Signal 96 and custom backgrounds
 
-Signal 96 follows 1996 HTML practices, CSS 1 and uses twelve local GIFs. The light gray-beige grid is adapted from Kenney's Pattern Pack Pixel 1.1 (tile_0048), licensed CC0 1.0. All three themes offer a site background choice: theme default, solid color or an image tiled on both axes at its natural size. An uploaded GIF, PNG or JPEG remains available when switching to solid color unless explicitly removed. Uploaded backgrounds follow the draft, publication and restoration rules of other media. For existing Signal 96 installations, apply the original palette to restore the new colors without overwriting images.
+Signal 96 follows 1996 HTML practices, CSS 1 and uses twelve local GIFs. The light gray-beige pattern is adapted from Kenney's Pattern Pack Pixel 1.1 (tile_0039), licensed CC0 1.0. All three themes offer a site background choice: theme default, solid color or an image tiled on both axes at its natural size. An uploaded GIF, PNG or JPEG remains available when switching to solid color unless explicitly removed. Uploaded backgrounds follow the draft, publication and restoration rules of other media. For existing Signal 96 installations, apply the original palette to restore the new colors without overwriting images.
 
 ## Add a theme
 
