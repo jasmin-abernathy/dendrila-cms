@@ -5,8 +5,8 @@ use Dendrila\Cms\Oldweb\PortalAppearance;
 
 require __DIR__ . '/portal-view.php';
 
-$selectors = ['page' => 'site', 'banner' => 'pub', 'title' => 'enseigne', 'menu' => 'menu',
-    'intro' => 'ouverture', 'news' => 'direct', 'agenda' => 'agenda', 'archive' => 'archives', 'focus' => 'droite'];
+$selectors = ['page' => '#site', 'banner' => '#pub', 'title' => '#enseigne', 'menu' => '#menu a',
+    'intro' => '#ouverture', 'news' => '#direct', 'agenda' => '#agenda', 'archive' => '#archives', 'focus' => '#droite'];
 ?>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html lang="fr">
@@ -16,8 +16,8 @@ $selectors = ['page' => 'site', 'banner' => 'pub', 'title' => 'enseigne', 'menu'
 <link rel="stylesheet" type="text/css" href="<?= $escape($theme['stylesheet']) ?>">
 <style type="text/css">
 <?php foreach (PortalAppearance::ZONES as $key => [, , , $width, $height]): ?>
-#<?= $selectors[$key] ?><?= $key === 'menu' ? ' a' : '' ?> { <?= $format($key) ?>; }
-<?php if ($width > 0): ?>
+<?= $selectors[$key] ?> { <?= $format($key) ?>; }
+<?= $blockFontRule($key, $selectors[$key]) ?><?php if ($width > 0): ?>
 .zone-<?= $key ?> img.illustration { max-width:<?= $width ?>px; max-height:<?= $height ?>px; }
 <?php endif ?>
 <?php endforeach ?>

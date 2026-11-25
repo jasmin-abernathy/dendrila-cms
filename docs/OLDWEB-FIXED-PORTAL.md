@@ -161,6 +161,13 @@ sites existants continuent de passer par leurs routes habituelles.
 
 ## Personnaliser
 
+**Police générale** change la police de base du site. Chaque bloc possède
+aussi une liste **Police** avec des familles comme Arial, Verdana, Tahoma,
+Courier New ou Comic Sans MS. **Police du thème** rend au bloc son réglage
+d’origine. Ces choix utilisent les familles installées sur l’appareil du
+visiteur et une famille de repli si besoin. Aucun fichier de police ne se
+charge à l’ouverture du site.
+
 Choisis **Canal 57**, **Borne 02** ou **Signal 96** dans **Thème du portail**. Pour reprendre
 les couleurs et bordures d’origine du thème choisi, coche la case
 correspondante avant d’enregistrer le brouillon. Les couleurs existantes

@@ -52,7 +52,7 @@ Signal 96 reprend les usages HTML de 1996, CSS 1 et douze GIF locaux. Le motif T
 La palette facultative `defaults` s’applique à la première installation
 avec ce thème. Sur un site existant, le changement de thème utilise les
 réglages d’apparence du brouillon, sauf si la personne applique la palette
-d’origine du thème sélectionné. Le nom du thème, les couleurs, les bordures et
+d’origine du thème sélectionné. Le nom du thème, les couleurs, les bordures, les polices et
 les images se prévisualisent et se publient ensemble.
 
 Borne 02 et Signal 96 déclarent aussi un fichier `content` de démonstration dans

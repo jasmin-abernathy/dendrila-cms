@@ -35,7 +35,7 @@ a:focus,input:focus,select:focus { outline:2px solid #9f3600; }
 <?php endif ?>
 <?php if ($message !== ''): ?><p><strong><?= $escape($message) ?></strong></p><?php endif ?>
 <?php if ($error !== ''): ?><p class="error"><strong><?= $escape($error) ?></strong></p><?php endif ?>
-<p>Utilise des couleurs <code>#RRGGBB</code>. Les fichiers GIF, PNG et JPEG sont limités à 1 Mio et 1 600 px par côté. Renseigne un texte de remplacement si l’image donne une information.</p>
+<p>Utilise des couleurs <code>#RRGGBB</code>. Les polices sont choisies parmi celles disponibles sur l’appareil du visiteur. Les fichiers GIF, PNG et JPEG sont limités à 1 Mio et 1 600 px par côté. Renseigne un texte de remplacement si l’image donne une information.</p>
 <form method="post" action="oldweb-editor.php" enctype="multipart/form-data">
 <div>
 <input type="hidden" name="csrf" value="<?= $escape($csrf) ?>">
@@ -53,6 +53,10 @@ a:focus,input:focus,select:focus { outline:2px solid #9f3600; }
 <legend><?= $escape($label) ?></legend>
 <?php
     $zone = $state['draft'][$key];
+    $font = $submitted[$key]['font'] ?? $zone['font'] ?? 'theme';
+    if (!is_string($font) || !isset(PortalAppearance::FONTS[$font])) {
+        $font = 'theme';
+    }
     foreach (['background', 'text', 'border', 'alt'] as $field) {
         $value = $submitted[$key][$field] ?? null;
         if (is_string($value) && strlen($value) <= 800) {
@@ -68,6 +72,12 @@ a:focus,input:focus,select:focus { outline:2px solid #9f3600; }
 <select id="<?= $key ?>-border" name="zones[<?= $key ?>][border]">
 <?php foreach (PortalAppearance::BORDERS as $border => $borderLabel): ?>
 <option value="<?= $border ?>"<?= $zone['border'] === $border ? ' selected="selected"' : '' ?>><?= $escape($borderLabel) ?></option>
+<?php endforeach ?>
+</select></label>
+<label for="<?= $key ?>-font"><?= $key === 'page' ? 'Police générale' : 'Police' ?>
+<select id="<?= $key ?>-font" name="zones[<?= $key ?>][font]">
+<?php foreach (PortalAppearance::FONTS as $id => [$fontLabel]): ?>
+<option value="<?= $id ?>"<?= $font === $id ? ' selected="selected"' : '' ?>><?= $escape($fontLabel) ?></option>
 <?php endforeach ?>
 </select></label>
 <?php if ($key === 'page'): ?>

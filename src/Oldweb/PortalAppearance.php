@@ -23,6 +23,19 @@ final class PortalAppearance
         'inset' => 'En creux', 'outset' => 'Saillant', 'dashed' => 'Tirets', 'none' => 'Sans bordure',
     ];
 
+    public const FONTS = [
+        'theme' => ['Police du thème', ''],
+        'arial' => ['Arial', 'Arial, "Liberation Sans", Helvetica, sans-serif'],
+        'arial-black' => ['Arial Black', '"Arial Black", Arial, "Liberation Sans", sans-serif'],
+        'tahoma' => ['Tahoma', 'Tahoma, "Segoe UI", Arial, sans-serif'],
+        'verdana' => ['Verdana', 'Verdana, "DejaVu Sans", Arial, sans-serif'],
+        'times' => ['Times New Roman', '"Times New Roman", "Liberation Serif", Times, serif'],
+        'courier' => ['Courier New', '"Courier New", "Liberation Mono", Courier, monospace'],
+        'lucida-console' => ['Lucida Console', '"Lucida Console", Monaco, "DejaVu Sans Mono", monospace'],
+        'comic-sans' => ['Comic Sans MS', '"Comic Sans MS", "Comic Neue", cursive'],
+        'impact' => ['Impact', 'Impact, "Arial Narrow", "Liberation Sans Narrow", sans-serif'],
+    ];
+
     public static function defaults(): array
     {
         $styles = ['banner' => 'outset', 'title' => 'double', 'menu' => 'outset', 'intro' => 'double'];
@@ -30,7 +43,7 @@ final class PortalAppearance
         foreach (self::ZONES as $key => [, $background, $text]) {
             $defaults[$key] = [
                 'background' => $background, 'text' => $text, 'border' => $styles[$key] ?? 'solid',
-                'image' => null, 'alt' => '',
+                'image' => null, 'alt' => '', 'font' => 'theme',
             ];
         }
         $defaults['page']['mode'] = 'theme';
@@ -55,6 +68,10 @@ final class PortalAppearance
             if (!is_string($border) || !isset(self::BORDERS[$border])) {
                 throw new InvalidArgumentException('Bordure inconnue pour « ' . $label . ' ».');
             }
+            $font = $input['font'] ?? $current[$key]['font'] ?? 'theme';
+            if (!is_string($font) || !isset(self::FONTS[$font])) {
+                throw new InvalidArgumentException('Police inconnue pour « ' . $label . ' ».');
+            }
             $a = self::luminance($bg);
             $b = self::luminance($text);
             if ((max($a, $b) + .05) / (min($a, $b) + .05) < 4.5) {
@@ -73,7 +90,7 @@ final class PortalAppearance
                 throw new InvalidArgumentException('Le texte de remplacement doit faire au plus 200 caractères.');
             }
             $result[$key] = ['background' => $bg, 'text' => $text, 'border' => $border,
-                'image' => $image, 'alt' => $image === null ? '' : trim($alt)];
+                'image' => $image, 'alt' => $image === null ? '' : trim($alt), 'font' => $font];
             if ($key === 'page') {
                 $mode = $input['mode'] ?? $current[$key]['mode'] ?? 'theme';
                 if (!in_array($mode, ['theme', 'color', 'image'], true)) {

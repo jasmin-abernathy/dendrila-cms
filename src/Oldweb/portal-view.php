@@ -1,14 +1,24 @@
 <?php
 declare(strict_types=1);
 
+use Dendrila\Cms\Oldweb\PortalAppearance;
+
 /** @var array $appearance */
 /** @var array $content */
 /** @var bool $preview */
 /** @var bool $still */
 $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-$format = static function (string $zone) use ($appearance): string {
+$fontFamily = static fn (string $zone): string => PortalAppearance::FONTS[$appearance[$zone]['font'] ?? 'theme'][1] ?? '';
+$format = static function (string $zone) use ($appearance, $fontFamily): string {
     $style = $appearance[$zone];
-    return 'background-color:' . $style['background'] . ';color:' . $style['text'] . ';border-style:' . $style['border'];
+    $font = $fontFamily($zone);
+    return 'background-color:' . $style['background'] . ';color:' . $style['text'] . ';border-style:' . $style['border']
+        . ($font === '' ? '' : ';font-family:' . $font);
+};
+$blockFontRule = static function (string $zone, string $selector) use ($fontFamily): string {
+    $font = $fontFamily($zone);
+    // Only an explicit block choice overrides the theme's nested font shorthands.
+    return $font === '' || $zone === 'page' ? '' : $selector . ' * { font-family:' . $font . " !important; }\n";
 };
 $image = static function (string $zone) use ($appearance, $escape, $preview, $still): string {
     $file = $appearance[$zone]['image'];

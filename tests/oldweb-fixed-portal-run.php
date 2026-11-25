@@ -35,6 +35,15 @@ try {
     $zones = $defaults;
     $zones['banner']['background'] = '#152038';
     $zones['banner']['border'] = 'double';
+    $zones['intro']['font'] = 'courier';
+
+    $oldZones = $defaults;
+    foreach (array_keys($oldZones) as $key) {
+        unset($oldZones[$key]['font']);
+    }
+    portalCheck(PortalAppearance::edit($oldZones, $oldZones, []) === $defaults, 'Legacy settings must keep the theme fonts.');
+    $saved = PortalAppearance::edit($zones, $defaults, []);
+    portalCheck(PortalAppearance::edit($oldZones, $saved, [])['intro']['font'] === 'courier', 'A save that omits fonts must retain the existing choice.');
 
     $gif = base64_decode('R0lGODlhAQABAIAAAP///////yH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==', true);
     $asset = PortalStorage::assetName($gif);
@@ -45,6 +54,11 @@ try {
     $invalid = $zones;
     $invalid['intro']['text'] = $zones['intro']['background'];
     portalReject(fn () => $store->change(0, 'draft', $invalid, []));
+    $invalid = $zones;
+    $invalid['intro']['font'] = 'Arial; background: url(remote)';
+    portalReject(fn () => $store->change(0, 'draft', $invalid, []));
+    $invalid['intro']['font'] = ['arial'];
+    portalReject(fn () => $store->change(0, 'draft', $invalid, []));
     portalReject(fn () => $store->change(0, 'draft', $zones, ['menu' => $upload]));
     portalReject(fn () => PortalStorage::assetName('non-image'));
     portalReject(fn () => PortalStorage::assetName(str_repeat('a', PortalStorage::MAX_UPLOAD + 1)));
@@ -53,12 +67,14 @@ try {
     portalCheck($store->change(0, 'draft', $zones, ['banner' => $upload]), 'Draft save must succeed.');
     $state = $store->state();
     portalCheck($state['published'] === $defaults, 'Draft should leave the public page intact.');
+    portalCheck($state['draft']['intro']['font'] === 'courier', 'The draft font must be persisted.');
     portalCheck($store->image($asset, $state['published']) === null, 'Draft assets must stay private.');
     portalCheck($store->image($asset, $state['draft'])['mime'] === 'image/gif', 'Editor should see the draft GIF.');
     portalCheck($store->image('../appearance.json', $state['draft']) === null, 'Arbitrary file reads must be denied.');
     portalCheck(!$store->change(0, 'publish', $zones, []), 'A stale revision cannot publish.');
     portalCheck($store->change(1, 'publish', $zones, []), 'Current revision should publish.');
     portalCheck($store->image($asset, $store->state()['published']) !== null, 'Published media should be visible.');
+    portalCheck($store->state()['published']['intro']['font'] === 'courier', 'The chosen font must be published.');
     portalCheck($store->change(2, 'restore', [], []), 'Previous appearance should be restored.');
     portalCheck($store->state()['published'] === $defaults, 'Restoration should recover the original appearance.');
     $legacy = $store->state();

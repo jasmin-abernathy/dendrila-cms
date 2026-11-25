@@ -22,7 +22,7 @@ $menuOriginal = $appearance['menu']['background'] === $menuDefaults['background'
 <style type="text/css">
 <?php foreach (PortalAppearance::ZONES as $key => [, , , $width, $height]): ?>
 <?= $selectors[$key] ?> { <?= $format($key) ?>; }
-<?php if ($width > 0): ?>
+<?= $blockFontRule($key, $selectors[$key]) ?><?php if ($width > 0): ?>
 .zone-<?= $key ?> img.illustration { max-width:<?= $width ?>px; max-height:<?= $height ?>px; }
 <?php endif ?>
 <?php endforeach ?>

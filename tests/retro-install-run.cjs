@@ -248,6 +248,22 @@ async function main() {
             const live = await isolated.newPage();
             await live.goto(url(id));
             assert.equal(await live.locator('body').evaluate(el => getComputedStyle(el).backgroundImage), 'none');
+            const fontTargets = id === 'signal-96'
+                ? ['body', 'h1', '.menu a', 'a[name=bienvenue] + h2']
+                : ['#site', '#enseigne', '#menu a', id === 'borne-02' ? '#ouverture h3' : '#ouverture h2'];
+            const families = render => Promise.all(fontTargets.map(target =>
+                render.locator(target).first().evaluate(el => getComputedStyle(el).fontFamily)));
+            const originalFonts = await families(live);
+            const downloadedFonts = [];
+            for (const render of [page, live]) {
+                render.on('request', request => {
+                    if (request.resourceType() === 'font') downloadedFonts.push(request.url());
+                });
+            }
+            for (const [zone, font] of [['page', 'tahoma'], ['title', 'impact'], ['menu', 'courier'], ['intro', 'times']]) {
+                await page.locator('#' + zone + '-font').selectOption(font);
+            }
+
             await page.locator('#page-mode').selectOption('image');
             await page.locator('#page-image').setInputFiles(gif);
             await page.locator('#intro-image').setInputFiles(gif);
@@ -260,12 +276,23 @@ async function main() {
             await page.getByRole('link',{name:'Voir le brouillon', exact:true}).click();
             assert(await page.locator('img.illustration').first().evaluate(i => i.complete && i.naturalWidth > 0));
             assert.equal(await page.locator('body').evaluate(el => getComputedStyle(el).backgroundRepeat), 'repeat');
+            const draftFonts = await families(page);
+            for (const [index, family] of ['Tahoma', 'Impact', 'Courier New', 'Times New Roman'].entries()) {
+                assert.equal(draftFonts[index].split(',')[0].replaceAll('"', ''), family);
+            }
+            await live.reload();
+            assert.deepEqual(await families(live), originalFonts);
             await page.getByRole('link',{name:'Masquer les GIF'}).click();
             assert.equal(await page.locator('body').evaluate(el => getComputedStyle(el).backgroundImage), 'none');
             await page.goto(editor(id));
             await action(page, 'Publier');
             assert.equal((await isolated.request.get(url(id) + '?media=' + media)).status(), 200);
+            await live.reload();
+            assert.deepEqual(await families(live), draftFonts);
             await action(page, 'Rétablir la version précédente');
+            await live.reload();
+            assert.deepEqual(await families(live), originalFonts);
+            assert.deepEqual(downloadedFonts, []);
             assert.equal(JSON.parse(fs.readFileSync(dataPath(id), 'utf8')).published.page.mode, 'color');
             await live.close();
         }

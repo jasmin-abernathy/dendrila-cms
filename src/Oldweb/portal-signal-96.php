@@ -2,12 +2,14 @@
 declare(strict_types=1);
 require __DIR__ . '/portal-view.php';
 $defaults = $theme['defaults'];
-$zone = static function (string $key) use ($appearance, $defaults): string {
+$zone = static function (string $key) use ($appearance, $defaults, $fontFamily, $escape): string {
     $a = $appearance[$key]; $d = $defaults[$key]; $s = [];
     if ($a['background'] !== $d['background']) $s[] = 'background-color:' . $a['background'];
     if ($a['text'] !== $d['text']) $s[] = 'color:' . $a['text'];
     if ($a['border'] !== 'none') $s[] = 'border:2px ' . $a['border'] . ' ' . $a['text'];
-    return $s ? ' style="' . implode(';', $s) . '"' : '';
+    $font = $fontFamily($key);
+    if ($font !== '') $s[] = 'font-family:' . $font;
+    return $s ? ' style="' . $escape(implode(';', $s)) . '"' : '';
 };
 $ink = static fn (string $key): string => $appearance[$key]['text'] !== $defaults[$key]['text'] ? ' style="color:' . $appearance[$key]['text'] . '"' : '';
 $bg = $backgroundMode === 'theme' ? 'assets/signal-96/fond.gif' : $backgroundUrl;
@@ -27,7 +29,9 @@ $illustration = static function (string $key, int $max) use ($image, $appearance
 <html><head><title><?= $t('name') ?> - <?= $t('tagline') ?></title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <link rel="stylesheet" type="text/css" href="<?= $escape($theme['stylesheet']) ?>">
-<style type="text/css">body { color:<?= $appearance['page']['text'] ?>;background-color:<?= $appearance['page']['background'] ?>;background-repeat:repeat;<?= $backgroundCss ?> }</style></head>
+<style type="text/css">body { color:<?= $appearance['page']['text'] ?>;background-color:<?= $appearance['page']['background'] ?>;background-repeat:repeat;<?= $backgroundCss ?> }<?php foreach (['page' => 'td', 'title' => 'h1, .tagline', 'menu' => '.menu a'] as $key => $selector) {
+    if (($font = $fontFamily($key)) !== '') echo "\n" . $selector . ' { font-family:' . $font . '; }';
+} ?></style></head>
 <body bgcolor="<?= $appearance['page']['background'] ?>"<?php if ($bg !== null): ?> background="<?= $escape($bg) ?>"<?php endif ?> text="<?= $appearance['page']['text'] ?>" link="#000099" vlink="#663399"<?= $zone('page') ?>>
 <a name="haut"></a>
 <center><?php if ($preview): ?><p><b>Aperçu du brouillon</b> | <a href="oldweb-editor.php">Retour aux réglages</a></p><?php endif ?>
