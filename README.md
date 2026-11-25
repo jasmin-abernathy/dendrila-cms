@@ -69,7 +69,8 @@ Par défaut, les réglages d'API d'un site commencent avec une liste de modules 
 ## Oldweb · Canal 57
 
 Maquette à largeur fixe en HTML 4.01 et CSS 2, avec éditeur d’apparence authentifié.
-Voir [l’installation et les réglages](docs/OLDWEB-FIXED-PORTAL.md).
+Voir [l’installation et les réglages](docs/OLDWEB-FIXED-PORTAL.md) et le
+[guide de création de thèmes](docs/OLDWEB-THEMES.md).
 
 ## Fonds rétro animés sans Flash (opt-in)
 

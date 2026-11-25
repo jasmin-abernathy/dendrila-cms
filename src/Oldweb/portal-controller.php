@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 use Dendrila\Cms\Oldweb\PortalStorage;
+use Dendrila\Cms\Oldweb\PortalThemes;
 
 /** @var bool $editor Set by the public entrypoint, never by a request parameter. */
 $root = dirname(__DIR__, 2);
@@ -39,7 +40,9 @@ try {
     $storage = new PortalStorage($directory, $_SERVER['DOCUMENT_ROOT'] ?? '');
     $state = $storage->state();
     $preview = $editor && $method !== 'POST' && ($_GET['preview'] ?? '') === '1';
-    $appearance = $preview ? $state['draft'] : $state['published'];
+    $version = $preview ? 'draft' : 'published';
+    $appearance = $state[$version];
+    $theme = PortalThemes::forRendering($state['themes'][$version]);
     if (array_key_exists('media', $_GET)) {
         $media = $_GET['media'];
         $asset = is_string($media) && (!$editor || $preview) && $method !== 'POST'
@@ -61,6 +64,7 @@ try {
     }
     if (!$editor || $preview) {
         $content = json_decode((string) file_get_contents($root . '/examples/oldweb/portal-content.json'), true, 32, JSON_THROW_ON_ERROR);
+        $content = array_replace($content, $state['site']);
         $custom = $directory . '/content.json';
         if (is_file($custom)) {
             $values = json_decode((string) file_get_contents($custom), true, 32, JSON_THROW_ON_ERROR);
@@ -71,7 +75,7 @@ try {
             $content = array_replace($content, $values);
         }
         $still = ($_GET['still'] ?? '') === '1';
-        require __DIR__ . '/portal-page.php';
+        require __DIR__ . '/' . $theme['template'];
         return;
     }
 
@@ -85,8 +89,9 @@ try {
     $_SESSION['oldweb_csrf'][$tokenKey] = $csrf;
     $error = '';
     $submitted = [];
+    $installation = $state['revision'] === 0;
     if ($method === 'POST') {
-        $actions = ['Enregistrer le brouillon' => 'draft', 'Publier' => 'publish', 'Rétablir la version précédente' => 'restore'];
+        $actions = ['Installer Dendrila Retro' => 'install'] + ['Enregistrer le brouillon' => 'draft', 'Publier' => 'publish', 'Rétablir la version précédente' => 'restore'];
         try {
             if (!is_string($_POST['csrf'] ?? null) || !hash_equals($csrf, $_POST['csrf'])) {
                 http_response_code(403);
@@ -95,13 +100,21 @@ try {
             }
             $revision = filter_var($_POST['revision'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0]]);
             $action = $_POST['action'] ?? null;
-            $fields = $_POST['zones'] ?? null;
-            if ($revision === false || !is_string($action) || !isset($actions[$action]) || !is_array($fields)) {
+            if ($revision === false || !is_string($action) || !isset($actions[$action])) {
                 throw new InvalidArgumentException('Le formulaire est incomplet.');
             }
             $change = $actions[$action];
-            $uploads = $change === 'restore' ? [] : PortalStorage::uploads($_FILES);
-            if (!$storage->change($revision, $change, $fields, $uploads)) {
+            $submittedTheme = $_POST['theme'] ?? $state['themes']['draft'];
+            $fields = $_POST[$change === 'install' ? 'site' : 'zones'] ?? null;
+            if (!is_array($fields)) {
+                throw new InvalidArgumentException('Le formulaire est incomplet.');
+            }
+            if ($installation && $change !== 'install') {
+                throw new InvalidArgumentException('Installe d’abord Dendrila Retro.');
+            }
+            $uploads = in_array($change, ['restore', 'install'], true) ? [] : PortalStorage::uploads($_FILES);
+            $themeId = $change === 'restore' ? null : PortalThemes::selected($submittedTheme);
+            if (!$storage->change($revision, $change, $fields, $uploads, $themeId)) {
                 $state = $storage->state();
                 http_response_code(409);
                 $error = 'Une autre modification a été enregistrée. Vérifie la version actuelle avant de réessayer.';
@@ -115,7 +128,11 @@ try {
             $submitted = is_array($fields ?? null) ? $fields : [];
         }
     }
-    $messages = ['draft' => 'Brouillon enregistré.', 'publish' => 'Apparence publiée.', 'restore' => 'Version précédente rétablie.'];
+    if ($state['revision'] === 0) {
+        require __DIR__ . '/portal-install.php';
+        return;
+    }
+    $messages = ['install' => 'Dendrila Retro est installé.', 'draft' => 'Brouillon enregistré.', 'publish' => 'Apparence publiée.', 'restore' => 'Version précédente rétablie.'];
     $result = $_GET['result'] ?? null;
     $message = is_string($result) ? ($messages[$result] ?? '') : '';
     require __DIR__ . '/portal-editor.php';

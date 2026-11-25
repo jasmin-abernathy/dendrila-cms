@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 use Dendrila\Cms\Oldweb\PortalAppearance;
+use Dendrila\Cms\Oldweb\PortalThemes;
 
 $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 ?>
@@ -33,6 +34,12 @@ a:focus,input:focus,select:focus { outline:2px solid #9f3600; }
 <div>
 <input type="hidden" name="csrf" value="<?= $escape($csrf) ?>">
 <input type="hidden" name="revision" value="<?= $state['revision'] ?>">
+<label for="retro-theme">Thème du portail</label>
+<select id="retro-theme" name="theme">
+<?php foreach (PortalThemes::AVAILABLE as $id => $entry): ?>
+<option value="<?= $escape($id) ?>"<?= ($submittedTheme ?? $state['themes']['draft']) === $id ? ' selected="selected"' : '' ?>><?= $escape($entry['label']) ?></option>
+<?php endforeach ?>
+</select>
 </div>
 <?php foreach (PortalAppearance::ZONES as $key => [$label, , , $width]): ?>
 <fieldset>

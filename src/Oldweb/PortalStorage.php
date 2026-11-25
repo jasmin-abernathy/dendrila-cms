@@ -28,12 +28,18 @@ final readonly class PortalStorage
     public function state(): array
     {
         $path = $this->directory . '/appearance.json';
+        $themes = ['draft' => PortalThemes::DEFAULT, 'published' => PortalThemes::DEFAULT, 'previous' => PortalThemes::DEFAULT];
         if (!is_file($path)) {
             $defaults = PortalAppearance::defaults();
-            return ['revision' => 0, 'published' => $defaults, 'draft' => $defaults, 'previous' => null];
+            return [
+                'revision' => 0, 'published' => $defaults, 'draft' => $defaults, 'previous' => null,
+                'site' => [], 'themes' => $themes,
+            ];
         }
-        return json_decode((string) file_get_contents($path), true, 32, JSON_THROW_ON_ERROR);
+        return json_decode((string) file_get_contents($path), true, 32, JSON_THROW_ON_ERROR)
+            + ['site' => [], 'themes' => $themes];
     }
+
 
     /**
      * Check the server-received upload from each allowed slot. The filename is ignored.
@@ -82,7 +88,7 @@ final readonly class PortalStorage
     }
 
     /** Return false when another editor has saved a more recent version. */
-    public function change(int $expected, string $action, array $fields, array $uploads): bool
+    public function change(int $expected, string $action, array $fields, array $uploads, ?string $theme = null): bool
     {
         $lock = fopen($this->directory . '/appearance.lock', 'c');
         if ($lock === false) {
@@ -96,14 +102,24 @@ final readonly class PortalStorage
             if ($state['revision'] !== $expected) {
                 return false;
             }
-            if ($action === 'restore' && is_array($state['previous'])) {
+            if ($action === 'install' && $state['revision'] === 0) {
+                $state['site'] = self::siteIdentity($fields);
+                $id = PortalThemes::selected($theme ?? PortalThemes::DEFAULT);
+                $state['themes']['draft'] = $state['themes']['published'] = $id;
+                $state['draft'] = $state['published'] = PortalThemes::initialAppearance($id);
+            } elseif ($action === 'restore' && is_array($state['previous'])) {
                 $state['draft'] = $state['previous'];
                 $state['previous'] = $state['published'];
                 $state['published'] = $state['draft'];
+                $themes = $state['themes'];
+                $state['themes'] = ['draft' => $themes['previous'], 'published' => $themes['previous'], 'previous' => $themes['published']];
             } elseif (in_array($action, ['draft', 'publish'], true)) {
                 $state['draft'] = PortalAppearance::edit($fields, $state['draft'], array_map(static fn (array $upload): string => $upload['name'], $uploads));
+                $state['themes']['draft'] = PortalThemes::selected($theme ?? $state['themes']['draft']);
                 $this->storeImages($uploads);
                 if ($action === 'publish') {
+                    $state['themes']['previous'] = $state['themes']['published'];
+                    $state['themes']['published'] = $state['themes']['draft'];
                     $state['previous'] = $state['published'];
                     $state['published'] = $state['draft'];
                 }
@@ -116,6 +132,21 @@ final readonly class PortalStorage
         } finally {
             fclose($lock);
         }
+    }
+
+    private static function siteIdentity(array $fields): array
+    {
+        $identity = [];
+        foreach (['name' => 55, 'tagline' => 100] as $key => $maximum) {
+            $value = $fields[$key] ?? null;
+            if (!is_string($value) || !mb_check_encoding($value, 'UTF-8')
+                || preg_match('/[[:cntrl:]]/', $value) !== 0 || mb_strlen($value, 'UTF-8') > $maximum
+                || ($key === 'name' && trim($value) === '')) {
+                throw new InvalidArgumentException('Indique un nom de 1 à 55 caractères et un sous-titre de 100 caractères au plus.');
+            }
+            $identity[$key] = trim($value);
+        }
+        return $identity;
     }
 
     private function storeImages(array $uploads): void

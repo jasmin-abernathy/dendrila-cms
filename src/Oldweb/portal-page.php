@@ -31,7 +31,7 @@ $t = static fn (string $key): string => $escape($content[$key]);
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title><?= $t('name') ?> — <?= $t('tagline') ?></title>
-<link rel="stylesheet" type="text/css" href="assets/oldweb-fixed-portal.css">
+<link rel="stylesheet" type="text/css" href="<?= $escape($theme['stylesheet']) ?>">
 <style type="text/css">
 <?php foreach (PortalAppearance::ZONES as $key => [, , , $width, $height]): ?>
 #<?= $selectors[$key] ?><?= $key === 'menu' ? ' a' : '' ?> { <?= $format($key) ?>; }

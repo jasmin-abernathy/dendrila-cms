@@ -5,6 +5,7 @@ require dirname(__DIR__) . '/vendor/autoload.php';
 
 use Dendrila\Cms\Oldweb\PortalAppearance;
 use Dendrila\Cms\Oldweb\PortalStorage;
+use Dendrila\Cms\Oldweb\PortalThemes;
 
 function portalCheck(bool $condition, string $message): void
 {
@@ -60,6 +61,24 @@ try {
     portalCheck($store->image($asset, $store->state()['published']) !== null, 'Published media should be visible.');
     portalCheck($store->change(2, 'restore', [], []), 'Previous appearance should be restored.');
     portalCheck($store->state()['published'] === $defaults, 'Restoration should recover the original appearance.');
+    $legacy = $store->state();
+    unset($legacy['themes'], $legacy['site']);
+    file_put_contents($directory . '/appearance.json', json_encode($legacy, JSON_THROW_ON_ERROR));
+    portalCheck($store->state()['themes']['published'] === PortalThemes::DEFAULT, 'Older installations fall back to Canal 57.');
+    portalCheck($store->state()['revision'] === 3, 'Reading a legacy installation must preserve its revision.');
+    portalReject(fn () => $store->change(3, 'draft', $zones, [], 'unknown'));
+    portalCheck($store->state()['revision'] === 3, 'An unknown theme must leave the revision intact.');
+    portalCheck(PortalThemes::forRendering('removed') === PortalThemes::AVAILABLE[PortalThemes::DEFAULT], 'Missing themes must fall back.');
+
+    unlink($directory . '/appearance.json');
+    portalReject(fn () => $store->change(0, 'install', ['name' => ' ', 'tagline' => ''], []));
+    portalCheck($store->change(0, 'install', ['name' => 'Radio de quartier', 'tagline' => 'Émissions locales'], []), 'New site should install.');
+    $installed = $store->state();
+    portalCheck($installed['revision'] === 1 && $installed['site']['name'] === 'Radio de quartier', 'The wizard must persist the site name.');
+    portalCheck($installed['published'] === PortalThemes::initialAppearance(PortalThemes::DEFAULT), 'Install should use the theme defaults.');
+    portalCheck(!$store->change(0, 'install', ['name' => 'Autre site', 'tagline' => ''], []), 'Two setup requests must not overwrite one another.');
+    portalReject(fn () => $store->change(1, 'install', ['name' => 'Autre site', 'tagline' => ''], []));
+    portalCheck($store->state() === $installed, 'An installed site must never be reinitialized.');
 } finally {
     foreach (glob($directory . '/*') as $path) {
         unlink($path);
