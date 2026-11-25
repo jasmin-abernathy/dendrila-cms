@@ -27,7 +27,11 @@ try {
     require __DIR__ . '/PortalThemes.php';
     require __DIR__ . '/Standalone.php';
 
-    $bundle = new Standalone(require __DIR__ . '/installation.php');
+    // An existing personal kit retains its data directory when updated.
+    $configuration = __DIR__ . '/installation.php';
+    $bundle = new Standalone(is_file($configuration) ? require $configuration : [
+        'id' => substr(hash('sha256', dirname(__DIR__)), 0, 24),
+    ]);
     $standaloneDirectory = $bundle->directory($_SERVER['DOCUMENT_ROOT'] ?? '', getenv('HOME') ?: '');
     $standaloneContent = __DIR__ . '/portal-content.json';
     if (!$bundle->enter($standaloneDirectory, $editor)) {

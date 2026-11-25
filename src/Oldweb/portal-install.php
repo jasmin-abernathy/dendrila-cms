@@ -25,14 +25,17 @@ a:focus,input:focus,select:focus { outline:2px solid #9f3600; }
 <div id="page">
 <h1>Installer Dendrila Retro</h1>
 <p>Choisis le nom affiché sur le portail. Tu pourras ensuite personnaliser les couleurs, les bordures et les illustrations depuis le back-office.</p>
+<?php if (isset($standaloneDirectory) && !($personal ?? true)): ?>
+<p><strong>Étape 2 sur 2.</strong> Le fichier de clé est en place. Ressaisis la clé que tu as choisie à l’étape précédente.</p>
+<?php endif ?>
 <?php if ($error !== ''): ?><p class="error"><strong><?= $escape($error) ?></strong></p><?php endif ?>
 <form method="post" action="oldweb-editor.php">
 <div>
 <input type="hidden" name="csrf" value="<?= $escape($csrf) ?>">
 <input type="hidden" name="revision" value="0">
 <?php if (isset($standaloneDirectory)): ?>
-<label for="activation">Clé d’installation (fichier LIRE-MOI.txt)</label>
-<input id="activation" type="password" name="activation" size="38" maxlength="32">
+<label for="activation"><?= ($personal ?? true) ? 'Clé d’installation (fichier LIRE-MOI.txt)' : 'Ta clé d’installation' ?></label>
+<input id="activation" type="password" name="activation" size="38" maxlength="<?= ($personal ?? true) ? 32 : 128 ?>">
 <label for="owner-password">Choisir ton mot de passe (14 caractères minimum)</label>
 <input id="owner-password" type="password" name="password" size="38" maxlength="72">
 <?php endif ?>

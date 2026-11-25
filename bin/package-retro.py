@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build a personal Dendrila Retro installation kit with a unique activation key."""
+"""Build a reusable Dendrila Retro ZIP or an optional personal kit."""
 
 import argparse
 import hashlib
@@ -24,7 +24,7 @@ if (!defined('DENDRILA_RETRO_ENTRY')) {
 """
 
 
-def make_site(key: str, bundle_id: str) -> bytes:
+def make_site(personal: tuple[str, str] | None = None) -> bytes:
     output = io.BytesIO()
     with ZipFile(output, "w", ZIP_DEFLATED) as site:
         for name, editor in (("index.php", False), ("oldweb-portal.php", False), ("oldweb-editor.php", True)):
@@ -43,16 +43,21 @@ def make_site(key: str, bundle_id: str) -> bytes:
 
         for name in CORE_FILES:
             add_php(ROOT / "src" / "Oldweb" / name)
-        for name in ("bootstrap.php", "Standalone.php", "standalone-login.php"):
+        for name in ("bootstrap.php", "Standalone.php", "standalone-login.php", "standalone-activation.php"):
             add_php(ROOT / "packaging" / "retro" / name)
 
-        digest = hashlib.sha256(key.encode("ascii")).hexdigest()
-        site.writestr(f"{APP}/retro/installation.php",
-                      '<?php\n' + GUARD + f"return ['id' => '{bundle_id}', 'activation' => '{digest}'];\n")
+        if personal is not None:
+            key, bundle_id = personal
+            digest = hashlib.sha256(key.encode("ascii")).hexdigest()
+            site.writestr(f"{APP}/retro/installation.php",
+                          '<?php\n' + GUARD + f"return ['id' => '{bundle_id}', 'activation' => '{digest}'];\n")
         site.writestr(f"{APP}/retro/.htaccess", "Require all denied\n")
-        site.write(ROOT / "examples/oldweb/portal-content.json", f"{APP}/retro/portal-content.json")
-        site.write(ROOT / "public/assets/oldweb-fixed-portal.css", f"{APP}/assets/oldweb-fixed-portal.css")
-        site.write(ROOT / "LICENSE.md", f"{APP}/LICENSE.md")
+        for source, target in (
+            ("examples/oldweb/portal-content.json", "retro/portal-content.json"),
+            ("public/assets/oldweb-fixed-portal.css", "assets/oldweb-fixed-portal.css"),
+            ("LICENSE.md", "LICENSE.md"),
+        ):
+            site.writestr(f"{APP}/{target}", (ROOT / source).read_bytes())
     return output.getvalue()
 
 
@@ -60,7 +65,7 @@ def write_kit(path: Path) -> None:
     key = secrets.token_hex(16)
     bundle_id = secrets.token_hex(12)
     with ZipFile(path, "x", ZIP_DEFLATED) as kit:
-        kit.writestr(INNER_NAME, make_site(key, bundle_id))
+        kit.writestr(INNER_NAME, make_site((key, bundle_id)))
         kit.writestr("LIRE-MOI.txt", (
             "INSTALLER DENDRILA RETRO SUR O2SWITCH\n\n"
             "1. Ouvre cPanel puis Gestionnaire de fichiers. Va dans le dossier du domaine\n"
@@ -84,5 +89,10 @@ def write_kit(path: Path) -> None:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("output", type=Path)
+    parser.add_argument("--personal", action="store_true", help="generate a kit with a predefined private key")
     args = parser.parse_args()
-    write_kit(args.output)
+    if args.personal:
+        write_kit(args.output)
+    else:
+        with args.output.open("xb") as output:
+            output.write(make_site())

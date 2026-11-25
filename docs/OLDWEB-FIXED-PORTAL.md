@@ -4,31 +4,35 @@ Canal 57 est le premier thème fourni avec Dendrila Retro. Le front est en HTML 
 CSS 2 à largeur fixe de 820 px. La page conserve ses colonnes sur petit écran.
 L’éditeur n’a besoin de JavaScript pour aucune opération.
 
-## Installation rapide avec le kit ZIP
+## Installer le ZIP sur cPanel
 
-1. Décompresser le **kit Dendrila Retro** sur son ordinateur. Il contient
-   `Site_a_envoyer.zip` et `LIRE-MOI.txt`.
+1. Télécharger [Dendrila_Retro.zip](../downloads/Dendrila_Retro.zip).
 2. Dans **cPanel → Gestionnaire de fichiers**, ouvrir le dossier du domaine
-   (en général `public_html` pour le domaine principal), puis **Téléverser**
-   et **Extraire** `Site_a_envoyer.zip`. Un dossier `dendrila-retro` est créé.
-   Retirer l’archive du dossier Web une fois l’extraction faite.
-3. Ouvrir `https://ton-domaine.fr/dendrila-retro/` en remplaçant le domaine
-   d’exemple par le sien. Saisir la clé du fichier `LIRE-MOI.txt`, le nom du
-   site et le mot de passe choisi.
+   (en général `public_html` pour le domaine principal). **Téléverser** le ZIP
+   puis cliquer sur **Extraire**. L’archive crée le dossier `dendrila-retro`.
+3. Ouvrir `https://ton-domaine.fr/dendrila-retro/` avec son vrai domaine.
+   L’assistant demande de choisir une clé d’installation et propose de
+   télécharger un fichier. Téléverser ce fichier dans le **dossier personnel**
+   de cPanel, celui qui contient `public_html`. Revenir dans l’assistant,
+   cliquer sur **J’ai téléversé le fichier, continuer**, puis saisir la clé,
+   le nom du site et le mot de passe.
 
-Le site reste à la même adresse. L’éditeur se trouve à
-`/dendrila-retro/oldweb-editor.php`. Le kit installe ses fichiers de données
-dans l’espace privé du compte. Il demande PHP 8.4 ou plus récent et HTTPS
-sur un hébergement de type cPanel. Conserver `LIRE-MOI.txt` sur son
-ordinateur. Il contient une clé personnelle et ne doit pas être téléversé.
+Le fichier est lié au dossier où se trouve cette installation. Il contient
+une empreinte, pas la clé saisie. Le déposer dans le dossier personnel de
+cPanel prouve que l’on contrôle l’hébergement. Le fichier peut être retiré
+après l’installation. Le site garde la même adresse et son back-office se
+trouve à `/dendrila-retro/oldweb-editor.php`.
 
-Le kit contient le module Retro et le thème Canal 57. Les responsables de
-la distribution génèrent un kit par installation avec
-`python3 bin/package-retro.py Dendrila_Retro.zip`. Le ZIP à envoyer contient
-uniquement l’empreinte de la clé. Garder le kit et l’espace de données privé
-dans la sauvegarde de l’instance. Lors d’une mise à jour, préserver le
-fichier `retro/installation.php` du site existant, qui identifie son espace
-de données.
+Le kit demande **PHP 8.4 ou plus récent** et **HTTPS** sur un hébergement de
+type cPanel. Le ZIP de ce guide est commun à tous et ne contient aucune clé.
+La commande `python3 bin/package-retro.py Dendrila_Retro.zip` le reconstruit.
+
+Pour une mise à jour, extraire les nouveaux fichiers au même emplacement.
+L’archive commune ne fournit pas de fichier `retro/installation.php` et
+laisse intact celui des premiers kits personnels. Le kit commun identifie
+son espace privé à partir du chemin de l’application. Pour un déménagement,
+sauvegarder l’espace privé et préparer son association au nouveau chemin
+avant de servir le site.
 
 ## Installation avancée dans un Dendrila existant
 

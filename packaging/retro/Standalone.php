@@ -77,6 +77,10 @@ final readonly class Standalone
 
         $error = '';
         $submitted = [];
+        $personal = isset($this->bundle['activation']);
+        $proofName = 'dendrila-cle-' . $this->bundle['id'] . '.txt';
+        $activationHash = $installed ? null : ($this->bundle['activation']
+            ?? $this->readProof(dirname($standaloneDirectory) . '/' . $proofName));
         if ($method === 'POST') {
             $token = $_POST[$installed ? 'retro_token' : 'csrf'] ?? null;
             if (!is_string($token) || !hash_equals($csrf, $token)) {
@@ -92,6 +96,13 @@ final readonly class Standalone
             }
 
             try {
+                if (!$installed && !$personal && $action === 'Télécharger le fichier de clé') {
+                    $key = $this->chosenKey($_POST['activation'] ?? null);
+                    header('Content-Type: text/plain; charset=UTF-8');
+                    header('Content-Disposition: attachment; filename="' . $proofName . '"');
+                    echo $this->proofHash($key) . "\n";
+                    return false;
+                }
                 $password = $_POST['password'] ?? null;
                 if (!is_string($password) || strlen($password) > 72 || str_contains($password, "\0")) {
                     throw new InvalidArgumentException('Le mot de passe est trop long ou incorrect.');
@@ -110,8 +121,16 @@ final readonly class Standalone
                 } else {
                     $submitted = is_array($_POST['site'] ?? null) ? $_POST['site'] : [];
                     $key = $_POST['activation'] ?? null;
-                    if (!is_string($key) || strlen(trim($key)) !== 32 || !hash_equals($this->bundle['activation'], hash('sha256', trim($key)))) {
-                        throw new InvalidArgumentException('La clé d’installation ne correspond pas. Copie la clé du fichier LIRE-MOI.txt.');
+                    if ($activationHash === null) {
+                        throw new InvalidArgumentException('Téléverse d’abord le fichier de clé dans ton dossier personnel cPanel.');
+                    }
+                    $candidate = $personal
+                        ? (is_string($key) && strlen(trim($key)) === 32 ? hash('sha256', trim($key)) : '')
+                        : $this->proofHash($this->chosenKey($key));
+                    if (!hash_equals($activationHash, $candidate)) {
+                        throw new InvalidArgumentException($personal
+                            ? 'La clé d’installation ne correspond pas. Copie la clé du fichier LIRE-MOI.txt.'
+                            : 'La clé d’installation ne correspond pas au fichier déposé dans cPanel.');
                     }
                     if (mb_strlen($password, 'UTF-8') < 14) {
                         throw new InvalidArgumentException('Choisis un mot de passe d’au moins 14 caractères et de 72 octets au maximum.');
@@ -140,10 +159,42 @@ final readonly class Standalone
             }
         }
 
+        if (!$installed && !$personal && $activationHash === null && $error === ''
+            && ($_GET['verifier'] ?? '') === '1') {
+            $error = 'Le fichier de clé est introuvable ou illisible. Vérifie le dossier et le nom du fichier dans cPanel.';
+        }
         if ($method !== 'HEAD') {
-            require __DIR__ . ($installed ? '/standalone-login.php' : '/portal-install.php');
+            $template = $installed ? 'standalone-login.php' : 'portal-install.php';
+            if (!$installed && !$personal && $activationHash === null) {
+                $template = 'standalone-activation.php';
+            }
+            require __DIR__ . '/' . $template;
         }
         return false;
+    }
+
+    private function chosenKey(mixed $value): string
+    {
+        if (!is_string($value) || strlen($value) > 128 || strlen($value) < 24
+            || trim($value) !== $value || preg_match('/^[\x20-\x7E]+$/D', $value) !== 1) {
+            throw new InvalidArgumentException('Choisis une clé de 24 à 128 caractères, avec des lettres sans accent, des chiffres ou des symboles et sans espace au début ou à la fin.');
+        }
+        return $value;
+    }
+
+    private function proofHash(string $key): string
+    {
+        return hash('sha256', $this->bundle['id'] . "\0" . $key);
+    }
+
+    private function readProof(string $path): ?string
+    {
+        if (is_link($path) || !is_file($path)) {
+            return null;
+        }
+        $value = @file_get_contents($path, false, null, 0, 67);
+        return is_string($value) && preg_match('/^[a-f0-9]{64}(?:\r?\n)?$/D', $value) === 1
+            ? trim($value) : null;
     }
 
     private function allowAttempt(string $directory): bool
