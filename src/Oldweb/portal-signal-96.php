@@ -1,101 +1,59 @@
 <?php
 declare(strict_types=1);
-
-use Dendrila\Cms\Oldweb\PortalAppearance;
-
 require __DIR__ . '/portal-view.php';
-
-$selectors = [
-    'page' => 'body', 'banner' => '#pub', 'title' => '#enseigne', 'menu' => '#orbite a',
-    'intro' => '#ecoute', 'news' => '#journal', 'agenda' => '#carte', 'archive' => '#dossiers', 'focus' => '#club',
-];
-$navigation = [
-    'antenne' => ['ecoute', 'Salle d’écoute'],
-    'planete' => ['carte', 'Carte du ciel'],
-    'classeur' => ['dossiers', 'Dossiers'],
-    'carnet' => ['journal', 'Journal du relais'],
-    'cassette' => ['club', 'Le club'],
-    'lettre' => ['courrier', 'Courrier'],
-];
+$defaults = $theme['defaults'];
+$zone = static function (string $key) use ($appearance, $defaults): string {
+    $a = $appearance[$key]; $d = $defaults[$key]; $s = [];
+    if ($a['background'] !== $d['background']) $s[] = 'background-color:' . $a['background'];
+    if ($a['text'] !== $d['text']) $s[] = 'color:' . $a['text'];
+    if ($a['border'] !== 'none') $s[] = 'border:2px ' . $a['border'] . ' ' . $a['text'];
+    return $s ? ' style="' . implode(';', $s) . '"' : '';
+};
+$ink = static fn (string $key): string => $appearance[$key]['text'] !== $defaults[$key]['text'] ? ' style="color:' . $appearance[$key]['text'] . '"' : '';
+$bg = $backgroundMode === 'theme' ? 'assets/signal-96/fond.gif' : $backgroundUrl;
+$illustration = static function (string $key, int $max) use ($image, $appearance, $storage): string {
+    $html = $image($key);
+    if ($html === '') return '';
+    $asset = $storage->image($appearance[$key]['image'], $appearance);
+    $size = $asset ? @getimagesize($asset['path']) : false;
+    if ($size) {
+        $scale = min(1, $max / $size[0], \Dendrila\Cms\Oldweb\PortalAppearance::ZONES[$key][4] / $size[1]);
+        $html = str_replace('<img ', '<img width="' . max(1, (int) floor($size[0] * $scale)) . '" height="' . max(1, (int) floor($size[1] * $scale)) . '" ', $html);
+    }
+    return $html;
+};
 ?>
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html lang="fr">
-<head>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html><head><title><?= $t('name') ?> - <?= $t('tagline') ?></title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<title><?= $t('name') ?> — <?= $t('tagline') ?></title>
 <link rel="stylesheet" type="text/css" href="<?= $escape($theme['stylesheet']) ?>">
-<style type="text/css">
-<?php foreach (PortalAppearance::ZONES as $key => [, , , $width, $height]): ?>
-<?= $selectors[$key] ?> { <?= $format($key) ?>; }
-<?php if ($width > 0): ?>
-.zone-<?= $key ?> img.illustration { max-width:<?= $width ?>px; max-height:<?= $height ?>px; }
-<?php endif ?>
-<?php endforeach ?>
-<?php if ($backgroundCss !== ''): ?>
-body { <?= $backgroundCss ?> }
-<?php endif ?>
-</style>
-</head>
-<body>
-<p class="skip"><a href="#contenu">Aller au contenu</a></p>
-<div id="site" class="zone-page">
-<?php if ($preview): ?><p class="preview"><strong>Aperçu du brouillon</strong> | <a href="oldweb-editor.php">Retour aux réglages</a></p><?php endif ?>
-<div id="pub" class="zone-banner">
-<p><a href="#carte"><?= $t('banner') ?></a></p>
-<?= $image('banner') ?>
-</div>
-<div id="orbite">
-<div id="station">
-<h1 id="enseigne" class="zone-title<?= mb_strlen($content['name'], 'UTF-8') > 15 ? ' long' : '' ?>"><?= $t('name') ?></h1>
-<p class="tagline"><?= $t('tagline') ?></p>
-<p class="frequence"><?= $t('frequency') ?></p>
-</div>
-<ul class="zone-menu">
-<?php foreach ($navigation as $icon => [$target, $label]): ?>
-<li class="<?= $icon ?>"><a href="#<?= $target ?>"><span></span><?= $escape($label) ?></a></li>
-<?php endforeach ?>
-</ul>
-</div>
-<p class="liens-texte">
-<?php foreach ($navigation as $icon => [$target, $label]): ?>
-<?= $icon === 'antenne' ? '' : ' | ' ?><a href="#<?= $target ?>"><?= $escape($label) ?></a>
-<?php endforeach ?>
-</p>
-<p class="statut"><?= $t('status') ?></p>
-<?php if ($hasGif): ?><p class="statut"><a href="<?= $preview ? '?preview=1' : '?page=1' ?><?= $still ? '' : '&amp;still=1' ?>"><?= $still ? 'Afficher les GIF' : 'Masquer les GIF' ?></a></p><?php endif ?>
-
-<div class="dossiers">
-<a name="contenu" id="contenu" tabindex="-1"></a>
-<div id="ecoute" class="fiche zone-intro">
-<h2><?= $t('introTitle') ?></h2>
-<?= $image('intro') ?>
-<p><?= $t('introText') ?></p>
-</div>
-<div id="carte" class="fiche zone-agenda">
-<h2>Carte du ciel</h2>
-<?= $image('agenda') ?>
-<ul><li><?= $t('agendaFirst') ?></li><li><?= $t('agendaSecond') ?></li></ul>
-</div>
-<div id="dossiers" class="fiche zone-archive">
-<h2><?= $t('archiveTitle') ?></h2>
-<?= $image('archive') ?>
-<p><?= $t('archiveText') ?></p>
-</div>
-<div id="journal" class="fiche zone-news">
-<h2><?= $t('newsTitle') ?></h2>
-<?= $image('news') ?>
-<p><?= $t('newsText') ?></p>
-</div>
-<div id="club" class="fiche zone-focus">
-<h2><?= $t('focusTitle') ?></h2>
-<?= $image('focus') ?>
-<p><?= $t('focusText') ?></p>
-<h3 id="courrier">Courrier</h3>
-<p><?= $t('contact') ?></p>
-</div>
-</div>
-<hr>
-<p class="pied"><a href="#pub">Retour à l’enseigne</a> | <?= $t('name') ?>, <?= $t('year') ?> · Illustrations d’origine sous CC0</p>
-</div>
-</body>
-</html>
+<style type="text/css">body { color:<?= $appearance['page']['text'] ?>;background-color:<?= $appearance['page']['background'] ?>;background-repeat:repeat;<?= $backgroundCss ?> }</style></head>
+<body bgcolor="<?= $appearance['page']['background'] ?>"<?php if ($bg !== null): ?> background="<?= $escape($bg) ?>"<?php endif ?> text="<?= $appearance['page']['text'] ?>" link="#000099" vlink="#663399"<?= $zone('page') ?>>
+<a name="haut"></a>
+<center><?php if ($preview): ?><p><b>Aperçu du brouillon</b> | <a href="oldweb-editor.php">Retour aux réglages</a></p><?php endif ?>
+<?php if ($hasGif): ?><p><a href="<?= $preview ? '?preview=1' : '?page=1' ?><?= $still ? '' : '&amp;still=1' ?>"><?= $still ? 'Afficher les GIF' : 'Masquer les GIF' ?></a></p><?php endif ?>
+<table width="760" border="0" cellspacing="0" cellpadding="8">
+<tr><td width="150" align="left" valign="top"<?= $zone('banner') ?>><font size="2"><b><?= $t('banner') ?></b><br>Metz &middot; France</font></td><td width="460" align="center"<?= $zone('title') ?>><font color="#89362f" size="2">&#8226; &nbsp; WWW &nbsp; &#8226;</font><h1<?= $ink('title') ?>><?php if ($content['name'] === 'Signal 96' && $ink('title') === ''): ?>Signal <font color="#a24b35">96</font><?php else: ?><?= $t('name') ?><?php endif ?></h1><div class="tagline"><?= $t('tagline') ?></div></td><td width="150" align="right" valign="top"><font size="2"><?= $t('frequency') ?><br>Novembre <?= $t('year') ?></font></td></tr>
+<?php if ($appearance['banner']['image'] !== null): ?><tr><td colspan="3" align="center"><?= $illustration('banner', 490) ?></td></tr><?php endif ?>
+</table>
+<table width="740" border="0" cellspacing="0" cellpadding="4"><tr><td colspan="6"><hr size="2"></td></tr><tr class="menu"<?= $zone('menu') ?>><td width="120" align="center" valign="top"><a href="#bienvenue"<?= $ink('menu') ?>><img src="assets/signal-96/accueil.gif" width="64" height="64" border="0" alt=""><br>Bienvenue</a></td>
+<td width="120" align="center" valign="top"><a href="#exploration"<?= $ink('menu') ?>><img src="assets/signal-96/explorer.gif" width="64" height="64" border="0" alt=""><br>Exploration</a></td>
+<td width="120" align="center" valign="top"><a href="#agenda"<?= $ink('menu') ?>><img src="assets/signal-96/agenda.gif" width="64" height="64" border="0" alt=""><br>Agenda</a></td>
+<td width="120" align="center" valign="top"><a href="#dossiers"<?= $ink('menu') ?>><img src="assets/signal-96/archives.gif" width="64" height="64" border="0" alt=""><br>Dossiers</a></td>
+<td width="120" align="center" valign="top"><a href="#club"<?= $ink('menu') ?>><img src="assets/signal-96/club.gif" width="64" height="64" border="0" alt=""><br>Le club</a></td>
+<td width="120" align="center" valign="top"><a href="#courrier"<?= $ink('menu') ?>><img src="assets/signal-96/courrier.gif" width="64" height="64" border="0" alt=""><br>Courrier</a></td></tr><tr><td colspan="6"><hr size="2"></td></tr></table>
+<table width="760" border="0" cellspacing="0" cellpadding="12">
+<tr><td width="110" align="center" valign="top"><img src="assets/signal-96/fusee.gif" width="80" height="80" border="0" alt=""><p class="small"><i>Vers de nouveaux horizons</i></p><br><img src="assets/signal-96/disquette.gif" width="80" height="80" border="0" alt=""></td>
+<td width="492" valign="top"<?= $zone('intro') ?>><a name="bienvenue"></a><h2<?= $ink('intro') ?>><?= $t('introTitle') ?></h2><?= $illustration('intro', 420) ?>
+<?php foreach (explode("\n\n", $content['introText']) as $paragraph): ?><p><?= $escape($paragraph) ?></p><?php endforeach ?>
+<p><i>Bonne exploration, et &agrave; bient&ocirc;t sur le r&eacute;seau !</i></p>
+</td><td width="110" align="center" valign="middle"><img src="assets/signal-96/lunette.gif" width="80" height="80" border="0" alt=""><p class="small"><i>Le ciel de novembre</i></p><br><img src="assets/signal-96/satellite.gif" width="80" height="80" border="0" alt=""></td></tr>
+</table>
+<table width="680" cellspacing="0" cellpadding="9" border="0">
+<tr><td colspan="2"><hr><center><font size="4" color="#273d76"><b>Quoi de neuf au club ?</b></font></center></td></tr>
+<tr><td width="340" valign="top"><div<?= $zone('news') ?>><a name="exploration"></a><h3<?= $ink('news') ?>><?= $t('newsTitle') ?></h3><?= $illustration('news', 98) ?><p><?= $t('newsText') ?></p></div><div<?= $zone('agenda') ?>><a name="agenda"></a><h3<?= $ink('agenda') ?>>Agenda</h3><?= $illustration('agenda', 310) ?><p><?= $t('agendaFirst') ?><br><?= $t('agendaSecond') ?></p></div></td>
+<td width="340" valign="top"><div<?= $zone('archive') ?>><a name="dossiers"></a><h3<?= $ink('archive') ?>><?= $t('archiveTitle') ?></h3><?= $illustration('archive', 98) ?><p><?= $t('archiveText') ?></p></div><div<?= $zone('focus') ?>><a name="club"></a><h3<?= $ink('focus') ?>><?= $t('focusTitle') ?></h3><?= $illustration('focus', 149) ?><p><?= $t('focusText') ?></p></div></td></tr>
+<tr><td colspan="2"><a name="courrier"></a><h3>Courrier</h3><p><?= $t('contact') ?></p><hr></td></tr>
+</table>
+<table width="740" cellpadding="5" cellspacing="0" border="0"><tr><td width="240" valign="bottom"><font size="2"><?= $t('name') ?> &middot; Site de d&eacute;monstration<br><?= $t('status') ?></font></td><td width="260" align="center"><a href="#haut"><img src="assets/signal-96/haut.gif" width="64" height="64" border="0" alt=""><br>Retour en haut</a></td><td width="240" align="right" valign="bottom"><font size="2">Fond : <a href="https://www.toptal.com/designers/subtlepatterns/tiny-grid/">Tiny Grid</a>, Atle Mo<br><a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a> &middot; adaptation GIF</font></td></tr></table>
+</center></body></html>

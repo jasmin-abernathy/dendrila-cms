@@ -1,4 +1,3 @@
-Signal 96
-Dessin pixel des icônes, des orbites et du fond étoilé réalisé pour Dendrila Retro.
-Illustrations locales sous CC0 1.0.
-https://creativecommons.org/publicdomain/zero/1.0/
+Tiny Grid — Atle Mo, Subtle Patterns. Source : https://github.com/atlemo/SubtlePatterns/blob/gh-pages/tiny_grid.png
+Adaptation GIF, agrandissement x2 et contraste renforcé, sous CC BY-SA 3.0 : https://creativecommons.org/licenses/by-sa/3.0/
+Autres GIF : illustrations bitmap originales de la démonstration.
