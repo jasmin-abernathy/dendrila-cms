@@ -1,0 +1,5 @@
+Fond : Pattern Pack Pixel 1.1 (Kenney, 22-07-2024), Tiles (Grayscale)/tile_0038.png.
+Source : https://www.kenney.nl/assets/pattern-pack-pixel
+Licence : CC0 1.0 — https://creativecommons.org/publicdomain/zero/1.0/
+Adaptation : palette gris-beige clair (#e8e8de, #e1e1d7, #dbdbd1), conversion GIF, motif 16 × 16 px.
+Autres GIF : illustrations bitmap originales de la démonstration.

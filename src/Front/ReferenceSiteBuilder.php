@@ -26,6 +26,13 @@ final readonly class ReferenceSiteBuilder
         string $outputDirectory,
     ): array {
         $presentation = $this->presentationResolver->resolve($composition);
+        // A reference fixture can opt into a trusted, local backdrop without changing style schema v1.
+        if (array_key_exists('backdrop', $fixture)) {
+            if (!is_array($fixture['backdrop'])) {
+                throw new InvalidArgumentException('Reference backdrop settings must be an object.');
+            }
+            $presentation['backdrop'] = $fixture['backdrop'];
+        }
         $designKit = $presentation['design_kit'] ?? null;
         if (!is_array($designKit)
             || !is_string($designKit['root_path'] ?? null)
@@ -39,6 +46,22 @@ final readonly class ReferenceSiteBuilder
         $mediaTarget = $outputDirectory . DIRECTORY_SEPARATOR . 'media';
         $this->copyDirectory($designKit['root_path'], $themeTarget);
         $this->copyDirectory($referenceMediaDirectory, $mediaTarget);
+        if (isset($presentation['backdrop'])) {
+            $assetTarget = $outputDirectory . DIRECTORY_SEPARATOR . 'assets';
+            if (!mkdir($assetTarget, 0775, true) && !is_dir($assetTarget)) {
+                throw new RuntimeException('Unable to create backdrop asset directory.');
+            }
+            $previewSource = dirname(__DIR__, 2) . '/examples/ripple-preview.html';
+            if (!is_file($previewSource) || !copy($previewSource, $outputDirectory . '/ripple-preview.html')) {
+                throw new RuntimeException('Unable to copy the Ripple preview.');
+            }
+            foreach (['oldweb-ripple.css', 'oldweb-ripple.js'] as $filename) {
+                $source = dirname(__DIR__, 2) . '/public/assets/' . $filename;
+                if (!is_file($source) || !copy($source, $assetTarget . '/' . $filename)) {
+                    throw new RuntimeException('Unable to copy trusted backdrop asset.');
+                }
+            }
+        }
 
         $site = $fixture['site'] ?? null;
         $page = $fixture['page'] ?? null;

@@ -1,0 +1,10 @@
+body { background-color:#e8e8de; color:#20203a; font-family: "Times New Roman", serif; }
+h1 { font-family: Georgia, "Times New Roman", serif; font-size: 42px; font-style:italic; color:#243e7b; margin-top: 0; margin-bottom: 0; }
+h2 { font-size: 22px; color:#273d76; margin-bottom: 8px; }
+h3 { font-size: 18px; color:#89362f; margin-bottom: 4px; }
+p { margin-top: 8px; margin-bottom: 12px; }
+a:link { color:#000099; }
+a:visited { color:#663399; }
+.small { font-size: 12px; }
+.tagline { font-family: Arial, sans-serif; font-size: 13px; color:#89362f; letter-spacing: 2px; }
+.menu { font-weight:bold; font-size:16px; }

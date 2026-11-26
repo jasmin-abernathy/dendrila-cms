@@ -1,0 +1,19 @@
+{
+  "name": "Signal 96",
+  "tagline": "THE CURIOUS CLUB",
+  "banner": "The hobbyists’ network",
+  "status": "Last updated: 17 Nov 1996",
+  "frequency": "Issue No. 04",
+  "introTitle": "Welcome to our little corner of the web!",
+  "introText": "Signal 96 is a meeting place for people who enjoy science, tinkering and computing. Anyone with the urge to figure things out and share what they find is welcome.\n\nRead our reports, see what we’re building and find the next club meetups. This site grows with our experiments and your contributions.",
+  "newsTitle": "Exploration",
+  "newsText": "Our sky chart helps you find the winter constellations and spot Jupiter with a small telescope.",
+  "agendaFirst": "Friday, 10 pm: stargazing at the lookout.",
+  "agendaSecond": "Saturday, 9 pm: radio workshop.",
+  "archiveTitle": "Files",
+  "archiveText": "Mysterious signals, field notes and electronics projects from our members.",
+  "focusTitle": "The club",
+  "focusText": "We’re a group of hobbyists who get together to observe, build and share.",
+  "contact": "Have a question or a discovery? Bring your notebook to the next meetup. Contributions are welcome.",
+  "year": "1996"
+}
