@@ -163,6 +163,7 @@ async function main() {
             const identity = JSON.parse(fs.readFileSync('examples/oldweb/' + content + '.json', 'utf8'));
             const installer = await page.goto(editor(id));
             assert.equal(installer.headers()['x-frame-options'], 'DENY');
+            assert.equal(installer.headers()['x-robots-tag'], 'noindex, nofollow');
             assert.equal(await page.locator('#activation').count(), 0);
             await page.locator('#site-name').fill(identity.name);
             await page.locator('#site-tagline').fill(identity.tagline);
@@ -188,6 +189,7 @@ async function main() {
                 page.waitForEvent('framenavigated', {predicate: item => item.url() === preview}),
                 page.locator('#theme').dispatchEvent('change'),
             ]);
+            assert.equal((await context.request.get(preview)).headers()['x-robots-tag'], 'noindex, nofollow');
             const responses = await ctxResponses(context, preview, root + 'static/' + demoPath, manifest.demos[id]);
             assert.equal(dataPath(id), undefined, 'Preview initialized a site.');
 
@@ -244,6 +246,15 @@ async function main() {
             console.log(id + ' : DOM, ressources, iframe et diff = 0 pixel à 1024 et 800 px.');
 
             await page.goto(editor(id));
+            for (const width of [320, 390]) {
+                await page.setViewportSize({width, height: 844});
+                assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), id + ': editor overflows on mobile');
+                assert(await page.getByRole('navigation', {name: 'Accès rapide'}).isVisible());
+                for (const name of ['Enregistrer le brouillon', 'Publier']) {
+                    assert(await page.getByRole('button', {name, exact: true}).evaluate(el => el.getBoundingClientRect().height >= 44));
+                }
+            }
+            await page.setViewportSize({width: 1120, height: 1000});
             const bodyTheme = await page.locator('#page-mode').inputValue();
             assert.equal(bodyTheme, 'theme');
             await page.locator('#page-bg').fill(id === 'signal-96' ? '#FFFFFF' : '#182042');
@@ -381,6 +392,8 @@ async function main() {
         assert.equal(JSON.parse(fs.readFileSync(dataPath('english'), 'utf8')).site.language, 'en');
         await action(mobile, 'Sign out');
         await mobile.getByRole('heading', {name:'Sign in to Dendrila Retro'}).waitFor();
+        assert.equal(await mobile.getByRole('main').count(), 1);
+        assert(await mobile.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
 
         await mobile.goto(editor('precreated'));
         const demo = {name: 'Test du portail', tagline: 'Test'};
@@ -398,6 +411,10 @@ async function main() {
             if (name === 'locked') {
                 await page.getByRole('link', {name: 'English', exact: true}).click();
                 await page.getByRole('heading', {name: 'Create your installation key', exact: true}).waitFor();
+                await page.setViewportSize({width: 320, height: 844});
+                assert.equal(await page.getByRole('main').count(), 1);
+                assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+                await page.setViewportSize({width: 1120, height: 1000});
             }
             csrf = await token(page);
             const lang = name === 'locked' ? 'en' : 'fr';

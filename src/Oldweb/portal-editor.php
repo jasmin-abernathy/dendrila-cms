@@ -25,7 +25,8 @@ button,input,select { box-sizing:border-box; max-width:100%; font:inherit; paddi
 @media (max-width:40em) {
     #page { margin:.25em auto; padding:.75em; overflow-wrap:anywhere; }
     button,select,input:not([type=checkbox]) { min-height:44px; }
-    fieldset label:not(:has([type=checkbox])) { display:block; margin:.5em 0; }
+    label { display:block; margin:.5em 0; }
+    label:has(input[type=checkbox]) { min-height:44px; }
 }
 a:focus,button:focus,input:focus,select:focus { outline:2px solid #9f3600; }
 .error { color:#8b1800; background:#fff4ea; border:1px solid #8b1800; padding:.7em; }

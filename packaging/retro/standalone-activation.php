@@ -3,10 +3,10 @@ declare(strict_types=1);
 
 $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 ?>
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<!doctype html>
 <html lang="<?= $language ?>">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?= $tr('Créer ta clé d’installation') ?> — Dendrila Retro</title>
 <style type="text/css">
@@ -22,11 +22,11 @@ code { font-size:.85em; }
 </style>
 </head>
 <body>
-<div id="page">
+<main id="page">
 <?php require __DIR__ . '/portal-language.php'; ?>
 <h1><?= $tr('Créer ta clé d’installation') ?></h1>
 <p><strong><?= $tr('Installation protégée.') ?></strong> <?= $tr('Choisis une clé unique et garde-la à portée de main. Tu en auras besoin à l’étape suivante.') ?></p>
-<?php if ($error !== ''): ?><p class="error"><strong><?= $escape($error) ?></strong></p><?php endif ?>
+<?php if ($error !== ''): ?><p class="error" role="alert"><strong><?= $escape($error) ?></strong></p><?php endif ?>
 <form method="post" action="oldweb-editor.php">
 <div>
 <input type="hidden" name="csrf" value="<?= $escape($csrf) ?>">
@@ -39,6 +39,6 @@ code { font-size:.85em; }
 </form>
 <p><?= $tr('Téléverse le fichier dans le dossier privé de ton hébergement, hors de toutes les racines web. Conserve le nom indiqué par le téléchargement.') ?></p>
 <p><a href="oldweb-editor.php?lang=<?= $language ?>"><?= $tr('J’ai téléversé le fichier, continuer') ?></a></p>
-</div>
+</main>
 </body>
 </html>

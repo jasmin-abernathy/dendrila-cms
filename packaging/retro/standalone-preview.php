@@ -15,6 +15,7 @@ header("Content-Security-Policy: default-src 'none'; img-src 'self'; style-src '
 header('X-Frame-Options: SAMEORIGIN');
 header('Referrer-Policy: no-referrer');
 header('X-Content-Type-Options: nosniff');
+header('X-Robots-Tag: noindex, nofollow');
 header('Content-Type: text/html; charset=UTF-8');
 if (!in_array($method, ['GET', 'HEAD'], true)) {
     header('Allow: GET, HEAD');
