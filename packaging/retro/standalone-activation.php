@@ -7,12 +7,13 @@ $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOT
 <html lang="<?= $language ?>">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?= $tr('Créer ta clé d’installation') ?> — Dendrila Retro</title>
 <style type="text/css">
 body { color:#111; background:#e1e7ff; font:100%/1.5 Verdana,sans-serif; }
 #page { margin:1em auto; padding:1em; max-width:44em; background:#fff; border:2px solid #2455e5; }
 label { display:block; margin-top:.8em; }
-input { font:inherit; max-width:95%; min-height:44px; }
+input { box-sizing:border-box; font:inherit; max-width:95%; min-height:44px; }
 a { line-height:2.75; color:#16246b; }
 a:focus,input:focus { outline:2px solid #9f3600; }
 .error { color:#8b1800; }

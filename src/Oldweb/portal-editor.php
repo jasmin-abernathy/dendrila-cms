@@ -7,25 +7,32 @@ use Dendrila\Cms\Oldweb\PortalThemes;
 
 $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 ?>
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<!doctype html>
 <html lang="<?= $language ?>">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?= $tr('Apparence du portail Oldweb') ?></title>
 <style type="text/css">
 body { color:#111; background:#e1e7ff; font:100%/1.5 Verdana,sans-serif; }
 #page { margin:1em auto; padding:1em; max-width:56em; background:#fff; border:2px solid #2455e5; }
-fieldset { margin:1em 0; border:1px solid #232a55; }
+fieldset { min-width:0; margin:1em 0; border:1px solid #232a55; }
 legend { font-weight:bold; color:#101048; }
 label { display:inline; margin:.2em .7em .2em 0; }
 label.image { display:block; }
-button,input,select { font:inherit; padding:.25em; }
+button,input,select { box-sizing:border-box; max-width:100%; font:inherit; padding:.25em; }
+.actions { display:flex; flex-wrap:wrap; gap:.6em; }
+@media (max-width:40em) {
+    #page { margin:.25em auto; padding:.75em; overflow-wrap:anywhere; }
+    button,select,input:not([type=checkbox]) { min-height:44px; }
+    fieldset label:not(:has([type=checkbox])) { display:block; margin:.5em 0; }
+}
 a:focus,button:focus,input:focus,select:focus { outline:2px solid #9f3600; }
 .error { color:#8b1800; background:#fff4ea; border:1px solid #8b1800; padding:.7em; }
 </style>
 </head>
 <body>
-<div id="page">
+<main id="page">
 <p><a href="oldweb-portal.php"><?= $tr('Page publiée') ?></a> | <a href="?preview=1"><?= $tr('Voir le brouillon') ?></a></p>
 <h1><?= $tr('Apparence du portail Oldweb') ?></h1>
 <?php if (isset($standaloneLogout)): ?>
@@ -35,8 +42,8 @@ a:focus,button:focus,input:focus,select:focus { outline:2px solid #9f3600; }
 <input type="submit" value="<?= $tr('Se déconnecter') ?>"></div>
 </form>
 <?php endif ?>
-<?php if ($message !== ''): ?><p><strong><?= $tr($message) ?></strong></p><?php endif ?>
-<?php if ($error !== ''): ?><p class="error"><strong><?= $tr($error) ?></strong></p><?php endif ?>
+<?php if ($message !== ''): ?><p role="status"><strong><?= $tr($message) ?></strong></p><?php endif ?>
+<?php if ($error !== ''): ?><p class="error" role="alert"><strong><?= $tr($error) ?></strong></p><?php endif ?>
 <form method="post" action="oldweb-editor.php">
 <fieldset>
 <legend><?= $tr('Langue') ?></legend>
@@ -54,6 +61,7 @@ a:focus,button:focus,input:focus,select:focus { outline:2px solid #9f3600; }
 </fieldset>
 </form>
 <p><?= $tr('Utilise des couleurs') ?> <code>#RRGGBB</code>. <?= $tr('Les polices sont choisies parmi celles disponibles sur l’appareil du visiteur. Les fichiers GIF, PNG et JPEG sont limités à 1 Mio et 1 600 px par côté. Renseigne un texte de remplacement si l’image donne une information.') ?></p>
+<nav aria-label="<?= $tr('Accès rapide') ?>"><a href="#retro-theme"><?= $tr('Thème du portail') ?></a> · <a href="#editor-actions"><?= $tr('Enregistrement et publication') ?></a></nav>
 <form method="post" action="oldweb-editor.php" enctype="multipart/form-data">
 <div>
 <input type="hidden" name="csrf" value="<?= $escape($csrf) ?>">
@@ -118,10 +126,10 @@ a:focus,button:focus,input:focus,select:focus { outline:2px solid #9f3600; }
 <?php endif ?>
 </fieldset>
 <?php endforeach ?>
-<p><button type="submit" name="action" value="draft"><?= $tr('Enregistrer le brouillon') ?></button>
+<p class="actions" id="editor-actions" tabindex="-1"><button type="submit" name="action" value="draft"><?= $tr('Enregistrer le brouillon') ?></button>
 <button type="submit" name="action" value="publish"><?= $tr('Publier') ?></button>
 <?php if ($state['previous'] !== null): ?><button type="submit" name="action" value="restore"><?= $tr('Rétablir la version précédente') ?></button><?php endif ?></p>
 </form>
-</div>
+</main>
 </body>
 </html>

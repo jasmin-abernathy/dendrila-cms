@@ -14,6 +14,10 @@ header('X-Content-Type-Options: nosniff');
 header('X-Frame-Options: DENY');
 header('Referrer-Policy: no-referrer');
 
+if ($editor) {
+    header('X-Robots-Tag: noindex, nofollow');
+}
+
 require __DIR__ . '/PortalLocale.php';
 $language = PortalLocale::selected(($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' ? ($_POST['lang'] ?? null) : ($_GET['lang'] ?? null))
     ?? PortalLocale::DEFAULT;

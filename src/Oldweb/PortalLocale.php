@@ -35,6 +35,8 @@ final class PortalLocale
     }
 
     private const ENGLISH = [
+        'Accès rapide' => 'Quick navigation',
+        'Enregistrement et publication' => 'Save and publish',
         'Langue d’installation' => 'Setup language',
         'Installer Dendrila Retro' => 'Install Dendrila Retro',
         'Tant que le site n’est pas installé, la première personne qui termine ce formulaire devient administratrice. Termine maintenant ou protège temporairement le site depuis ton hébergement.' => 'Until the site is installed, the first person to complete this form becomes the administrator. Finish setup now or use your hosting control panel to temporarily protect the site.',
